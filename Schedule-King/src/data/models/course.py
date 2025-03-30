@@ -2,6 +2,9 @@ from typing import List
 from .time_slot import TimeSlot
 
 class Course:
+    """
+    Represents a course with its details including lectures, tutorials, and labs.
+    """
     def __init__(self, course_name: str, course_code: str, instructor: str,
                   lectures: List[TimeSlot], tutorials: List[TimeSlot], labs: List[TimeSlot]):
         
@@ -33,5 +36,4 @@ class Course:
     @property
     def labs(self):
         return self._labs
-    
     
