@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, time  
 
 # This class represents a time slot for a class or event.
 # It includes the day of the week, start and end times, room number, and building name.
@@ -14,7 +14,7 @@ class TimeSlot:
         self._building = building
         
     # Method to check if this time slot conflicts with another time slot.
-    def conflicts_wit(self, other):
+    def conflicts_with(self, other):
         return (self.day == other.day and self.start_time < other.end_time and self.end_time > other.start_time)
         
     # Method to return a string representation of the time slot.
@@ -31,7 +31,7 @@ class TimeSlot:
     def validate(self):
         if not self.day in ["1", "2", "3", "4", "5", "6"]:
             raise ValueError("Invalid day")
-        if not isinstance(self.start_time, datetime.time) or not isinstance(self.end_time, datetime.time):
+        if not isinstance(self.start_time, time) or not isinstance(self.end_time, time):
             raise ValueError("Invalid time format")
         if self.start_time >= self.end_time:
             raise ValueError("Start time must be before end time")
@@ -41,8 +41,6 @@ class TimeSlot:
             raise ValueError("Room and building cannot be empty")
         if not self.room.isalnum() or not self.building.isalnum():
             raise ValueError("Room and building must be alphanumeric")
-        if self.start_time > self.end_time:
-            raise ValueError("Start time cannot be after end time")
         
     # Property to get the day of the time slot.
     @property

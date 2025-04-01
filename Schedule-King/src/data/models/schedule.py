@@ -10,4 +10,6 @@ class Schedule:
     lecture_groups: List[LectureGroup]
 
     def __str__(self):
-        return f"Schedule({self.course_code})"
+        # Creating a list of course codes from each LectureGroup object and print them
+        course_codes = [lecture_group.course_code for lecture_group in self.lecture_groups]
+        return f"Schedule({', '.join(course_codes)})"

@@ -6,14 +6,14 @@ class Course:
     Represents a course with its details including lectures, tutorials, and labs.
     """
     def __init__(self, course_name: str, course_code: str, instructor: str,
-                  lectures: List[TimeSlot], tutorials: List[TimeSlot], labs: List[TimeSlot]):
+                  lectures: List[TimeSlot], tirguls: List[TimeSlot], maabadas: List[TimeSlot]):
         
         self._name = course_name
         self._course_code = course_code
         self._instructor = instructor
         self._lectures = lectures
-        self._tutorials = tutorials
-        self._labs = labs
+        self._tirguls = tirguls
+        self._maabadas = maabadas
 
     def __str__(self):
         return f"Course({self.course_code}, {self.name}, {self.instructor})"
@@ -31,9 +31,9 @@ class Course:
     def lectures(self):
         return self._lectures
     @property
-    def tutorials(self):
-        return self._tutorials
+    def tirguls(self):
+        return self._tirguls
     @property
-    def labs(self):
-        return self._labs
+    def maabadas(self):
+        return self._maabadas
     

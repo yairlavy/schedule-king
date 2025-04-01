@@ -1,12 +1,12 @@
-from time_slot import TimeSlot
+from .time_slot import TimeSlot
 
 class LectureGroup:
     """
-    A class to represent a group of lectures, tutorials, and labs for a course.
+    A class to represent a group of lectures, tirguls, and maabadas for a course.
     """
 
     def __init__(self, course_name: str, course_code: str, instructor: str,
-                 lecture: TimeSlot, tutorial: TimeSlot, labs: TimeSlot):
+                 lecture: TimeSlot, tirguls: TimeSlot, maabadas: TimeSlot):
         """
         Initialize a LectureGroup instance.
 
@@ -15,15 +15,15 @@ class LectureGroup:
             course_code (str): The code of the course.
             instructor (str): The name of the instructor.
             lecture (TimeSlot): The time slot for the lecture.
-            tutorial (TimeSlot): The time slot for the tutorial.
-            labs (TimeSlot): The time slot for the labs.
+            tirguls (TimeSlot): The time slot for the tirguls.
+            maabadas (TimeSlot): The time slot for the maabadas.
         """
         self._course_name = course_name
         self._course_code = course_code
         self._instructor = instructor
         self._lecture = lecture
-        self._tutorial = tutorial
-        self._labs = labs    
+        self._tirguls = tirguls
+        self._maabadas = maabadas    
 
     @property
     def course_name(self):
@@ -66,24 +66,24 @@ class LectureGroup:
         return self._lecture    
 
     @property
-    def tutorial(self):
+    def tirguls(self):
         """
-        Get the time slot for the tutorial.
+        Get the time slot for the tirguls.
 
         Returns:
             TimeSlot: The tutorial time slot.
         """
-        return self._tutorial
+        return self._tirguls
 
     @property
-    def labs(self):
+    def maabadas(self):
         """
-        Get the time slot for the labs.
+        Get the time slot for the maabadas.
 
         Returns:
             TimeSlot: The labs time slot.
         """
-        return self._labs
+        return self._maabadas
 
     def __str__(self):
         """
@@ -92,4 +92,4 @@ class LectureGroup:
         Returns:
             str: A string containing course details and time slots.
         """
-        return f"LectureGroup({self.course_code}, {self.course_name}, {self.instructor}, {self.lecture}, {self.tutorial}, {self.labs})"
+        return f"LectureGroup({self.course_code}, {self.course_name}, {self.instructor}, {self.lecture}, {self.tirguls}, {self.maabadas})"

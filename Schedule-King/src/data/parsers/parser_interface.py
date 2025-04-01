@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
+from src.data.models.course import Course
+from src.data.models.lecture_group import LectureGroup 
 
 class IParser(ABC):
     @abstractmethod
