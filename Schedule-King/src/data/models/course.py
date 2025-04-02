@@ -6,14 +6,14 @@ class Course:
     Represents a course with its details including lectures, tutorials, and labs.
     """
     def __init__(self, course_name: str, course_code: str, instructor: str,
-                  lectures: List[TimeSlot], tirguls: List[TimeSlot], maabadas: List[TimeSlot]):
+                  lectures: List[TimeSlot] = None, tirguls: List[TimeSlot] = None, maabadas: List[TimeSlot] = None):
         
         self._name = course_name
         self._course_code = course_code
         self._instructor = instructor
-        self._lectures = lectures
-        self._tirguls = tirguls
-        self._maabadas = maabadas
+        self._lectures = lectures if lectures is not None else []
+        self._tirguls = tirguls if tirguls is not None else []
+        self._maabadas = maabadas if maabadas is not None else []
 
     def __str__(self):
         return f"Course({self.course_code}, {self.name}, {self.instructor})"
@@ -37,3 +37,9 @@ class Course:
     def maabadas(self):
         return self._maabadas
     
+    def add_lecture(self, lecture: TimeSlot):
+        self._lectures.append(lecture)
+    def add_tirgul(self, tirgul: TimeSlot):
+        self._tirguls.append(tirgul)
+    def add_maabada(self, maabada: TimeSlot):
+        self._maabadas.append(maabada)

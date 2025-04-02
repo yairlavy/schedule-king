@@ -5,9 +5,9 @@ from src.data.models.lecture_group import LectureGroup
 
 class IParser(ABC):
     @abstractmethod
-    def parse(self, raw_data: str) -> tuple[list[Course], list[LectureGroup]]:
+    def parse(self) -> list[Course]:
         """
-        Parses raw data and returns a tuple of:
-        (list of Course objects, list of LectureGroup objects)
+        Parses the data and returns a list of Course objects.
+        (list of Course objects)
         """
         pass
