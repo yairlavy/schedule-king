@@ -3,30 +3,27 @@
 from typing import List
 from src.data.models.course import Course
 from src.data.models.schedule import Schedule
-from src.core.all_strategy import StrategyAll
-from src.core.conflict_checker import ConflictChecker
-from src.core.schedule_strategy_interface import ISchedulerStrategy
+from src.core.schedule_strategy_interface import IScheduleStrategy
 
 class Scheduler:
     """
-    Central class responsible for creating schedules using a scheduling strategy.
+    Central class responsible for generating course schedules using a flexible strategy.
     """
 
-    def __init__(self, selected: List[Course]):
+    def __init__(self, selected: List[Course], strategy: IScheduleStrategy):
         """
-        Initialize the scheduler with the selected courses.
-
-        Automatically uses StrategyAll and ConflictChecker internally.
+        Initialize the scheduler with selected courses and a strategy.
 
         :param selected: List of courses selected by the user.
+        :param strategy: Any strategy that implements IScheduleStrategy (e.g., AllStrategy, SmartStrategy).
         """
         self.selected = selected
-        self.strategy: ISchedulerStrategy = StrategyAll(selected, ConflictChecker())
+        self.strategy = strategy
 
     def generate(self) -> List[Schedule]:
         """
-        Generate all valid course schedules using the assigned strategy.
+        Generate all valid schedules using the provided strategy.
 
-        :return: List of valid, non-conflicting schedules.
+        :return: A list of valid, conflict-free schedules.
         """
         return self.strategy.generate()

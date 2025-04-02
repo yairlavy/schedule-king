@@ -1,10 +1,12 @@
+# src/core/all_strategy.py
+
 from typing import List
 from itertools import product
 from src.core.schedule_strategy_interface import IScheduleStrategy
 from src.data.models.schedule import Schedule
 from .conflict_checker import ConflictChecker
 from src.data.models.course import Course
-from src.data.models.lecture_group import LectureGroup # Assuming this is the correct import path for LectureGroup
+from src.data.models.lecture_group import LectureGroup
 
 class AllStrategy(IScheduleStrategy):
     def __init__(self, selected: List[Course], checker: ConflictChecker):
@@ -16,42 +18,31 @@ class AllStrategy(IScheduleStrategy):
         self._selected = selected
         self._checker = checker
 
-def generate_schedules(self, courses: List[Course]) -> List[Schedule]:
-    """
-    Generates all possible valid schedules from the given list of courses.
+    def generate(self) -> List[Schedule]:
+        """
+        Generates all possible valid schedules from the selected courses.
 
-    Note: uses the courses provided during construction (self._selected),
-    and ignores the `courses` parameter to match the original UML.
+        Returns:
+            List[Schedule]: All valid (conflict-free) schedules.
+        """
+        valid_schedules = []
 
-    Returns:
-        List[Schedule]: All valid (conflict-free) schedules.
-    """
-    valid_schedules = []
+        all_combinations = self._generate_all_lecture_group_combinations(self._selected)
 
-    # Generate all possible combinations of lecture groups (one per course)
-    all_combinations = self._generate_all_lecture_group_combinations(self._selected)
+        for combination in all_combinations:
+            unique_courses = {group.course_code for group in combination}
 
-    for combination in all_combinations:
-        # Extract unique course codes from the combination
-        unique_courses = {group.course_code for group in combination}
+            if len(unique_courses) > 7:
+                continue
 
-        # Ensure no more than 7 different courses in a schedule
-        if len(unique_courses) > 7:
-            continue  # Skip invalid combinations
+            if not self._has_conflict(combination):
+                valid_schedules.append(Schedule(combination))
 
-        # Check for time/room conflicts
-        if not self._has_conflict(combination):
-            # Valid schedule found, add to results
-            valid_schedules.append(Schedule(combination))
-
-    return valid_schedules
+        return valid_schedules
 
     def _has_conflict(self, groups: List[LectureGroup]) -> bool:
         """
         Check for any time or room conflicts among the lecture groups.
-
-        Returns:
-            bool: True if there is a conflict, otherwise False.
         """
         for i in range(len(groups)):
             for j in range(i + 1, len(groups)):
@@ -62,7 +53,7 @@ def generate_schedules(self, courses: List[Course]) -> List[Schedule]:
                     slot_b = getattr(b, slot_type)
 
                     if self._checker.check_time_conflict(slot_a, slot_b) or \
-                        self._checker.check_room_conflict(slot_a, slot_b):
+                       self._checker.check_room_conflict(slot_a, slot_b):
                         return True
         return False
 
