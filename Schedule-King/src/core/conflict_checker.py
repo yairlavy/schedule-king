@@ -54,7 +54,8 @@ class ConflictChecker:
         # Pairwise check of conflicts
         for i in range(len(all_slots)):
             for j in range(i + 1, len(all_slots)):
-                if self.check_time_conflict(all_slots[i], all_slots[j]):
+                if (self.check_time_conflict(all_slots[i], all_slots[j]) or
+                        self.check_room_conflict(all_slots[i], all_slots[j])):
                     return True
 
         return False
