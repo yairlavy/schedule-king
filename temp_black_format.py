@@ -12,17 +12,15 @@ class TextFormatter(IFormatter):
         self.schedules = schedules
         
     def convertToText(self , schedules : Schedule) -> str:
-        formatted_text = ""
-        # Iterate through each lecture group in the schedule and format the details
-        for lecture_group in schedule.lecture_groups:
-            formatted_text += f"Course Code: {lecture_group.course_code}\n"
-            formatted_text += f"Course Name: {lecture_group.course_name}\n"
-            formatted_text += f"Time: {lecture_group.lecture}\n"
-            if lecture_group.tirguls:
-                formatted_text += f"Tirgul: {lecture_group.tirguls}\n"
-            if lecture_group.maabadas:
-                formatted_text += f"Maabada: {lecture_group.maabadas}\n"
-        return formatted_text.strip()
+                    # Iterate through each lecture group in the schedule and format the details
+            for lecture_group in schedule.lecture_groups:
+                formatted_text += f"Course Code: {lecture_group.course_code}\n"
+                formatted_text += f"Course Name: {lecture_group.course_name}\n"
+                formatted_text += f"Time: {lecture_group.lecture}\n"
+                if lecture_group.tirguls:
+                    formatted_text += f"Tirgul: {lecture_group.tirguls}\n"
+                if lecture_group.maabadas:
+                    formatted_text += f"Maabada: {lecture_group.maabadas}\n"
 
     
     def format(self, schedules: List[Schedule]) -> str:
@@ -35,7 +33,7 @@ class TextFormatter(IFormatter):
         for schedule in schedules:
             formatted_text += "----------------------------------------\n"
             formatted_text += f"Schedule {count}:\n"
-            formatted_text += self.convertToText(schedule) + "\n"
+
             formatted_text += "----------------------------------------\n"
             count += 1
         # Remove the last separator line
