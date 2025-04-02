@@ -37,7 +37,7 @@ def test_conflicts_with(time_slots):
 
 #TIMESLOT_REPR_001
 def test_str_representation(time_slots):
-    expected = "S,1,09:00:00,10:00:00,101,22"
+    expected = "Sunday,09:00:00-10:00:00,Room: 101,Building: 22"
     assert str(time_slots["slot1"]) == expected
 
 #TIMESLOT_FUNC_DUR_001

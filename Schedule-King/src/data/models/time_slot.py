@@ -1,4 +1,5 @@
 from datetime import datetime, time  
+from enum import Enum
 
 # This class represents a time slot for a class or event.
 # It includes the day of the week, start and end times, room number, and building name.
@@ -19,7 +20,18 @@ class TimeSlot:
         
     # Method to return a string representation of the time slot.
     def __str__(self):
-        return f"S,{self.day},{self.start_time},{self.end_time},{self.room},{self.building}"
+        # Enum to map day numbers to names.
+        class Day(Enum):
+            SUNDAY = "1"
+            MONDAY = "2"
+            TUESDAY = "3"
+            WEDNESDAY = "4"
+            THURSDAY = "5"
+            FRIDAY = "6"
+            SATURDAY = "7"
+        # Get the name of the day from the enum using the day number.
+        day_name = Day(self.day).name.capitalize()
+        return f"{day_name},{self.start_time}-{self.end_time},Room: {self.room},Building: {self.building}"
     
     # Method to calculate the duration of the time slot in minutes.
     def duration(self):
