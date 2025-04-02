@@ -53,7 +53,7 @@ class AllStrategy(IScheduleStrategy):
                     slot_b = getattr(b, slot_type)
 
                     if self._checker.check_time_conflict(slot_a, slot_b) or \
-                       self._checker.check_room_conflict(slot_a, slot_b):
+                        self._checker.check_room_conflict(slot_a, slot_b):
                         return True
         return False
 
