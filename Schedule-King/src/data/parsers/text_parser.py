@@ -26,16 +26,18 @@ class TextParser(IParser):
             raise ValueError("Invalid course block: missing name/code/instructor")
 
         course = Course(lines[0], lines[1], lines[2])
-
         for line in lines[3:]:
             prefix = line[0]
             time_slots = self._parse_slots(line)
             if prefix == "L":
-                course.add_lecture(time_slots)
+                for slot in time_slots:
+                    course.add_lecture(slot)
             elif prefix == "T":
-                course.add_tirgul(time_slots)
+                for slot in time_slots:
+                    course.add_tirgul(slot)
             elif prefix == "M":
-                course.add_maabada(time_slots)
+                for slot in time_slots:
+                    course.add_maabada(slot)
 
         return course
 
