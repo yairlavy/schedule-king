@@ -11,7 +11,17 @@ class TextFormatter(IFormatter):
         """
         self.schedules = schedules
         
-    def scheduleToText(self , schedules : Schedule) -> str:
+        
+    def format(self, schedules: List[Schedule]):
+        """
+        Format the schedule data as a text string.
+        :param schedules: A list of Schedule objects.
+        :return: A formatted string representation of the schedules.
+        """
+        # TODO: Add error handling for file operations
+        self.export(schedules, "schedules.txt")
+        
+    def scheduleToText(self , schedule : Schedule) -> str:
         formatted_text = ""
         # Iterate through each lecture group in the schedule and format the details
         for lecture_group in schedule.lecture_groups:
@@ -25,7 +35,7 @@ class TextFormatter(IFormatter):
         return formatted_text.strip()
 
     
-    def format(self, schedules: List[Schedule]) -> str:
+    def formatText(self, schedules: List[Schedule]) -> str:
         """
         Format the schedule data as a text string.
         """
@@ -48,9 +58,10 @@ class TextFormatter(IFormatter):
         :param schedules: A list of Schedule objects.
         :param file_path: The path to the output text file.
         """
-        with open(file_path, 'w') as file: # TODO: Add error handling for file operations
+        with open(file_path, 'w') as file:
             # Write the formatted text to the file
-            file.write(self.format(schedules))
+            file.write(self.formatText(schedules))
         print(f"Schedules exported to {file_path} successfully.")   
         
+
 
