@@ -1,10 +1,20 @@
+# src/core/schedule_strategy_interface.py
+
 from abc import ABC, abstractmethod
 from typing import List
+from src.data.models.schedule import Schedule
 
 class IScheduleStrategy(ABC):
+    """
+    Abstract base class for schedule generation strategies.
+    """
+
     @abstractmethod
-    def generate_schedules(self, courses: List[Course]) -> List[Schedule]:
+    def generate(self) -> List[Schedule]:
         """
-        Generate all possible valid schedules from the given courses.
+        Generate all possible valid schedules using internal state (e.g. selected courses).
+
+        Returns:
+            List[Schedule]: A list of valid, non-conflicting schedules.
         """
         pass
