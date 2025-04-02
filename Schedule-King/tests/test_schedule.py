@@ -1,6 +1,6 @@
 import pytest
 import os
-from src.formatters.text_formatter import TextFormatter
+from src.data.formatters.text_formatter import TextFormatter
 from src.data.models.schedule import Schedule
 from src.data.models.lecture_group import LectureGroup
 from src.data.models.time_slot import TimeSlot
