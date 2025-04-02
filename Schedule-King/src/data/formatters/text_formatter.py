@@ -40,4 +40,17 @@ class TextFormatter(IFormatter):
             count += 1
         # Remove the last separator line
         return formatted_text.strip()
+    
+    
+    def export(self, schedules: List[Schedule], file_path: str) -> None:
+        """
+        Export the formatted schedule to a text file.
+        :param schedules: A list of Schedule objects.
+        :param file_path: The path to the output text file.
+        """
+        with open(file_path, 'w') as file: # TODO: Add error handling for file operations
+            # Write the formatted text to the file
+            file.write(self.format(schedules))
+        print(f"Schedules exported to {file_path} successfully.")   
+        
 
