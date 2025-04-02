@@ -13,14 +13,14 @@ class FileHandler:
         self.parser = parser
         self.formatter = formatter
 
-    def parse(self, raw_data: str) -> Tuple[List[Course], List[LectureGroup]]:
+    def parse(self) -> List[Course]:
         """
         Parses the input data into courses and lecture groups.
 
         :param raw_data: Raw text input from file or user
         :return: Tuple (List[Course], List[LectureGroup])
         """
-        return self.parser.parse(raw_data)
+        return self.parser.parse()
 
     def format(self, schedules: List[Schedule]) -> str:
         """

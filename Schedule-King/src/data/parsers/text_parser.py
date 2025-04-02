@@ -38,7 +38,10 @@ class TextParser(IParser):
             elif prefix == "M":
                 for slot in time_slots:
                     course.add_maabada(slot)
-
+        # random maabada 
+        import random
+        time_slot = TimeSlot(str(random.choice([1,2,3,4,5,6])), "14:00", "16:00", "1300", "3")
+        course.add_maabada(time_slot)
         return course
 
     def _parse_slots(self, line: str) -> List[TimeSlot]:

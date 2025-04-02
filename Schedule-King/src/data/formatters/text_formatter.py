@@ -5,12 +5,12 @@ import os
 
 class TextFormatter(IFormatter):
     
-    def __init__(self, schedules: List[Schedule]):
+    def __init__(self):
         """
         Initialize the TextFormatter.
         :param schedules: A list of Schedule objects.
         """
-        self.schedules = schedules
+        self.schedules = None
         
         
     def __repr__(self):
@@ -25,7 +25,7 @@ class TextFormatter(IFormatter):
         if not schedules:
             raise ValueError("No schedules available to format.")
         # TODO: Add error handling for file operations
-        self.export(schedules, "schedules.txt")
+        self.export(schedules, "/home/ido/Desktop/schedules.txt")
         
     def scheduleToText(self, schedule: Schedule) -> str:
         formatted_text = ""
@@ -34,13 +34,12 @@ class TextFormatter(IFormatter):
             formatted_text += f"Course Name: {lecture_group.course_name}\n"
             
             # Properly format time slots by calling str() on each TimeSlot
-            for time_slot in lecture_group.lecture:
-                formatted_text += f"Lecture: {str(time_slot)}\n"
+            formatted_text += f"Lecture: {str(lecture_group.lecture)}\n"
             
             if lecture_group.tirguls:
-                formatted_text += f"Tirgul: {', '.join(str(t) for t in lecture_group.tirguls)}\n"
+                formatted_text += f"Tirgul: {', '.join(str(t) for t in [lecture_group.tirguls])}\n"
             if lecture_group.maabadas:
-                formatted_text += f"Maabada: {', '.join(str(m) for m in lecture_group.maabadas)}\n"
+                formatted_text += f"Maabada: {', '.join(str(m) for m in [lecture_group.maabadas])}\n"
         
         return formatted_text.strip()
 
