@@ -1,4 +1,6 @@
 import pytest
+import os
+from src.formatters.text_formatter import TextFormatter
 from src.data.models.schedule import Schedule
 from src.data.models.lecture_group import LectureGroup
 from src.data.models.time_slot import TimeSlot
@@ -13,52 +15,57 @@ def time_slots():
 
 @pytest.fixture
 def lecture_groups(time_slots):
-    calculus_1 = LectureGroup(
-        course_name="Calculus 1",
-        course_code="00001",
-        instructor="Prof. O. Some",
-        lecture=time_slots[0],
-        tirguls=[],
-        maabadas=[]
-    )
-
-    software_project = LectureGroup(
-        course_name="Software Project",
-        course_code="83533",
-        instructor="Dr. Terry Bell",
-        lecture=[],
-        tirguls=time_slots[1],
-        maabadas=[]
-    )
-
-    calculus_1_eng = LectureGroup(
-        course_name="Calculus 1 (eng)",
-        course_code="83112",
-        instructor="Dr. Erez Scheiner",
-        lecture=[],
-        tirguls=[],
-        maabadas=time_slots[2]
-    )
-
-    return [calculus_1, software_project, calculus_1_eng]
+    return [
+        LectureGroup("Calculus 1", "00001", "Prof. O. Some", time_slots[0], [], []),
+        LectureGroup("Software Project", "83533", "Dr. Terry Bell", None, [time_slots[1]], []),
+        LectureGroup("Calculus 1 (eng)", "83112", "Dr. Erez Scheiner", None, [], [time_slots[2]])
+    ]
 
 @pytest.fixture
 def sample_schedule(lecture_groups):
     return Schedule(lecture_groups=lecture_groups)
 
-#SCHEDULE_INIT_001
-def test_schedule_init(sample_schedule, lecture_groups):
-    assert sample_schedule.lecture_groups == lecture_groups
-    print("")
-    for lg in sample_schedule.lecture_groups:
-        print(f"LectureGroup: {lg.course_name} ({lg.course_code}) - Instructor: {lg.instructor} "
-            f"- Time Slot: {lg.lecture} - Tirguls: {lg.tirguls} - Maabadas: {lg.maabadas}")
-    
-    #SCHEDULE_FUNC_LEN_001
-    assert len(sample_schedule.lecture_groups) == 3
+@pytest.fixture
+def formatter(sample_schedule):
+    return TextFormatter([sample_schedule])
 
-#SCHEDULE_REPR_001
-def test_schedule_str_representation(sample_schedule, lecture_groups):
-    expected_str = f"Schedule({lecture_groups[0].course_code}, {lecture_groups[1].course_code}, {lecture_groups[2].course_code})"
-    assert str(sample_schedule) == expected_str
-    print("\nsample_schedule:", sample_schedule)
+# TEXTFORMATTER_INIT_001 - Initialization
+def test_textformatter_init(formatter):
+    assert isinstance(formatter, TextFormatter)
+    assert isinstance(formatter.schedules, list)
+    assert len(formatter.schedules) > 0
+
+# TEXTFORMATTER_FUNC_001 - Functional test for format()
+def test_textformatter_format(formatter, sample_schedule):
+    formatter.format([sample_schedule])
+    assert os.path.exists("schedules.txt")
+    with open("schedules.txt", "r", encoding="utf-8") as f:
+        content = f.read()
+    assert "Schedule 1:" in content
+    assert "Course Code: 00001" in content
+    os.remove("schedules.txt")
+
+# TEXTFORMATTER_FUNC_002 - Functional test for scheduleToText()
+def test_textformatter_schedule_to_text(formatter, sample_schedule):
+    formatted_text = formatter.scheduleToText(sample_schedule)
+    assert isinstance(formatted_text, str)
+    assert "Course Code: 00001" in formatted_text
+    assert "Course Name: Calculus 1" in formatted_text
+
+# TEXTFORMATTER_FILE_IO_001 - File IO test for export()
+def test_textformatter_export(formatter, sample_schedule):
+    file_path = "test_schedule_output.txt"
+    formatter.export([sample_schedule], file_path)
+    assert os.path.exists(file_path)
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+    assert "Schedule 1:" in content
+    assert "Course Code: 00001" in content
+    assert "Course Name: Calculus 1" in content
+    assert "Instructor: Prof. O. Some" in content
+    os.remove(file_path)  # Clean up after test
+
+# TEXTFORMATTER_REPR_001 - Representation test
+def test_textformatter_repr(formatter):
+    expected_repr = f"<TextFormatter with {len(formatter.schedules)} schedules>"
+    assert repr(formatter) == expected_repr

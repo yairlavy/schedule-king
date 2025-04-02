@@ -12,12 +12,17 @@ class TextFormatter(IFormatter):
         self.schedules = schedules
         
         
+    def __repr__(self):
+        return f"<TextFormatter with {len(self.schedules)} schedules>"
+        
     def format(self, schedules: List[Schedule]):
         """
-        Format the schedule data as a text string.
+        Format the schedule data and export it to a text file.
         :param schedules: A list of Schedule objects.
-        :return: A formatted string representation of the schedules.
         """
+        schedules = schedules or self.schedules
+        if not schedules:
+            raise ValueError("No schedules available to format.")
         # TODO: Add error handling for file operations
         self.export(schedules, "schedules.txt")
         
@@ -45,7 +50,7 @@ class TextFormatter(IFormatter):
         for schedule in schedules:
             formatted_text += "----------------------------------------\n"
             formatted_text += f"Schedule {count}:\n"
-            formatted_text += self.schedulesToText(schedule) + "\n"
+            formatted_text += self.scheduleToText(schedule) + "\n"
             formatted_text += "----------------------------------------\n"
             count += 1
         # Remove the last separator line
@@ -54,14 +59,15 @@ class TextFormatter(IFormatter):
     
     def export(self, schedules: List[Schedule], file_path: str) -> None:
         """
-        Export the formatted schedule to a text file.
+        Export the formatted schedules to a text file.
         :param schedules: A list of Schedule objects.
         :param file_path: The path to the output text file.
         """
-        with open(file_path, 'w') as file:
-            # Write the formatted text to the file
-            file.write(self.formatText(schedules))
-        print(f"Schedules exported to {file_path} successfully.")   
+        try:
+            with open(file_path, 'w', encoding='utf-8') as file:
+                file.write(self.formatText(schedules))
+        except (IOError, OSError) as e:
+            print(f"❌ Error exporting schedules: {e}")
         
 
 
