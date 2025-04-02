@@ -20,16 +20,18 @@ class TimeSlot:
         
     # Method to return a string representation of the time slot.
     def __str__(self):
+        # Enum to map day numbers to names.
         class Day(Enum):
-            MONDAY = "1"
-            TUESDAY = "2"
-            WEDNESDAY = "3"
-            THURSDAY = "4"
-            FRIDAY = "5"
-            SATURDAY = "6"
-
+            SUNDAY = "1"
+            MONDAY = "2"
+            TUESDAY = "3"
+            WEDNESDAY = "4"
+            THURSDAY = "5"
+            FRIDAY = "6"
+            SATURDAY = "7"
+        # Get the name of the day from the enum using the day number.
         day_name = Day(self.day).name.capitalize()
-        return f"{day_name}, {self.start_time} - {self.end_time}, Room={self.room}, Building={self.building}"
+        return f"{day_name},{self.start_time}-{self.end_time},Room: {self.room},Building: {self.building}"
     
     # Method to calculate the duration of the time slot in minutes.
     def duration(self):

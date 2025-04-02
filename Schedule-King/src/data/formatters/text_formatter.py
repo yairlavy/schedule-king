@@ -1,6 +1,7 @@
 from typing import List
 from .formatter_interface import IFormatter
 from ..models.schedule import Schedule
+import os
 
 class TextFormatter(IFormatter):
     
@@ -26,20 +27,24 @@ class TextFormatter(IFormatter):
         # TODO: Add error handling for file operations
         self.export(schedules, "schedules.txt")
         
-    def scheduleToText(self , schedule : Schedule) -> str:
+    def scheduleToText(self, schedule: Schedule) -> str:
         formatted_text = ""
-        # Iterate through each lecture group in the schedule and format the details
         for lecture_group in schedule.lecture_groups:
             formatted_text += f"Course Code: {lecture_group.course_code}\n"
             formatted_text += f"Course Name: {lecture_group.course_name}\n"
-            formatted_text += f"Time: {lecture_group.lecture}\n"
+            
+            # Properly format time slots by calling str() on each TimeSlot
+            for time_slot in lecture_group.lecture:
+                formatted_text += f"Lecture: {str(time_slot)}\n"
+            
             if lecture_group.tirguls:
-                formatted_text += f"Tirgul: {lecture_group.tirguls}\n"
+                formatted_text += f"Tirgul: {', '.join(str(t) for t in lecture_group.tirguls)}\n"
             if lecture_group.maabadas:
-                formatted_text += f"Maabada: {lecture_group.maabadas}\n"
+                formatted_text += f"Maabada: {', '.join(str(m) for m in lecture_group.maabadas)}\n"
+        
         return formatted_text.strip()
 
-    
+
     def formatText(self, schedules: List[Schedule]) -> str:
         """
         Format the schedule data as a text string.
@@ -51,7 +56,6 @@ class TextFormatter(IFormatter):
             formatted_text += "----------------------------------------\n"
             formatted_text += f"Schedule {count}:\n"
             formatted_text += self.scheduleToText(schedule) + "\n"
-            formatted_text += "----------------------------------------\n"
             count += 1
         # Remove the last separator line
         return formatted_text.strip()
@@ -64,10 +68,12 @@ class TextFormatter(IFormatter):
         :param file_path: The path to the output text file.
         """
         try:
+            # Ensure the directory exists before writing the file
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
             with open(file_path, 'w', encoding='utf-8') as file:
                 file.write(self.formatText(schedules))
         except (IOError, OSError) as e:
-            print(f"❌ Error exporting schedules: {e}")
+            print(f"Error exporting schedules: {e}")
         
 
 
