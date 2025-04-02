@@ -19,7 +19,7 @@ class ConflictChecker:
         if a.day != b.day:
             return False
         
-        return not (a.end <= b.start or b.end <= a.start)
+        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
 
     def check_room_conflict(self, a: TimeSlot, b: TimeSlot) -> bool:
         """
@@ -35,7 +35,7 @@ class ConflictChecker:
         if a.building != b.building or a.room != b.room:
             return False
 
-        return not (a.end <= b.start or b.end <= a.start)
+        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
 
     def find_conflicting_courses(self, courses: list[Course]) -> bool:
         """
