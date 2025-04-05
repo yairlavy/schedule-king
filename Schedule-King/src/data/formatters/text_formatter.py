@@ -38,7 +38,7 @@ class TextFormatter(IFormatter):
             formatted_text += f"Lecture: {str(lecture_group.lecture)}\n"
             
             if lecture_group.tirguls:
-                formatted_text += f"Tirgul: {', '.join(str(t) for t in [lecture_group.tirguls])}\n"
+                formatted_text += f"Tirgul: {', '.join(str(s) for s in [lecture_group.tirguls])}\n"
             if lecture_group.maabadas:
                 formatted_text += f"Maabada: {', '.join(str(m) for m in [lecture_group.maabadas])}\n"
         
