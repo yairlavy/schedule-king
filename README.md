@@ -59,14 +59,78 @@ Course Name: Chemistry, Code: CHEM103
 
 ### Output
 The application generates a formatted study schedule based on the selected courses. The output is saved to a specified file and may look like this:
-```bsh
-Schedule for Selected Courses:
-1. Mathematics - Monday 10:00 AM to 12:00 PM
-2. Physics - Wednesday 2:00 PM to 4:00 PM
-3. Chemistry - Friday 9:00 AM to 11:00 AM
+```bash
+1. Calculus 1 (Code: 00001)
+2. Software Project (Code: 83533)
+3. Calculus 1 (eng) (Code: 83112)
+
+Enter course codes (space-separated): 00001 83533 83112
+
+Selected Courses:
+- Calculus 1
+- Software Project
+- Calculus 1 (eng)
 ```
 
 The output file can be found in the specified output path, such as:
 ```bash
 C:\Desktop\Schedules\output.txt
 ```
+and should look like this : 
+````bash
+------------------------------------------------------
+Schedule 1:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 42
+
+Monday:
+  [Maabada] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1300, Building 3
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Software Project (83533)
+    14:00 - 16:00 |  Room 1300, Building 3
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Maabada] Calculus 1 (00001)
+    14:00 - 16:00 |  Room 1300, Building 3
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 2:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Maabada] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1300, Building 3
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (eng) (83112)
+    17:00 - 18:00 |  Room 605, Building 14
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Software Project (83533)
+    14:00 - 16:00 |  Room 1300, Building 3
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 14:00 |  Room 605, Building 061
+  [Maabada] Calculus 1 (00001)
+    14:00 - 16:00 |  Room 1300, Building 3
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+````
