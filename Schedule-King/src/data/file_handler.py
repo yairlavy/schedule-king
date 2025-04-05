@@ -21,11 +21,11 @@ class FileHandler:
         """
         return self.parser.parse()
 
-    def format(self, schedules: List[Schedule]) -> str:
+    def format(self, schedules: List[Schedule]) :
         """
         Formats a list of schedules into string representation.
 
         :param schedules: List of Schedule objects
         :return: Formatted string
         """
-        return self.formatter.format(schedules)
+        self.formatter.format(schedules)
