@@ -21,27 +21,26 @@ class TextFormatter(IFormatter):
     def __init__(self , path: str):
         """
         Initialize the TextFormatter.
-        :param schedules: A list of Schedule objects.
+        :param : A path to the output text file.
         """
-        self.schedules = None
         self.path = path
         
         
     def __repr__(self):
-        return f"<TextFormatter with {len(self.schedules)} schedules>"
+        count = len(self.schedules) if self.schedules else 0
+        return f"<TextFormatter with {count} schedules>"
+
     
 
     def extract_by_day(self, schedule: Schedule):
         day_map = defaultdict(list)
 
         for lg in schedule.lecture_groups:
-            # Add lecture
+            # Add lecture groups
             day_map[lg.lecture.day].append(("Lecture", lg.course_name, lg.course_code, lg.lecture))
-
             # Add tirgul
             if lg.tirguls:
                 day_map[lg.tirguls.day].append(("Tirgul", lg.course_name, lg.course_code, lg.tirguls))
-
             # Add maabada
             if lg.maabadas:
                 day_map[lg.maabadas.day].append(("Maabada", lg.course_name, lg.course_code, lg.maabadas))
@@ -50,12 +49,11 @@ class TextFormatter(IFormatter):
 
 
         
-    def format(self, schedules: List[Schedule]) -> str:
+    def format(self, schedules: List[Schedule]):
         """
-        Format the schedule data and export it to a text file.
+        Format the schedule data and export it to` a text file.
         :param schedules: A list of Schedule objects.
         """
-        schedules = schedules or self.schedules
         if not schedules:
             raise ValueError("No schedules available to format.")
         self.export(schedules, file_path=self.path)
