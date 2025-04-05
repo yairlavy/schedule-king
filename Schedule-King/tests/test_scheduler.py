@@ -17,7 +17,7 @@ def sample_courses():
 
 @pytest.fixture
 def strategy(sample_courses):
-    return AllStrategy(sample_courses, ConflictChecker())
+    return AllStrategy(sample_courses)
 
 def test_SCHEDULER_INIT_001(sample_courses, strategy):
     """Ensure Scheduler object is created properly with valid input."""
@@ -73,4 +73,4 @@ def test_SCHEDULER_INVALID_001():
     courses = [course(i) for i in range(8)]
 
     with pytest.raises(ValueError):
-        AllStrategy(courses, ConflictChecker())
+        AllStrategy(courses)

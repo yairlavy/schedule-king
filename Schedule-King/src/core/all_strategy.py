@@ -9,14 +9,14 @@ from src.data.models.course import Course
 from src.data.models.lecture_group import LectureGroup
 
 class AllStrategy(IScheduleStrategy):
-    def __init__(self, selected: List[Course], checker: ConflictChecker):
+    def __init__(self, selected: List[Course]):
         """
         Initialize the strategy with selected courses and a conflict checker.
         """
         if len(selected) > 7:
             raise ValueError("Cannot select more than 7 courses.")
         self._selected = selected
-        self._checker = checker
+        self._checker = ConflictChecker()
 
     def generate(self) -> List[Schedule]:
         """

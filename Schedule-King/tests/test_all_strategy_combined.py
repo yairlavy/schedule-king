@@ -9,14 +9,6 @@ from src.data.models.time_slot import TimeSlot
 from src.core.conflict_checker import ConflictChecker
 
 # ---------- Fixtures ----------
-
-@pytest.fixture
-def mock_conflict_checker():
-    class NoConflictChecker(ConflictChecker):
-        def check_time_conflict(self, a, b): return False
-        def check_room_conflict(self, a, b): return False
-    return NoConflictChecker()
-
 @pytest.fixture
 def sample_courses():
     return [
@@ -54,21 +46,21 @@ def test_init_too_many():
 
 # ---------- _generate_all_lecture_group_combinations ----------
 
-def test_generate_combinations(sample_courses, mock_conflict_checker):
-    strategy = AllStrategy(sample_courses, mock_conflict_checker)
+def test_generate_combinations(sample_courses):
+    strategy = AllStrategy(sample_courses)
     combos = strategy._generate_all_lecture_group_combinations(sample_courses)
     assert len(combos) > 0
     assert all(isinstance(combo, list) for combo in combos)
     assert all(isinstance(group, LectureGroup) for combo in combos for group in combo)
 
-def test_generate_combinations_empty(mock_conflict_checker):
-    strategy = AllStrategy([], mock_conflict_checker)
+def test_generate_combinations_empty():
+    strategy = AllStrategy([], )
     combos = strategy._generate_all_lecture_group_combinations([])
     assert combos == [] or combos == [[]]
 
-def test_generate_combinations_no_options(mock_conflict_checker):
+def test_generate_combinations_no_options():
     empty = Course("Empty", "C3", "None", [], [], [])
-    strategy = AllStrategy([empty], mock_conflict_checker)
+    strategy = AllStrategy([empty], )
     combos = strategy._generate_all_lecture_group_combinations([empty])
     assert combos == []
 
@@ -111,8 +103,8 @@ def test_has_conflict_single():
 
 # ---------- generate ----------
 
-def test_generate_valid_schedules(sample_courses, mock_conflict_checker):
-    strategy = AllStrategy(sample_courses, mock_conflict_checker)
+def test_generate_valid_schedules(sample_courses):
+    strategy = AllStrategy(sample_courses)
     schedules = strategy.generate()
     assert all(isinstance(s, Schedule) for s in schedules)
 

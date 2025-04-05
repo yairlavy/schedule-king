@@ -5,18 +5,19 @@ import os
 
 class TextFormatter(IFormatter):
     
-    def __init__(self):
+    def __init__(self , path: str):
         """
         Initialize the TextFormatter.
         :param schedules: A list of Schedule objects.
         """
         self.schedules = None
+        self.path = path
         
         
     def __repr__(self):
         return f"<TextFormatter with {len(self.schedules)} schedules>"
         
-    def format(self, schedules: List[Schedule]):
+    def format(self, schedules: List[Schedule]) -> str:
         """
         Format the schedule data and export it to a text file.
         :param schedules: A list of Schedule objects.
@@ -25,7 +26,7 @@ class TextFormatter(IFormatter):
         if not schedules:
             raise ValueError("No schedules available to format.")
         # TODO: Add error handling for file operations
-        self.export(schedules, "/home/ido/Desktop/schedules.txt")
+        self.export(schedules, file_path=self.path)
         
     def scheduleToText(self, schedule: Schedule) -> str:
         formatted_text = ""
