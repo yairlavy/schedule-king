@@ -45,7 +45,7 @@ class AllStrategy(IScheduleStrategy):
         """
         Check for any time or room conflicts among the lecture groups using ConflictChecker.
         """
-        mock_courses = []
+        courses = []
 
         for group in groups:
             mock_course = Course(
@@ -56,14 +56,14 @@ class AllStrategy(IScheduleStrategy):
                 tirguls=[group.tirguls] if group.tirguls else [],
                 maabadas=[group.maabadas] if group.maabadas else [],
             )
-            mock_courses.append(mock_course)
+            courses.append(mock_course)
 
-        return self._checker.find_conflicting_courses(mock_courses)
-
+        return self._checker.find_conflicting_courses(courses)
     def _generate_all_lecture_group_combinations(self, courses: List[Course]) -> List[List[LectureGroup]]:
         """
         Create all combinations of lecture groups (one per course),
-        where each group must have a lecture, and may have 0 or more tirguls/maabadas.
+        where each group must include one lecture,
+        and if tirguls or maabadas exist, then exactly one of each must be selected.
         """
         all_groups = []
 
@@ -71,8 +71,11 @@ class AllStrategy(IScheduleStrategy):
             if not course.lectures:
                 raise ValueError(f"Course '{course.course_code}' must have at least one lecture.")
 
-            tirguls = course.tirguls or [None]
-            maabadas = course.maabadas or [None]
+            # if tirguls exist, we must choose exactly one, else None
+            tirguls = course.tirguls if course.tirguls else [None]
+
+            # if maabadas exist, we must choose exactly one, else None
+            maabadas = course.maabadas if course.maabadas else [None]
 
             course_groups = [
                 LectureGroup(

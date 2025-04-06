@@ -44,13 +44,13 @@ class ConflictChecker:
         :param courses: List of Course objects
         :return: True if any conflicts exist, False otherwise
         """
-        all_slots = []
+        all_slots:list[TimeSlot] = []
 
         for course in courses:
-            all_slots.extend(course.lectures)
-            all_slots.extend(course.tirguls)
-            all_slots.extend(course.maabadas)
-
+            for slot in course.lectures + course.tirguls + course.maabadas:
+                if slot is not None:
+                    all_slots.append(slot)
+        
         # Pairwise check of conflicts
         for i in range(len(all_slots)):
             for j in range(i + 1, len(all_slots)):
