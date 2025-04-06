@@ -2,47 +2,86 @@ from typing import List
 from .formatter_interface import IFormatter
 from ..models.schedule import Schedule
 import os
+from collections import defaultdict
+
+
+
+DAY_NAMES = {
+    "1": "Sunday",
+    "2": "Monday",
+    "3": "Tuesday",
+    "4": "Wednesday",
+    "5": "Thursday",
+    "6": "Friday"
+}
+
 
 class TextFormatter(IFormatter):
-    
+
     def __init__(self , path: str):
         """
         Initialize the TextFormatter.
-        :param schedules: A list of Schedule objects.
+        :param : A path to the output text file.
         """
-        self.schedules = None
         self.path = path
         
         
     def __repr__(self):
-        return f"<TextFormatter with {len(self.schedules)} schedules>"
+        count = len(self.schedules) if self.schedules else 0
+        return f"<TextFormatter with {count} schedules>"
+
+    
+
+    def extract_by_day(self, schedule: Schedule):
+        day_map = defaultdict(list)
+
+        for lg in schedule.lecture_groups:
+            # Add lecture groups
+            day_map[lg.lecture.day].append(("Lecture", lg.course_name, lg.course_code, lg.lecture))
+            # Add tirgul
+            if lg.tirguls:
+                day_map[lg.tirguls.day].append(("Tirgul", lg.course_name, lg.course_code, lg.tirguls))
+            # Add maabada
+            if lg.maabadas:
+                day_map[lg.maabadas.day].append(("Maabada", lg.course_name, lg.course_code, lg.maabadas))
+
+        return day_map
+
+
         
-    def format(self, schedules: List[Schedule]) -> str:
+    def format(self, schedules: List[Schedule]):
         """
-        Format the schedule data and export it to a text file.
+        Format the schedule data and export it to` a text file.
         :param schedules: A list of Schedule objects.
         """
-        schedules = schedules or self.schedules
         if not schedules:
             raise ValueError("No schedules available to format.")
-        # TODO: Add error handling for file operations
         self.export(schedules, file_path=self.path)
+
+
         
     def scheduleToText(self, schedule: Schedule) -> str:
-        formatted_text = ""
-        for lecture_group in schedule.lecture_groups:
-            formatted_text += f"Course Code: {lecture_group.course_code}\n"
-            formatted_text += f"Course Name: {lecture_group.course_name}\n"
-            
-            # Properly format time slots by calling str() on each TimeSlot
-            formatted_text += f"Lecture: {str(lecture_group.lecture)}\n"
-            
-            if lecture_group.tirguls:
-                formatted_text += f"Tirgul: {', '.join(str(t) for t in [lecture_group.tirguls])}\n"
-            if lecture_group.maabadas:
-                formatted_text += f"Maabada: {', '.join(str(m) for m in [lecture_group.maabadas])}\n"
-        
-        return formatted_text.strip()
+        day_map = self.extract_by_day(schedule)
+        output = ""
+
+        for day_num in sorted(DAY_NAMES.keys(), key=int):
+            if day_num not in day_map:
+                continue
+
+            output += f"{DAY_NAMES[day_num]}:\n"
+            # Sort slots by start_time
+            slots = sorted(day_map[day_num], key=lambda x: x[3].start_time)
+
+            for type_name, course_name, course_code, slot in slots:
+                time_str = f"{slot.start_time.strftime('%H:%M')} - {slot.end_time.strftime('%H:%M')}"
+                output += (
+                    f"  [{type_name}] {course_name} ({course_code})\n"
+                    f"    {time_str} |  Room {slot.room}, Building {slot.building}\n"
+                )
+            output += "\n"
+
+        return output.strip()
+
 
 
     def formatText(self, schedules: List[Schedule]) -> str:
@@ -53,7 +92,7 @@ class TextFormatter(IFormatter):
         count = 1
         # Iterate through each schedule and its lecture groups
         for schedule in schedules:
-            formatted_text += "----------------------------------------\n"
+            formatted_text += "------------------------------------------------------\n"
             formatted_text += f"Schedule {count}:\n"
             formatted_text += self.scheduleToText(schedule) + "\n"
             count += 1
