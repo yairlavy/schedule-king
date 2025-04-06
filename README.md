@@ -1,4 +1,5 @@
 # Software-for-building-a-student-study-schedule
+
 This project is a Python-based application designed to help students create and manage their study schedules effectively. By taking input such as available time slots, subjects, and priorities, the software automatically generates a personalized study plan. The goal is to optimize study time and improve productivity, making it easier for students to stay organized and focused.
 
 ## Project Structure

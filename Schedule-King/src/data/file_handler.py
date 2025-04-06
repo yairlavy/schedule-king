@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 from src.data.models.course import Course
 from src.data.models.schedule import Schedule
 from src.data.parsers.text_parser import TextParser
