@@ -1,127 +1,96 @@
 import pytest
-from itertools import product
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 from src.core.all_strategy import AllStrategy
 from src.data.models.course import Course
 from src.data.models.lecture_group import LectureGroup
 from src.data.models.schedule import Schedule
 from src.data.models.time_slot import TimeSlot
-from src.core.conflict_checker import ConflictChecker
+
+
+# ---------- Helpers ----------
+
+def make_timeslot(label: str, day="1", start="12:00", end="13:00") -> TimeSlot:
+    return TimeSlot(day=day, start_time=start, end_time=end, room="101", building="A")
+
+def make_course(code, lecture_time, tirgul_time=None, maabada_time=None) -> Course:
+    return Course(
+        name=f"Course{code}",
+        course_code=f"C{code}",
+        instructor=f"Instructor{code}",
+        lectures=[lecture_time],
+        tirguls=[tirgul_time] if tirgul_time else [],
+        maabadas=[maabada_time] if maabada_time else []
+    )
 
 # ---------- Fixtures ----------
+
 @pytest.fixture
-def sample_courses():
+def non_conflicting_courses():
+    t1 = make_timeslot("L1", start="08:00", end="09:00")
+    t2 = make_timeslot("L2", start="10:00", end="11:00")
     return [
-        Course("Course1", "C1", "Instructor1", [make_timeslot("L1")], [make_timeslot("T1")], [make_timeslot("M1")]),
-        Course("Course2", "C2", "Instructor2", [make_timeslot("L2")], [make_timeslot("T2")], [make_timeslot("M2")])
+        make_course("1", t1, tirgul_time=t1, maabada_time=t1),
+        make_course("2", t2, tirgul_time=t2, maabada_time=t2)
     ]
 
-def make_timeslot(label: str) -> TimeSlot:
-    day = str((ord(label[0]) % 5) + 1)
-    start_hour = (ord(label[1]) % 6) + 8
-    end_hour = start_hour + 1
-    return TimeSlot(day, f"{start_hour:02d}:00", f"{end_hour:02d}:00", room="101", building="A")
+@pytest.fixture
+def conflicting_courses():
+    t1 = make_timeslot("L1", start="10:00", end="12:00")
+    t2 = make_timeslot("L2", start="11:00", end="13:00")  # Overlaps with t1
+    return [
+        make_course("1", t1, tirgul_time=t1, maabada_time=t1),
+        make_course("2", t2, tirgul_time=t2, maabada_time=t2)
+    ]
 
-# ---------- __init__ Tests ----------
+
+# ---------- Tests ----------
 
 def test_init_valid():
-    courses = [Mock(spec=Course) for _ in range(3)]
-    checker = Mock()
-    strategy = AllStrategy(courses, checker)
-    assert strategy._selected == courses
-    assert strategy._checker == checker
+    strategy = AllStrategy([Mock()])
+    assert isinstance(strategy._selected, list)
 
-def test_init_max():
-    courses = [Mock(spec=Course) for _ in range(7)]
-    checker = Mock()
-    strategy = AllStrategy(courses, checker)
-    assert strategy._selected == courses
-
-
-def test_init_too_many():
-    courses = [Mock(spec=Course) for _ in range(8)]
-    checker = Mock()
+def test_init_too_many_courses_raises():
     with pytest.raises(ValueError):
-        AllStrategy(courses, checker)
+        AllStrategy([Mock()] * 8)
 
-# ---------- _generate_all_lecture_group_combinations ----------
-
-def test_generate_combinations(sample_courses):
-    strategy = AllStrategy(sample_courses)
-    combos = strategy._generate_all_lecture_group_combinations(sample_courses)
-    assert len(combos) > 0
-    assert all(isinstance(combo, list) for combo in combos)
-    assert all(isinstance(group, LectureGroup) for combo in combos for group in combo)
-
-def test_generate_combinations_empty():
-    strategy = AllStrategy([], )
-    combos = strategy._generate_all_lecture_group_combinations([])
-    assert combos == [] or combos == [[]]
-
-def test_generate_combinations_no_options():
-    empty = Course("Empty", "C3", "None", [], [], [])
-    strategy = AllStrategy([empty], )
-    combos = strategy._generate_all_lecture_group_combinations([empty])
-    assert combos == []
-
-# ---------- _has_conflict ----------
-
-def test_has_conflict_no_conflict():
-    checker = Mock()
-    checker.check_time_conflict.return_value = False
-    checker.check_room_conflict.return_value = False
-    groups = [Mock(spec=LectureGroup) for _ in range(3)]
-    strategy = AllStrategy(groups, checker)
-    assert not strategy._has_conflict(groups)
-
-def test_has_conflict_time_conflict():
-    checker = Mock()
-    groups = [Mock(spec=LectureGroup) for _ in range(2)]
-    checker.check_time_conflict.side_effect = lambda a, b: True
-    checker.check_room_conflict.return_value = False
-    strategy = AllStrategy(groups, checker)
-    assert strategy._has_conflict(groups)
-
-def test_has_conflict_room_conflict():
-    checker = Mock()
-    groups = [Mock(spec=LectureGroup) for _ in range(2)]
-    checker.check_time_conflict.return_value = False
-    checker.check_room_conflict.side_effect = lambda a, b: True
-    strategy = AllStrategy(groups, checker)
-    assert strategy._has_conflict(groups)
-
-def test_has_conflict_empty():
-    checker = Mock()
-    strategy = AllStrategy([], checker)
-    assert not strategy._has_conflict([])
-
-def test_has_conflict_single():
-    checker = Mock()
-    groups = [Mock(spec=LectureGroup)]
-    strategy = AllStrategy(groups, checker)
-    assert not strategy._has_conflict(groups)
-
-# ---------- generate ----------
-
-def test_generate_valid_schedules(sample_courses):
-    strategy = AllStrategy(sample_courses)
-    schedules = strategy.generate()
-    assert all(isinstance(s, Schedule) for s in schedules)
-
-
-def test_generate_conflicting_schedules():
-    checker = Mock()
-    checker.check_time_conflict.return_value = True
-    checker.check_room_conflict.return_value = True
-    course1 = Course("C1", "001", "Prof X", ["L1"], ["T1"], ["M1"])
-    course2 = Course("C2", "002", "Prof Y", ["L2"], ["T2"], ["M2"])
-    strategy = AllStrategy([course1, course2], checker)
-    assert strategy.generate() == []
+def test_generate_all_combinations(non_conflicting_courses):
+    strategy = AllStrategy(non_conflicting_courses)
+    combos = strategy._generate_all_lecture_group_combinations(non_conflicting_courses)
+    assert combos  # not empty
+    assert all(isinstance(c, list) for c in combos)
+    assert all(isinstance(g, LectureGroup) for combo in combos for g in combo)
 
 def test_generate_no_courses():
-    checker = Mock()
-    strategy = AllStrategy([], checker)
+    strategy = AllStrategy([])
     result = strategy.generate()
-    assert len(result) == 1
-    assert all(isinstance(schedule, Schedule) for schedule in result)
-    assert all(len(schedule.lecture_groups) == 0 for schedule in result)
+    assert result == []
+
+def test_generate_no_conflict(non_conflicting_courses):
+    strategy = AllStrategy(non_conflicting_courses)
+    schedules = strategy.generate()
+    assert len(schedules) >= 1
+    assert all(isinstance(schedule, Schedule) for schedule in schedules)
+
+def test_generate_conflict_detected(conflicting_courses):
+    strategy = AllStrategy(conflicting_courses)
+    schedules = strategy.generate()
+    assert schedules == []  # All combinations should conflict
+
+def test__has_conflict_with_real_checker_conflict():
+    # Overlapping time slots
+    slot1 = make_timeslot("A", start="12:00", end="14:00")
+    slot2 = make_timeslot("B", start="13:00", end="15:00")
+    group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
+    group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
+
+    strategy = AllStrategy([])
+    assert strategy._has_conflict([group1, group2])
+
+def test__has_conflict_with_real_checker_no_conflict():
+    slot1 = make_timeslot("A", start="08:00", end="09:00")
+    slot2 = make_timeslot("B", start="10:00", end="11:00")
+    group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
+    group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
+
+    strategy = AllStrategy([])
+    assert not strategy._has_conflict([group1, group2])

@@ -8,6 +8,7 @@ from .conflict_checker import ConflictChecker
 from src.data.models.course import Course
 from src.data.models.lecture_group import LectureGroup
 
+
 class AllStrategy(IScheduleStrategy):
     def __init__(self, selected: List[Course]):
         """
@@ -42,28 +43,37 @@ class AllStrategy(IScheduleStrategy):
 
     def _has_conflict(self, groups: List[LectureGroup]) -> bool:
         """
-        Check for any time or room conflicts among the lecture groups.
+        Check for any time or room conflicts among the lecture groups using ConflictChecker.
         """
-        for i in range(len(groups)):
-            for j in range(i + 1, len(groups)):
-                a, b = groups[i], groups[j]
+        mock_courses = []
 
-                for slot_type in ["lecture", "tirguls", "maabadas"]:
-                    slot_a = getattr(a, slot_type)
-                    slot_b = getattr(b, slot_type)
+        for group in groups:
+            mock_course = Course(
+                course_name=group.course_name,
+                course_code=group.course_code,
+                instructor=group.instructor,
+                lectures=[group.lecture] if group.lecture else [],
+                tirguls=[group.tirguls] if group.tirguls else [],
+                maabadas=[group.maabadas] if group.maabadas else [],
+            )
+            mock_courses.append(mock_course)
 
-                    if self._checker.check_time_conflict(slot_a, slot_b) or \
-                        self._checker.check_room_conflict(slot_a, slot_b):
-                        return True
-        return False
+        return self._checker.find_conflicting_courses(mock_courses)
 
     def _generate_all_lecture_group_combinations(self, courses: List[Course]) -> List[List[LectureGroup]]:
         """
-        Create all combinations of lecture groups (one per course).
+        Create all combinations of lecture groups (one per course),
+        where each group must have a lecture, and may have 0 or more tirguls/maabadas.
         """
         all_groups = []
 
         for course in courses:
+            if not course.lectures:
+                raise ValueError(f"Course '{course.course_code}' must have at least one lecture.")
+
+            tirguls = course.tirguls or [None]
+            maabadas = course.maabadas or [None]
+
             course_groups = [
                 LectureGroup(
                     course_name=course.name,
@@ -73,8 +83,9 @@ class AllStrategy(IScheduleStrategy):
                     tirguls=tir,
                     maabadas=lab
                 )
-                for lec, tir, lab in product(course.lectures, course.tirguls, course.maabadas)
+                for lec, tir, lab in product(course.lectures, tirguls, maabadas)
             ]
+
             all_groups.append(course_groups)
 
         return [list(combo) for combo in product(*all_groups)]
