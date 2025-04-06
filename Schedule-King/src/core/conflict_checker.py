@@ -1,84 +1,61 @@
-# src/core/all_strategy.py
+# src/core/conflict_checker.py
 
-from typing import List
-from itertools import product
-from src.core.schedule_strategy_interface import IScheduleStrategy
-from src.data.models.schedule import Schedule
-from .conflict_checker import ConflictChecker
+from src.data.models.time_slot import TimeSlot
 from src.data.models.course import Course
-from src.data.models.lecture_group import LectureGroup
 
+class ConflictChecker:
+    """
+    Responsible for checking conflicts between time slots and courses.
+    """
 
-class AllStrategy(IScheduleStrategy):
-    def __init__(self, selected: List[Course]):
+    def check_time_conflict(self, a: TimeSlot, b: TimeSlot) -> bool:
         """
-        Initialize the strategy with selected courses and a conflict checker.
+        Check if two time slots conflict in time and day.
+
+        :param a: First time slot
+        :param b: Second time slot
+        :return: True if they overlap in time on the same day, False otherwise
         """
-        if len(selected) > 7:
-            raise ValueError("Cannot select more than 7 courses.")
-        self._selected = selected
-        self._checker = ConflictChecker()
+        if a.day != b.day:
+            return False
+        
+        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
 
-    def generate(self) -> List[Schedule]:
+    def check_room_conflict(self, a: TimeSlot, b: TimeSlot) -> bool:
         """
-        Generates all possible valid schedules from the selected courses.
+        Check if two time slots are in the same room at the same time.
 
-        Returns:
-            List[Schedule]: All valid (conflict-free) schedules.
+        :param a: First time slot
+        :param b: Second time slot
+        :return: True if they overlap in time and are in the same room, False otherwise
         """
-        valid_schedules = []
+        if a.day != b.day:
+            return False
 
-        all_combinations = self._generate_all_lecture_group_combinations(self._selected)
+        if a.building != b.building or a.room != b.room:
+            return False
 
-        for combination in all_combinations:
-            unique_courses = {group.course_code for group in combination}
+        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
 
-            if len(unique_courses) > 7:
-                continue
-
-            if not self._has_conflict(combination):
-                valid_schedules.append(Schedule(combination))
-
-        return valid_schedules
-
-    def _has_conflict(self, groups: List[LectureGroup]) -> bool:
+    def find_conflicting_courses(self, courses: list[Course]) -> bool:
         """
-        Check for any time or room conflicts among the lecture groups using ConflictChecker.
-        """
-        # Convert LectureGroups into temporary Course objects for conflict checking
-        mock_courses = []
+        Check if there is any conflict among the course time slots.
 
-        for group in groups:
-            mock_course = Course(
-                name=group.course_name,
-                course_code=group.course_code,
-                instructor=group.instructor,
-                lectures=[group.lecture] if group.lecture else [],
-                tirguls=[group.tirguls] if group.tirguls else [],
-                maabadas=[group.maabadas] if group.maabadas else [],
-            )
-            mock_courses.append(mock_course)
-
-        return self._checker.find_conflicting_courses(mock_courses)
-
-    def _generate_all_lecture_group_combinations(self, courses: List[Course]) -> List[List[LectureGroup]]:
+        :param courses: List of Course objects
+        :return: True if any conflicts exist, False otherwise
         """
-        Create all combinations of lecture groups (one per course).
-        """
-        all_groups = []
+        all_slots = []
 
         for course in courses:
-            course_groups = [
-                LectureGroup(
-                    course_name=course.name,
-                    course_code=course.course_code,
-                    instructor=course.instructor,
-                    lecture=lec,
-                    tirguls=tir,
-                    maabadas=lab
-                )
-                for lec, tir, lab in product(course.lectures, course.tirguls, course.maabadas)
-            ]
-            all_groups.append(course_groups)
+            all_slots.extend(course.lectures)
+            all_slots.extend(course.tirguls)
+            all_slots.extend(course.maabadas)
 
-        return [list(combo) for combo in product(*all_groups)]
+        # Pairwise check of conflicts
+        for i in range(len(all_slots)):
+            for j in range(i + 1, len(all_slots)):
+                if (self.check_time_conflict(all_slots[i], all_slots[j]) or
+                        self.check_room_conflict(all_slots[i], all_slots[j])):
+                    return True
+
+        return False
