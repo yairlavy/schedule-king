@@ -45,12 +45,11 @@ class AllStrategy(IScheduleStrategy):
         """
         Check for any time or room conflicts among the lecture groups using ConflictChecker.
         """
-        # Convert LectureGroups into temporary Course objects for conflict checking
         mock_courses = []
 
         for group in groups:
             mock_course = Course(
-                name=group.course_name,
+                course_name=group.course_name,
                 course_code=group.course_code,
                 instructor=group.instructor,
                 lectures=[group.lecture] if group.lecture else [],
@@ -63,11 +62,18 @@ class AllStrategy(IScheduleStrategy):
 
     def _generate_all_lecture_group_combinations(self, courses: List[Course]) -> List[List[LectureGroup]]:
         """
-        Create all combinations of lecture groups (one per course).
+        Create all combinations of lecture groups (one per course),
+        where each group must have a lecture, and may have 0 or more tirguls/maabadas.
         """
         all_groups = []
 
         for course in courses:
+            if not course.lectures:
+                raise ValueError(f"Course '{course.course_code}' must have at least one lecture.")
+
+            tirguls = course.tirguls or [None]
+            maabadas = course.maabadas or [None]
+
             course_groups = [
                 LectureGroup(
                     course_name=course.name,
@@ -77,8 +83,9 @@ class AllStrategy(IScheduleStrategy):
                     tirguls=tir,
                     maabadas=lab
                 )
-                for lec, tir, lab in product(course.lectures, course.tirguls, course.maabadas)
+                for lec, tir, lab in product(course.lectures, tirguls, maabadas)
             ]
+
             all_groups.append(course_groups)
 
         return [list(combo) for combo in product(*all_groups)]
