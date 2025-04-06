@@ -8,6 +8,7 @@ from .conflict_checker import ConflictChecker
 from src.data.models.course import Course
 from src.data.models.lecture_group import LectureGroup
 
+
 class AllStrategy(IScheduleStrategy):
     def __init__(self, selected: List[Course]):
         """
@@ -42,20 +43,23 @@ class AllStrategy(IScheduleStrategy):
 
     def _has_conflict(self, groups: List[LectureGroup]) -> bool:
         """
-        Check for any time or room conflicts among the lecture groups.
+        Check for any time or room conflicts among the lecture groups using ConflictChecker.
         """
-        for i in range(len(groups)):
-            for j in range(i + 1, len(groups)):
-                a, b = groups[i], groups[j]
+        # Convert LectureGroups into temporary Course objects for conflict checking
+        mock_courses = []
 
-                for slot_type in ["lecture", "tirguls", "maabadas"]:
-                    slot_a = getattr(a, slot_type)
-                    slot_b = getattr(b, slot_type)
+        for group in groups:
+            mock_course = Course(
+                name=group.course_name,
+                course_code=group.course_code,
+                instructor=group.instructor,
+                lectures=[group.lecture] if group.lecture else [],
+                tirguls=[group.tirguls] if group.tirguls else [],
+                maabadas=[group.maabadas] if group.maabadas else [],
+            )
+            mock_courses.append(mock_course)
 
-                    if self._checker.check_time_conflict(slot_a, slot_b) or \
-                        self._checker.check_room_conflict(slot_a, slot_b):
-                        return True
-        return False
+        return self._checker.find_conflicting_courses(mock_courses)
 
     def _generate_all_lecture_group_combinations(self, courses: List[Course]) -> List[List[LectureGroup]]:
         """
