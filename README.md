@@ -60,13 +60,6 @@ The application takes the following inputs:
 1. **Course Database File**: A text file containing course details (e.g., course name, course code, and other metadata).
 2. **User Selection**: Users can select courses interactively or provide a list of course codes as input.
 
-Example of a course database file:
-```bash
-Course Name: Mathematics, Code: MATH101
-Course Name: Physics, Code: PHYS102
-Course Name: Chemistry, Code: CHEM103
-```
-
 ### Output
 The application generates a formatted study schedule based on the selected courses. The output is saved to a specified file and may look like this:
 ```bash
