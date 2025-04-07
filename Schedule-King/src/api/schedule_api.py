@@ -73,7 +73,8 @@ class ScheduleAPI:
         # Display the selected courses
         print("\nSelected Courses:")
         for course in selected_courses:
-            print(f"- {course.name}")
+            print(f"- {course.name} (Code: {course.course_code})")
+        print()
 
         return selected_courses
 
@@ -91,5 +92,6 @@ class ScheduleAPI:
         # Generate schedules using the Scheduler and AllStrategy
         scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
         schedules = scheduler.generate()
+        print(f"Generated {len(schedules)} schedules.")
         # Format the generated schedules and return the result
         return self.file_handler.format(schedules)
