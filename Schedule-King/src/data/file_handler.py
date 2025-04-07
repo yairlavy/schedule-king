@@ -3,12 +3,15 @@ from src.data.models.course import Course
 from src.data.models.schedule import Schedule
 from src.data.parsers.text_parser import TextParser
 from src.data.formatters.text_formatter import TextFormatter
+import os
 
 class FileHandler:
-    def __init__(self , source: str, destination: str):
+    def __init__(self, source: str, destination: str):
         """
         Initialize the FileHandler with a parser and a formatter.
         """
+        if not os.path.exists(source):
+            raise FileNotFoundError(f"The source file '{source}' does not exist.")
         self.parser = TextParser(source)
         self.formatter = TextFormatter(destination)
 

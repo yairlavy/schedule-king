@@ -8,7 +8,11 @@ class ScheduleAPI:
         """
         Initialize the ScheduleAPI with input/output file paths.
         """
-        self.file_handler = FileHandler(file_path, output_path)
+        try:
+            self.file_handler = FileHandler(file_path, output_path)
+        except FileNotFoundError as e:
+            print(f"Error: {e}. Please check the file path and try again.")
+            exit(1)
 
     def display_courses(self, courses: list[Course]) -> None:
         """

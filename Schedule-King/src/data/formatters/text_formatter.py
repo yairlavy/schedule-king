@@ -1,17 +1,7 @@
 from typing import List
 from .formatter_interface import IFormatter
-from ..models.schedule import Schedule
+from ..models.schedule import Schedule , DAY_NAMES
 import os
-from collections import defaultdict
-
-DAY_NAMES = {
-    "1": "Sunday",
-    "2": "Monday",
-    "3": "Tuesday",
-    "4": "Wednesday",
-    "5": "Thursday",
-    "6": "Friday"
-}
 
 class TextFormatter(IFormatter):
 
@@ -26,21 +16,6 @@ class TextFormatter(IFormatter):
         schedules = getattr(self, "schedules", None)
         count = len(schedules) if schedules else 0
         return f"<TextFormatter with {count} schedules>"
-
-    def extract_by_day(self, schedule: Schedule):
-        day_map = defaultdict(list)
-
-        for lg in schedule.lecture_groups:
-            # Add lecture groups
-            day_map[lg.lecture.day].append(("Lecture", lg.course_name, lg.course_code, lg.lecture))
-            # Add tirgul
-            if lg.tirguls:
-                day_map[lg.tirguls.day].append(("Tirgul", lg.course_name, lg.course_code, lg.tirguls))
-            # Add maabada
-            if lg.maabadas:
-                day_map[lg.maabadas.day].append(("Maabada", lg.course_name, lg.course_code, lg.maabadas))
-
-        return day_map
         
     def format(self, schedules: List[Schedule]):
         """
@@ -52,7 +27,7 @@ class TextFormatter(IFormatter):
         self.export(schedules, file_path=self.path)
         
     def scheduleToText(self, schedule: Schedule) -> str:
-        day_map = self.extract_by_day(schedule)
+        day_map = schedule.extract_by_day()
         output = ""
 
         for day_num in sorted(DAY_NAMES.keys(), key=int):
