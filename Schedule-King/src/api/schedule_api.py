@@ -39,19 +39,24 @@ class ScheduleAPI:
         while True:
             print("Please select between 1 and 7 valid courses.")
             # Reset selected_courses at the start of each iteration
-            selected_courses = []
+            selected_courses = [] 
+            seen_codes = set()
             # Create a mapping of course codes to Course objects for quick lookup
             code_to_course = {course.course_code: course for course in courses}
             # Interactive mode: Prompt user for course codes if not provided
             self.display_courses(courses)
             raw_input = input("Enter course codes (space-separated): ")
             course_codes = raw_input.strip().split()
-
-            for code in course_codes:
-                # Validate each course code and add the corresponding course to the selection
-                course = code_to_course.get(code.strip())
+            # Validate the course codes and add the corresponding courses to the selection
+            for raw_code in course_codes:
+                code = raw_code.strip()
+                if code in seen_codes:
+                    print(f"Warning: Duplicate course code '{code}' found. Skipping.")
+                    continue
+                course = code_to_course.get(code)
                 if course:
                     selected_courses.append(course)
+                    seen_codes.add(code)
                 else:
                     # Warn the user if a course code is invalid
                     print(f"Warning: Course code '{code}' not found. Skipping.")
