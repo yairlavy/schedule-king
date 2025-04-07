@@ -70,6 +70,11 @@ class ScheduleAPI:
                 continue
             break
 
+        # Display the selected courses
+        print("\nSelected Courses:")
+        for course in selected_courses:
+            print(f"- {course.name}")
+
         return selected_courses
 
     def process(self, course_codes: list[str] = None) -> str:
@@ -83,10 +88,6 @@ class ScheduleAPI:
         courses = self.file_handler.parse()
         # Get the user's course selection (interactive or non-interactive)
         selected_courses = self.get_course_selection(courses, course_codes)
-        # Display the selected courses
-        print("\nSelected Courses:")
-        for course in selected_courses:
-            print(f"- {course.name}")
         # Generate schedules using the Scheduler and AllStrategy
         scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
         schedules = scheduler.generate()
