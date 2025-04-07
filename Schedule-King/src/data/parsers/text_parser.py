@@ -14,7 +14,7 @@ class TextParser(IParser):
         Parses the given raw text data and returns a list of Course objects.
         """
         raw_data = self.read_file()
-        raw_courses = [block for block in raw_data.split("$$$$\n") if block.strip()]
+        raw_courses = [block for block in raw_data.split("$$$$") if block.strip()]
         return [self._parse_raw_course(course_text) for course_text in raw_courses]
 
     def _parse_raw_course(self, raw_course: str) -> Course:
