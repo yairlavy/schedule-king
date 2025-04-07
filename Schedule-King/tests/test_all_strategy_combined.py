@@ -48,15 +48,36 @@ def conflicting_courses():
     ]
 
 # ---------- Tests ----------
-
+#STRATEGYALL_INIT_001
 def test_init_valid():
     strategy = AllStrategy([Mock()])
     assert isinstance(strategy._selected, list)
 
+#STRATEGYALL_VALID_001
 def test_init_too_many_courses_raises():
     with pytest.raises(ValueError):
         AllStrategy([Mock()] * 8)
 
+#STRATEGYALL_VALID_002
+def test_generate_no_courses():
+    strategy = AllStrategy([])
+    result = strategy.generate()
+    assert result == []
+
+#STRATEGYALL_VALID_003
+def test_generate_no_conflict(non_conflicting_courses):
+    strategy = AllStrategy(non_conflicting_courses)
+    schedules = strategy.generate()
+    assert len(schedules) >= 1
+    assert all(isinstance(schedule, Schedule) for schedule in schedules)
+
+#STRATEGYALL_VALID_004
+def test_generate_conflict_detected(conflicting_courses):
+    strategy = AllStrategy(conflicting_courses)
+    schedules = strategy.generate()
+    assert schedules == []  # All combinations should conflict
+
+#STRATEGYALL_FUNC_001
 def test_generate_all_combinations(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
     combos = strategy._generate_all_lecture_group_combinations(non_conflicting_courses)
@@ -64,22 +85,7 @@ def test_generate_all_combinations(non_conflicting_courses):
     assert all(isinstance(c, list) for c in combos)
     assert all(isinstance(g, LectureGroup) for combo in combos for g in combo)
 
-def test_generate_no_courses():
-    strategy = AllStrategy([])
-    result = strategy.generate()
-    assert result == []
-
-def test_generate_no_conflict(non_conflicting_courses):
-    strategy = AllStrategy(non_conflicting_courses)
-    schedules = strategy.generate()
-    assert len(schedules) >= 1
-    assert all(isinstance(schedule, Schedule) for schedule in schedules)
-
-def test_generate_conflict_detected(conflicting_courses):
-    strategy = AllStrategy(conflicting_courses)
-    schedules = strategy.generate()
-    assert schedules == []  # All combinations should conflict
-
+#STRATEGYALL_FUNC_002
 def test__has_conflict_with_real_checker_conflict():
     # Overlapping time slots
     slot1 = make_timeslot("A", start="12:00", end="14:00")
@@ -90,6 +96,7 @@ def test__has_conflict_with_real_checker_conflict():
     strategy = AllStrategy([])
     assert strategy._has_conflict([group1, group2])
 
+#STRATEGYALL_FUNC_003
 def test__has_conflict_with_real_checker_no_conflict():
     slot1 = make_timeslot("A", start="08:00", end="09:00")
     slot2 = make_timeslot("B", start="10:00", end="11:00")

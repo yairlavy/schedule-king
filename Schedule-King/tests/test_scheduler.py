@@ -67,7 +67,7 @@ def test_SCHEDULER_INTEG_001(sample_courses, strategy):
                     continue
                 assert not slot_a.conflicts_with(slot_b), f"Conflict found between {slot_a} and {slot_b}"
 
-def test_SCHEDULER_COMP_001(sample_courses, strategy):
+def test_SCHEDULER_VALID_001(sample_courses, strategy):
     """Ensure generate() returns only conflict-free schedules."""
     scheduler = Scheduler(sample_courses, strategy)
     schedules = scheduler.generate()
@@ -84,12 +84,3 @@ def test_SCHEDULER_COMP_001(sample_courses, strategy):
                 if slot_a is slot_b:
                     continue
                 assert not checker.check_time_conflict(slot_a, slot_b), f"Time conflict between {slot_a} and {slot_b}"
-
-def test_SCHEDULER_INVALID_001():
-    """Raise ValueError when more than 7 courses are passed."""
-    ts = TimeSlot("1", "08:00", "09:00", "101", "A")
-    course = lambda i: Course(f"Course{i}", f"C{i}", "Prof", [ts], [ts], [ts])
-    courses = [course(i) for i in range(8)]
-
-    with pytest.raises(ValueError):
-        AllStrategy(courses)

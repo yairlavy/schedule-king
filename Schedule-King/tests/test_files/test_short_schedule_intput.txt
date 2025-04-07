@@ -1,0 +1,13 @@
+$$$$
+Software Engineering Project Implementation
+83533
+Prof. Kugler hillel
+L S,4,13:00,16:00,604,64
+T S,4,16:00,18:00,A1300,מעונות-2
+$$$$
+Microprocessors and Assembly Language
+83255
+Prof. Ran Glass
+L S,1,15:00,17:00,1103,22
+T S,2,16:00,18:00,604,64
+M S,5,9:00,10:00,1104,243

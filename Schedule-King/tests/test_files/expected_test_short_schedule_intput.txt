@@ -1,0 +1,19 @@
+------------------------------------------------------
+Schedule 1:
+Sunday:
+  [Lecture] Microprocessors and Assembly Language (83255)
+    15:00 - 17:00 |  Room 1103, Building 22
+
+Monday:
+  [Tirgul] Microprocessors and Assembly Language (83255)
+    16:00 - 18:00 |  Room 604, Building 64
+
+Wednesday:
+  [Lecture] Software Engineering Project Implementation (83533)
+    13:00 - 16:00 |  Room 604, Building 64
+  [Tirgul] Software Engineering Project Implementation (83533)
+    16:00 - 18:00 |  Room A1300, Building מעונות-2
+
+Thursday:
+  [Maabada] Microprocessors and Assembly Language (83255)
+    09:00 - 10:00 |  Room 1104, Building 243
