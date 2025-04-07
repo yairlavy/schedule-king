@@ -31,14 +31,23 @@ This project is a Python-based application designed to help students create and 
 3. **Run the Application**  
     Execute the main script to start the application:
 ```bash
-    python src/main.py
+    python main.py
 ```
 
 4. **Run Tests**  
-    To ensure everything is working correctly, run the tests:
+To ensure everything is working correctly, you can run the tests using `pytest`:
+
 ```bash
-    python -m pytest
+python -m pytest
 ```
+
+Alternatively, you can use the custom test runner `SuperTester.py`:
+
+```bash
+cd tests
+python SuperTester.py
+```
+
 
 ## Features
 
