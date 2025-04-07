@@ -21,7 +21,7 @@ L S,5,10:00,16:00,605,061
 T S,5,16:00,17:00,605,061
 """.strip()
 
-
+#TEXTPARSER_FUNC_PARSE_001
 @patch("builtins.open", new_callable=mock_open, read_data=RAW_DATA)
 def test_parse_returns_courses(mock_file):
     """
@@ -40,7 +40,7 @@ def test_parse_returns_courses(mock_file):
     assert courses[1].name == "Software Project"
     assert courses[1].instructor == "Dr. Terry Bell"
 
-
+#TEXTPARSER_FUNC_PARSE_002
 @patch("builtins.open", new_callable=mock_open, read_data=RAW_DATA)
 def test_parse_creates_valid_timeslots(mock_file):
     """
@@ -70,7 +70,7 @@ def test_parse_creates_valid_timeslots(mock_file):
     assert calc1.tirguls[0].day == "2"
     assert calc1.tirguls[1].day == "3"
 
-
+#TEXTPARSER_FILE_IO_001
 @patch("builtins.open", new_callable=mock_open, read_data=RAW_DATA)
 def test_read_file_reads_text_from_file(mock_file):
     """

@@ -4,8 +4,6 @@ from ..models.schedule import Schedule
 import os
 from collections import defaultdict
 
-
-
 DAY_NAMES = {
     "1": "Sunday",
     "2": "Monday",
@@ -14,7 +12,6 @@ DAY_NAMES = {
     "5": "Thursday",
     "6": "Friday"
 }
-
 
 class TextFormatter(IFormatter):
 
@@ -25,12 +22,10 @@ class TextFormatter(IFormatter):
         """
         self.path = path
         
-        
     def __repr__(self):
-        count = len(self.schedules) if self.schedules else 0
+        schedules = getattr(self, "schedules", None)
+        count = len(schedules) if schedules else 0
         return f"<TextFormatter with {count} schedules>"
-
-    
 
     def extract_by_day(self, schedule: Schedule):
         day_map = defaultdict(list)
@@ -46,8 +41,6 @@ class TextFormatter(IFormatter):
                 day_map[lg.maabadas.day].append(("Maabada", lg.course_name, lg.course_code, lg.maabadas))
 
         return day_map
-
-
         
     def format(self, schedules: List[Schedule]):
         """
@@ -57,8 +50,6 @@ class TextFormatter(IFormatter):
         if not schedules:
             raise ValueError("No schedules available to format.")
         self.export(schedules, file_path=self.path)
-
-
         
     def scheduleToText(self, schedule: Schedule) -> str:
         day_map = self.extract_by_day(schedule)
@@ -82,8 +73,6 @@ class TextFormatter(IFormatter):
 
         return output.strip()
 
-
-
     def formatText(self, schedules: List[Schedule]) -> str:
         """
         Format the schedule data as a text string.
@@ -99,7 +88,6 @@ class TextFormatter(IFormatter):
         # Remove the last separator line
         return formatted_text.strip()
     
-    
     def export(self, schedules: List[Schedule], file_path: str) -> None:
         """
         Export the formatted schedules to a text file.
@@ -113,6 +101,3 @@ class TextFormatter(IFormatter):
                 file.write(self.formatText(schedules))
         except (IOError, OSError) as e:
             print(f"Error exporting schedules: {e}")
-        
-
-

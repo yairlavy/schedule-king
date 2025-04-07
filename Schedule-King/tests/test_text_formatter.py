@@ -5,7 +5,6 @@ from src.data.models.schedule import Schedule
 from src.data.models.lecture_group import LectureGroup
 from src.data.models.time_slot import TimeSlot
 
-
 # ---------------- Fixtures ----------------
 
 @pytest.fixture
@@ -20,7 +19,6 @@ def time_slots():
         TimeSlot("3", "11:30", "13:00", "707", "15"),
     ]
 
-
 @pytest.fixture
 def lecture_groups(time_slots):
     return [
@@ -33,11 +31,9 @@ def lecture_groups(time_slots):
         LectureGroup("Algorithms", "98765", "Prof. Donald Knuth", time_slots[6], [], []),
     ]
 
-
 @pytest.fixture
 def sample_schedule(lecture_groups):
     return Schedule(lecture_groups=lecture_groups)
-
 
 @pytest.fixture
 def more_then_one_schedule(lecture_groups):
@@ -47,7 +43,6 @@ def more_then_one_schedule(lecture_groups):
         Schedule(lecture_groups=[lecture_groups[4], lecture_groups[5]]),
         Schedule(lecture_groups=[lecture_groups[6]]),
     ]
-
 
 # ---------------- Tests ----------------
 
@@ -61,7 +56,6 @@ def test_format_single_schedule_to_text(sample_schedule):
     assert "[Lecture]" in output
     assert "Room" in output and "Building" in output
 
-
 def test_format_multiple_schedules_to_text(more_then_one_schedule):
     formatter = TextFormatter(path="unused.txt")
     output = formatter.formatText(more_then_one_schedule)
@@ -72,12 +66,10 @@ def test_format_multiple_schedules_to_text(more_then_one_schedule):
     for name in course_names:
         assert name in output, f"Missing course: {name}"
 
-
 def test_format_raises_on_empty_schedule():
     formatter = TextFormatter(path="temp.txt")
     with pytest.raises(ValueError, match="No schedules available to format"):
         formatter.format([])
-
 
 def test_schedule_to_text_days_are_valid(sample_schedule):
     formatter = TextFormatter(path="unused.txt")
@@ -88,7 +80,7 @@ def test_schedule_to_text_days_are_valid(sample_schedule):
             day = line.strip(":")
             assert day in ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"], f"Invalid day: {day}"
 
-
+#TEXTFORMATTER_FILE_IO_001#
 def test_export_creates_file(tmp_path, more_then_one_schedule):
     file_path = tmp_path / "output_schedule.txt"
     formatter = TextFormatter(path=str(file_path))
@@ -99,6 +91,7 @@ def test_export_creates_file(tmp_path, more_then_one_schedule):
     assert "Schedule 1" in content
     assert "Algorithms" in content
 
+#TEXTFORMATTER_REPR_001#
 def test_text_formatter_repr(sample_schedule):
     formatter = TextFormatter(path="unused.txt")
     formatter.schedules = [sample_schedule] * 2

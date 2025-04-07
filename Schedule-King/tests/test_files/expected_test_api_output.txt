@@ -1,0 +1,512 @@
+------------------------------------------------------
+Schedule 1:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 42
+
+Monday:
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 2:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1104, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 3:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 4:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    12:00 - 14:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 5:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 244
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 6:
+Sunday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 42
+
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 7:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1104, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 8:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 9:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    12:00 - 14:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 10:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Lecture] Calculus 1 (00001)
+    16:00 - 17:00 |  Room 1100, Building 22
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 244
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 11:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 42
+
+Monday:
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 12:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 605, Building 14
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 13:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1104, Building 42
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 14:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 15:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    12:00 - 14:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 16:
+Sunday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+
+Monday:
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 244
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 17:
+Sunday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 42
+
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 18:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 605, Building 14
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 19:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1104, Building 42
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 20:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    10:00 - 12:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 21:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    12:00 - 14:00 |  Room 1300, Building 1
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061
+------------------------------------------------------
+Schedule 22:
+Monday:
+  [Lecture] Calculus 1 (eng) (83112)
+    14:00 - 16:00 |  Room 1401, Building 4
+  [Tirgul] Calculus 1 (00001)
+    18:00 - 19:00 |  Room 1100, Building 22
+
+Tuesday:
+  [Lecture] Calculus 1 (00001)
+    17:00 - 18:00 |  Room 1100, Building 42
+  [Maabada] Calculus 1 (00001)
+    19:00 - 20:00 |  Room 1100, Building 42
+
+Wednesday:
+  [Tirgul] Calculus 1 (eng) (83112)
+    16:00 - 18:00 |  Room 1104, Building 244
+
+Thursday:
+  [Lecture] Software Project (83533)
+    10:00 - 16:00 |  Room 605, Building 061
+  [Tirgul] Software Project (83533)
+    16:00 - 17:00 |  Room 605, Building 061

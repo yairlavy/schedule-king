@@ -8,10 +8,15 @@ from src.data.models.time_slot import TimeSlot
 @pytest.fixture
 def sample_courses():
     ts1 = TimeSlot("1", "08:00", "09:00", "101", "A")
-    ts2 = TimeSlot("2", "09:00", "10:00", "102", "A")
+    ts2 = TimeSlot("2", "09:00", "10:00", "101", "A")  
+    ts3 = TimeSlot("3", "10:00", "11:00", "101", "A")  
 
-    course1 = Course("Math", "M101", "Prof. A", [ts1], [ts2], [ts1])
-    course2 = Course("CS", "C102", "Prof. B", [ts2], [ts1], [ts2])
+    ts4 = TimeSlot("4", "11:00", "12:00", "102", "A")  
+    ts5 = TimeSlot("5", "12:00", "13:00", "102", "A")  
+    ts6 = TimeSlot("6", "13:00", "14:00", "102", "A") 
+
+    course1 = Course("Math", "M101", "Prof. A", [ts1], [ts2], [ts3])
+    course2 = Course("CS", "C102", "Prof. B", [ts4], [ts5], [ts6])
 
     return [course1, course2]
 
@@ -28,6 +33,20 @@ def test_SCHEDULER_FUNC_GEN_001(sample_courses, strategy):
     """Ensure generate() returns a non-empty list of schedules."""
     scheduler = Scheduler(sample_courses, strategy)
     schedules = scheduler.generate()
+
+    # Debugging: print the generated schedules
+    print(f"Generated {len(schedules)} schedules.")
+    if schedules:
+        for idx, schedule in enumerate(schedules):
+            print(f"Schedule {idx + 1}:")
+            for group in schedule.lecture_groups:
+                print(f"  Course: {group.course_name}")
+                print(f"    Lecture: {group.lecture.start_time} - {group.lecture.end_time}")
+                if group.tirguls:
+                    print(f"    Tirgul: {group.tirguls.start_time} - {group.tirguls.end_time}")
+                if group.maabadas:
+                    print(f"    Maabada: {group.maabadas.start_time} - {group.maabadas.end_time}")
+
     assert isinstance(schedules, list)
     assert len(schedules) >= 1
 

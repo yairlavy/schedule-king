@@ -1,5 +1,3 @@
-# src/core/all_strategy.py
-
 from typing import List
 from itertools import product
 from src.core.schedule_strategy_interface import IScheduleStrategy
@@ -26,6 +24,11 @@ class AllStrategy(IScheduleStrategy):
         Returns:
             List[Schedule]: All valid (conflict-free) schedules.
         """
+        
+        # return empty list if no courses provided
+        if not self._selected:
+            return []
+        
         valid_schedules = []
 
         all_combinations = self._generate_all_lecture_group_combinations(self._selected)

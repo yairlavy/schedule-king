@@ -1,5 +1,3 @@
-# src/core/conflict_checker.py
-
 from src.data.models.time_slot import TimeSlot
 from src.data.models.course import Course
 
