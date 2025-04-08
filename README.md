@@ -4,15 +4,17 @@ This project is a Python-based application designed to help students create and 
 
 ## Project Structure
 
-```
+````bash
 /Software-for-building-a-student-study-schedule
 ├── src/                # Source code for the application
-├── data/               # Sample data and datasets
-├── docs/               # Documentation and resources
-├── tests/              # Unit and integration tests
+├── src/core/               # Core algorithms for course scheduling
+├── src/api/                # API for the schedule functionality
+├── src/data/               # Data classes and utilities for handling course and schedule data
+├── src/tests/              # Unit and integration tests
 ├── README.md           # Project README file
-└── requirements.txt    # Python dependencies
-```
+├── requirements.txt    # Python dependencies
+└── main.py             # Entry point for the application
+````
 
 ## Running Instructions
 
