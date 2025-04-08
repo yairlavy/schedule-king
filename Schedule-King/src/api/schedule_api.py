@@ -86,7 +86,11 @@ class ScheduleAPI:
         :return: Formatted schedule string
         """
         # Parse the input file to retrieve available courses
-        courses = self.file_handler.parse()
+        try:
+            courses = self.file_handler.parse()
+        except ValueError as e:
+            print(f"Error: {e}. Please check the input file format.")
+            return ""
         # Get the user's course selection (interactive or non-interactive)
         selected_courses = self.get_course_selection(courses, course_codes)
         # Generate schedules using the Scheduler and AllStrategy
