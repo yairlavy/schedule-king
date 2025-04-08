@@ -86,7 +86,7 @@ The application expects input in the following format for each course:
   <Session Type> <Day> <Start Time>,<End Time>,<Room Number>,<Building Number>
   ```
   - **Session Type**: The type of session (e.g., "L" for Lecture, "T" for Tirgul, etc.).
-  - **Day**: The day of the week (e.g., "S" for Sunday, "M" for Monday, etc.).
+  - **Day**: The day of the week (e.g., "1" for Sunday, "2" for Monday, etc.).
   - **Start Time**: The starting time of the session in 24-hour format (e.g., "16:00").
   - **End Time**: The ending time of the session in 24-hour format (e.g., "17:00").
   - **Room Number**: The room where the session is held (e.g., "1100").
