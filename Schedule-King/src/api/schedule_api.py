@@ -26,6 +26,7 @@ class ScheduleAPI:
             print(f"{index}. {course.name} (Code: {course.course_code})")
         print()
 
+        
     def get_course_selection(self, courses: list[Course], course_codes: list[str] = None) -> list[Course]:
         """
         Selects courses based on user input or provided codes.
@@ -34,49 +35,51 @@ class ScheduleAPI:
         :param course_codes: Optional list of course codes for non-interactive selection
         :return: Validated list of selected Course objects
         """
-        # Ensure the user selects between 1 and 7 valid courses
-        selected_courses = []
+        code_to_course = {course.course_code: course for course in courses}
+        print("Please select between 1 and 7 valid courses.")
+
         while True:
-            print("Please select between 1 and 7 valid courses.")
-            # Reset selected_courses at the start of each iteration
-            selected_courses = [] 
-            seen_codes = set()
-            # Create a mapping of course codes to Course objects for quick lookup
-            code_to_course = {course.course_code: course for course in courses}
-            # Interactive mode: Prompt user for course codes if not provided
-            self.display_courses(courses)
-            raw_input = input("Enter course codes (space-separated): ")
-            course_codes = raw_input.strip().split()
-            # Validate the course codes and add the corresponding courses to the selection
-            for raw_code in course_codes:
-                code = raw_code.strip()
-                if code in seen_codes:
-                    print(f"Warning: Duplicate course code '{code}' found. Skipping.")
-                    continue
-                course = code_to_course.get(code)
-                if course:
-                    selected_courses.append(course)
-                    seen_codes.add(code)
-                else:
-                    # Warn the user if a course code is invalid
-                    print(f"Warning: Course code '{code}' not found. Skipping.")
-            # Check if no valid courses were selected
-            if not selected_courses:
-                print("Error: No valid courses selected.")
-                continue
-            # Enforce a maximum limit of 7 courses
-            if len(selected_courses) > 7:
-                print("Error: Cannot select more than 7 courses.")
-                continue
-            break
 
-        # Display the selected courses
-        print("\nSelected Courses:")
-        for course in selected_courses:
-            print(f"- {course.name} (Code: {course.course_code})")
-        print()
+            # Interactive mode: Prompt user if course_codes not provided
+            if course_codes is None:
+                self.display_courses(courses)
+                raw_input_line = input("Enter course codes (space-separated): ")
+                course_codes = raw_input_line.strip().split()
 
-        return selected_courses
+            # Check for duplicates
+            seen = set()
+            duplicates = [code for code in course_codes if code in seen or seen.add(code)]
+            if duplicates:
+                print(f"Error: Duplicate course codes found: {', '.join(duplicates)}. Please try again.")
+                course_codes = None
+                continue
+
+            # Check for invalid codes
+            invalid = [code for code in course_codes if code not in code_to_course]
+            if invalid:
+                print(f"Error: Invalid course codes: {', '.join(invalid)}. Please try again.")
+                course_codes = None
+                continue
+
+            if len(course_codes) == 0:
+                print("Error: No course codes provided. Please try again.")
+                course_codes = None
+                continue
+
+            if len(course_codes) > 7:
+                print("Error: Cannot select more than 7 courses. Please try again.")
+                course_codes = None
+                continue
+
+            # All codes are valid
+            selected_courses = [code_to_course[code] for code in course_codes]
+
+            print("\nSelected Courses:")
+            for course in selected_courses:
+                print(f"- {course.name} (Code: {course.course_code})")
+            print()
+
+            return selected_courses
 
     def process(self, course_codes: list[str] = None) -> str:
         """

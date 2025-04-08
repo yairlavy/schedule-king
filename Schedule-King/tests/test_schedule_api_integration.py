@@ -72,7 +72,7 @@ def test_invalid_course_code(schedule_api, capsys):
         captured = capsys.readouterr()
    
         # Check that the error message was printed
-        assert "Warning: Course code '99999' not found. Skipping." in captured.out
+        assert "Error: Invalid course codes:" in captured.out
    
         # After correction, the output should include Calculus 1.
         assert output is not None
