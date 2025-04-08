@@ -1,0 +1,18 @@
+------------------------------------------------------
+Schedule 1:
+Sunday:
+  [Lecture] Course 1 (83000)
+    08:00 - 09:00 |  Room 1000, Building 1
+
+Monday:
+  [Tirgul] Course 1 (83000)
+    09:00 - 10:00 |  Room 1000, Building 1
+------------------------------------------------------
+Schedule 2:
+Sunday:
+  [Lecture] Course 1 (83000)
+    08:00 - 09:00 |  Room 1000, Building 1
+
+Tuesday:
+  [Tirgul] Course 1 (83000)
+    10:00 - 11:00 |  Room 1000, Building 1
