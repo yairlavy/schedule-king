@@ -7,10 +7,10 @@ This project is a Python-based application designed to help students create and 
 ````bash
 /Software-for-building-a-student-study-schedule
 ├── src/                # Source code for the application
-├── src/core/               # Core algorithms for course scheduling
-├── src/api/                # API for the schedule functionality
-├── src/data/               # Data classes and utilities for handling course and schedule data
-├── src/tests/              # Unit and integration tests
+├── src/core/           # Core algorithms for course scheduling
+├── src/api/            # API for the schedule functionality
+├── src/data/           # Data classes and utilities for handling course and schedule data
+├── src/tests/          # Unit and integration tests
 ├── README.md           # Project README file
 ├── requirements.txt    # Python dependencies
 └── main.py             # Entry point for the application
@@ -85,7 +85,7 @@ The application expects input in the following format for each course:
   ```
   <Session Type> <Day> <Start Time>,<End Time>,<Room Number>,<Building Number>
   ```
-  - **Session Type**: The type of session (e.g., "L" for Lecture, "T" for Tirgul, "S" for Seminar, etc.).
+  - **Session Type**: The type of session (e.g., "L" for Lecture, "T" for Tirgul, etc.).
   - **Day**: The day of the week (e.g., "S" for Sunday, "M" for Monday, etc.).
   - **Start Time**: The starting time of the session in 24-hour format (e.g., "16:00").
   - **End Time**: The ending time of the session in 24-hour format (e.g., "17:00").
