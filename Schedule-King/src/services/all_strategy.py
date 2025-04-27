@@ -1,10 +1,10 @@
 from typing import List
 from itertools import product
-from src.core.schedule_strategy_interface import IScheduleStrategy
-from src.data.models.schedule import Schedule
+from src.interfaces.schedule_strategy_interface import IScheduleStrategy
+from src.models.schedule import Schedule
 from .conflict_checker import ConflictChecker
-from src.data.models.course import Course
-from src.data.models.lecture_group import LectureGroup
+from src.models.course import Course
+from src.models.lecture_group import LectureGroup
 
 
 class AllStrategy(IScheduleStrategy):

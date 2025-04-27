@@ -1,6 +1,6 @@
 from typing import List
-from .formatter_interface import IFormatter
-from ..models.schedule import Schedule , DAY_NAMES
+from src.interfaces.formatter_interface import IFormatter
+from src.models.schedule import Schedule , DAY_NAMES
 import os
 
 class TextFormatter(IFormatter):

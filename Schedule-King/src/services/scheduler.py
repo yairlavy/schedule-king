@@ -1,9 +1,9 @@
 # src/core/scheduler.py
 
 from typing import List
-from src.data.models.course import Course
-from src.data.models.schedule import Schedule
-from src.core.schedule_strategy_interface import IScheduleStrategy
+from src.models.course import Course
+from src.models.schedule import Schedule
+from src.interfaces.schedule_strategy_interface import IScheduleStrategy
 
 class Scheduler:
     """

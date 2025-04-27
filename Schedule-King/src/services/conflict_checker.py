@@ -1,5 +1,5 @@
-from src.data.models.time_slot import TimeSlot
-from src.data.models.course import Course
+from src.models.time_slot import TimeSlot
+from src.models.course import Course
 
 class ConflictChecker:
     """

@@ -1,7 +1,7 @@
-from src.data.file_handler import FileHandler
-from src.core.scheduler import Scheduler
-from src.core.all_strategy import AllStrategy
-from src.data.models.course import Course
+from .file_handler import FileHandler
+from .scheduler import Scheduler
+from .all_strategy import AllStrategy
+from src.models.course import Course
 
 class ScheduleAPI:
     def __init__(self, file_path: str, output_path: str):

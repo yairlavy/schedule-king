@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from typing import List
-from src.data.models.schedule import Schedule
+from src.models.schedule import Schedule
 
 class IScheduleStrategy(ABC):
     """

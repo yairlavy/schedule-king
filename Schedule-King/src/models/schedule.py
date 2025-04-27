@@ -2,7 +2,7 @@ from .lecture_group import LectureGroup
 from typing import List
 from dataclasses import dataclass
 from collections import defaultdict
-from src.data.models.lecture_group import LectureGroup
+from src.models.lecture_group import LectureGroup
 
 
 DAY_NAMES = {

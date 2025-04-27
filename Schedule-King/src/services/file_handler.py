@@ -1,8 +1,8 @@
 from typing import List
-from src.data.models.course import Course
-from src.data.models.schedule import Schedule
-from src.data.parsers.text_parser import TextParser
-from src.data.formatters.text_formatter import TextFormatter
+from src.models.course import Course
+from src.models.schedule import Schedule
+from .text_parser import TextParser
+from .text_formatter import TextFormatter
 import os
 
 class FileHandler:
