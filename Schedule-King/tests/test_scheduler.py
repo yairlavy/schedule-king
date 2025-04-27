@@ -1,9 +1,9 @@
 import pytest
-from src.core.scheduler import Scheduler
-from src.core.all_strategy import AllStrategy
-from src.core.conflict_checker import ConflictChecker
-from src.data.models.course import Course
-from src.data.models.time_slot import TimeSlot
+from src.services.scheduler import Scheduler
+from src.services.all_strategy import AllStrategy
+from src.services.conflict_checker import ConflictChecker
+from src.models.course import Course
+from src.models.time_slot import TimeSlot
 
 @pytest.fixture
 def sample_courses():

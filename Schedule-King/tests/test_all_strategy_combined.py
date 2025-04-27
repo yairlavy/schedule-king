@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import Mock
-from src.core.all_strategy import AllStrategy
-from src.data.models.course import Course
-from src.data.models.lecture_group import LectureGroup
-from src.data.models.schedule import Schedule
-from src.data.models.time_slot import TimeSlot
+from src.services.all_strategy import AllStrategy
+from src.models.course import Course
+from src.models.lecture_group import LectureGroup
+from src.models.schedule import Schedule
+from src.models.time_slot import TimeSlot
 
 # ---------- Helpers ----------
 

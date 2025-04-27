@@ -1,7 +1,7 @@
 import pytest
-from src.core.conflict_checker import ConflictChecker
-from src.data.models.time_slot import TimeSlot
-from src.data.models.course import Course
+from src.services.conflict_checker import ConflictChecker
+from src.models.time_slot import TimeSlot
+from src.models.course import Course
 
 @pytest.fixture
 def checker():
