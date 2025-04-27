@@ -1,7 +1,6 @@
 from .parser_interface import IParser
 from typing import List
 from src.data.models.course import Course
-from src.data.models.lecture_group import LectureGroup 
 from src.data.models.time_slot import TimeSlot
 
 class TextParser(IParser):
