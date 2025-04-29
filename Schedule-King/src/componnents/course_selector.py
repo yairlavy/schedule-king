@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListWidgetItem
+from PyQt5.QtWidgets import (QListWidget, QAbstractItemView, QListWidgetItem,
+                     QVBoxLayout, QPushButton, QWidget, QHBoxLayout)
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont
 from PyQt5.QtWidgets import QSizePolicy
@@ -6,14 +7,15 @@ from typing import List
 from src.models.course import Course
 
 
-class CourseSelector(QListWidget):
+class CourseSelector(QWidget):
     """
-    A custom QListWidget component that allows users to select courses
-    from a list and emits signals when selections change.
+    A custom widget that allows users to select courses from a list,
+    submit their selection, or clear all selections.
     """
     
     # Define custom signals
     coursesSelected = pyqtSignal(list)  # Signal emitted when course selection changes
+    coursesSubmitted = pyqtSignal(list)  # Signal emitted when submission button is clicked
     
     def __init__(self, parent=None):
         """
@@ -23,64 +25,128 @@ class CourseSelector(QListWidget):
             parent: The parent widget (optional).
         """
         super().__init__(parent)
-
+        
+        # Create the main layout
+        self.layout = QVBoxLayout(self)
+        self.layout.setContentsMargins(10, 10, 10, 10)  # Set margins for the layout
+        self.layout.setSpacing(15)  # Set spacing between widgets
+        
+        # Create the list widget
+        self.list_widget = QListWidget()
+        
         # Set selection mode to allow multiple selections
-        self.setSelectionMode(QAbstractItemView.MultiSelection)
+        self.list_widget.setSelectionMode(QAbstractItemView.MultiSelection)
         
         # Enable alternating row colors for better readability
-        self.setAlternatingRowColors(True)
+        self.list_widget.setAlternatingRowColors(True)
         
         # Optimize item rendering by using uniform item sizes
-        self.setUniformItemSizes(True)
+        self.list_widget.setUniformItemSizes(True)
         
         # Set spacing between items
-        self.setSpacing(5)
+        self.list_widget.setSpacing(8)
         
         # Make the widget resize dynamically with the window
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.list_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         # Set the font for the list widget
-        font = QFont("Segoe UI", 11)
-        self.setFont(font)
+        font = QFont("Segoe UI", 12)
+        font.setWeight(QFont.Medium)
+        self.list_widget.setFont(font)
 
         # Apply custom styles using a stylesheet
-        self.setStyleSheet("""
+        self.list_widget.setStyleSheet("""
             QListWidget::item:selected {
-                background-color: #4CAF50;
+                background-color: #81C784;
                 color: white;
                 border: 1px solid #388E3C;
-                border-radius: 6px;
+                border-radius: 8px;
             }
             QListWidget::item:hover {
-                background-color: #C8E6C9;
+                background-color: #A5D6A7;
                 color: black;
             }
             QListWidget {
-                padding: 12px;
+                padding: 15px;
                 border: 2px solid #BDBDBD;
-                border-radius: 12px;
-                background-color: #F5F5F5;
-                font-size: 12pt;
+                border-radius: 15px;
+                background-color: #F9FBE7;
+                font-size: 13pt;
                 color: #424242;
             }
             QListWidget::item {
-                padding: 10px;
-                margin: 6px;
+                padding: 12px;
+                margin: 8px;
                 border: 1px solid #E0E0E0;
-                border-radius: 6px;
+                border-radius: 8px;
                 background-color: #FFFFFF;
             }
             QListWidget::item:!selected {
-                background-color: #FAFAFA;
+        """)
+        
+        # Add the list widget to the layout
+        self.layout.addWidget(self.list_widget)
+        
+        # Create a horizontal layout for buttons
+        self.button_layout = QHBoxLayout()
+        
+        # Create Submit button
+        self.submit_button = QPushButton("Submit")
+        self.submit_button.setCursor(Qt.PointingHandCursor)  # Change cursor to hand when hovering
+        self.submit_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 20px;
+                font-size: 12pt;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #388E3C;
+            }
+            QPushButton:pressed {
+                background-color: #2E7D32;
             }
         """)
-
+        
+        # Create Clear All button
+        self.clear_button = QPushButton("Clear All")
+        self.clear_button.setCursor(Qt.PointingHandCursor)  # Change cursor to hand when hovering
+        self.clear_button.setStyleSheet("""
+            QPushButton {
+                background-color: #F44336;
+                color: white;
+                border: none;
+                border-radius: 6px;
+                padding: 10px 20px;
+                font-size: 12pt;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #D32F2F;
+            }
+            QPushButton:pressed {
+                background-color: #C62828;
+            }
+        """)
+        
+        # Add buttons to the button layout
+        self.button_layout.addWidget(self.submit_button)
+        self.button_layout.addWidget(self.clear_button)
+        
+        # Add the button layout to the main layout
+        self.layout.addLayout(self.button_layout)
+        
         # Initialize the list of courses
         self.courses = []
         
-        # Connect the item selection change signal to the handler
-        self.itemSelectionChanged.connect(self._handle_selection_changed)
-
+        # Connect signals to slots
+        self.list_widget.itemSelectionChanged.connect(self._handle_selection_changed)
+        self.submit_button.clicked.connect(self._handle_submit)
+        self.clear_button.clicked.connect(self._handle_clear)
+    
     def populate_courses(self, courses: List):
         """
         Populate the list widget with course items.
@@ -89,7 +155,7 @@ class CourseSelector(QListWidget):
             courses: List of Course objects to display.
         """
         # Clear existing items in the list widget
-        self.clear()
+        self.list_widget.clear()
         
         # Store the provided courses
         self.courses = courses
@@ -106,7 +172,7 @@ class CourseSelector(QListWidget):
             item.setData(Qt.UserRole, self.courses.index(course))
             
             # Add the item to the list widget
-            self.addItem(item)
+            self.list_widget.addItem(item)
 
     def _handle_selection_changed(self):
         """
@@ -114,19 +180,31 @@ class CourseSelector(QListWidget):
         with the list of selected Course objects.
         """
         # Initialize a list to store selected courses
-        selected_courses = []
+        selected_courses = self.get_selected_courses()
         
-        # Iterate through all selected items
-        for item in self.selectedItems():
-            # Get the course index from the item data
-            index = item.data(Qt.UserRole)
-            
-            # Add the corresponding Course object to the list if valid
-            if 0 <= index < len(self.courses):
-                selected_courses.append(self.courses[index])
-
         # Emit the signal with the selected courses
         self.coursesSelected.emit(selected_courses)
+    
+    def _handle_submit(self):
+        """
+        Handle the submit button click and emit the coursesSubmitted signal
+        with the list of selected Course objects.
+        """
+        # Get the selected courses
+        selected_courses = self.get_selected_courses()
+        
+        # Emit the signal with the selected courses
+        self.coursesSubmitted.emit(selected_courses)
+    
+    def _handle_clear(self):
+        """
+        Handle the clear button click by clearing all selections.
+        """
+        # Clear all selections
+        self.list_widget.clearSelection()
+        
+        # Emit the selection changed signal with an empty list
+        self.coursesSelected.emit([])
 
     def get_selected_courses(self) -> List[Course]:
         """
@@ -139,7 +217,7 @@ class CourseSelector(QListWidget):
         selected_courses: List[Course] = []
         
         # Iterate through all selected items
-        for item in self.selectedItems():
+        for item in self.list_widget.selectedItems():
             # Get the course index from the item data
             index = item.data(Qt.UserRole)
             
@@ -149,7 +227,6 @@ class CourseSelector(QListWidget):
         
         return selected_courses
         
-
     def set_selected_courses(self, course_numbers: List[str]):
         """
         Set specific courses as selected based on their course numbers.
@@ -158,12 +235,12 @@ class CourseSelector(QListWidget):
             course_numbers: List of course numbers to select.
         """
         # Clear the current selection
-        self.clearSelection()
+        self.list_widget.clearSelection()
         
         # Iterate through all items in the list widget
-        for i in range(self.count()):
+        for i in range(self.list_widget.count()):
             # Get the item at the current index
-            item = self.item(i)
+            item = self.list_widget.item(i)
             
             # Get the course index from the item data
             index = item.data(Qt.UserRole)
@@ -198,6 +275,14 @@ if __name__ == "__main__":
     selector = CourseSelector()
     selector.populate_courses(sample_courses)
     selector.show()
+    
+    # Example of connecting to the coursesSubmitted signal
+    def on_courses_submitted(courses):
+        print("Courses submitted:")
+        for course in courses:
+            print(f"- {course.course_code}: {course.name}")
+    
+    selector.coursesSubmitted.connect(on_courses_submitted)
 
     # Run the application event loop
     sys.exit(app.exec_())
