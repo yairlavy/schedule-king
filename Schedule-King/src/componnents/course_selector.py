@@ -124,11 +124,11 @@ class CourseSelector(QListWidget):
             # Add the corresponding Course object to the list if valid
             if 0 <= index < len(self.courses):
                 selected_courses.append(self.courses[index])
-        
+
         # Emit the signal with the selected courses
         self.coursesSelected.emit(selected_courses)
 
-    def get_selected_courses(self) -> List:
+    def get_selected_courses(self) -> List[Course]:
         """
         Get the currently selected Course objects.
         
@@ -136,7 +136,7 @@ class CourseSelector(QListWidget):
             List of selected Course objects.
         """
         # Initialize a list to store selected courses
-        selected_courses = []
+        selected_courses: List[Course] = []
         
         # Iterate through all selected items
         for item in self.selectedItems():
@@ -148,6 +148,7 @@ class CourseSelector(QListWidget):
                 selected_courses.append(self.courses[index])
         
         return selected_courses
+        
 
     def set_selected_courses(self, course_numbers: List[str]):
         """
