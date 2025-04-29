@@ -55,3 +55,4 @@ python_files/tests/*/.data/*/.coverage*
 src/testTestingRootWkspc/coverageWorkspace/.coverage
 testTestingRootWkspc
 test_schedule_output.txt
+Schedule-King/.env.local

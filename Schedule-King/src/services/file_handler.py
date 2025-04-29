@@ -6,33 +6,37 @@ from .text_formatter import TextFormatter
 import os
 
 class FileHandler:
-    def __init__(self, source: str, destination: str):
+    def __init__(self, source: str):
         """
         Initialize the FileHandler with a parser and a formatter.
         """
         if not os.path.exists(source):
             raise FileNotFoundError(f"The source file '{source}' does not exist.")
         self.parser = TextParser(source)
-        self.formatter = TextFormatter(destination)
+        self.formatter = TextFormatter()
 
     def parse(self) -> List[Course]:
         """
         Parses the input data into courses and lecture groups.
-
-        :param raw_data: Raw text input from file or user
-        :return: Tuple (List[Course], List[LectureGroup])
+        :return: List of Course objects
         """
         return self.parser.parse()
 
     def format(self, schedules: List[Schedule]) -> str:
         """
-        Formats a list of schedules into string representation and exports the file.
+        Formats a list of schedules into string representation.
         :param schedules: List of Schedule objects
         :return: Formatted string
         """
-        # First generate the formatted text
         formatted_text = self.formatter.formatText(schedules)
-        # Export the formatted text to the destination file
-        self.formatter.export(schedules, file_path=self.formatter.path)
-        # Return the formatted text so that process() does not return None.
         return formatted_text
+
+    def export(self, schedules: List[Schedule], file_path: str) -> None:
+        """
+        Exports the formatted schedules to a specific file path.
+        :param schedules: List of Schedule objects
+        :param file_path: Destination file path
+        """
+        formatted_text = self.format(schedules)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(formatted_text)

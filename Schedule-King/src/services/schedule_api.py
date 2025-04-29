@@ -4,12 +4,12 @@ from .all_strategy import AllStrategy
 from src.models.course import Course
 
 class ScheduleAPI:
-    def __init__(self, file_path: str, output_path: str):
+    def __init__(self, file_path: str):
         """
         Initialize the ScheduleAPI with input/output file paths.
         """
         try:
-            self.file_handler = FileHandler(file_path, output_path)
+            self.file_handler = FileHandler(file_path)
         except FileNotFoundError as e:
             print(f"Error: {e}. Please check the file path and try again.")
             exit(1)
@@ -34,3 +34,16 @@ class ScheduleAPI:
         scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
         schedules = scheduler.generate()
         return schedules
+    
+    def export_schedules(self, schedules: list, file_path: str):
+        """
+        Export schedules to a simple text file.
+        """
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                for index, schedule in enumerate(schedules, 1):
+                    f.write(f"Schedule {index}:\n")
+                    f.write(str(schedule))
+                    f.write("\n\n")
+        except Exception as e:
+            print(f"Error exporting schedules: {e}")
