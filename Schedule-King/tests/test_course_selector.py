@@ -1,5 +1,4 @@
 import pytest
-from PyQt5.QtWidgets import QApplication
 from src.componnents.course_selector import CourseSelector  
 from src.models.course import Course
 
