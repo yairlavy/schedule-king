@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (QListWidget, QAbstractItemView, QListWidgetItem,
                      QVBoxLayout, QPushButton, QWidget, QHBoxLayout)
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QSizePolicy
+from PyQt5.QtWidgets import QSizePolicy, QLabel, QFrame
 from typing import List
 from src.models.course import Course
 
@@ -26,10 +26,38 @@ class CourseSelector(QWidget):
         """
         super().__init__(parent)
         
+        # Set the overall widget background
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #F0F7FF;  /* Light blue background */
+                border-radius: 15px;
+            }
+        """)
+        
         # Create the main layout
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(10, 10, 10, 10)  # Set margins for the layout
-        self.layout.setSpacing(15)  # Set spacing between widgets
+        self.layout.setContentsMargins(15, 15, 15, 15)  # Increase margins slightly
+        self.layout.setSpacing(10)  # Reduce spacing between widgets
+        
+        # Add a title label
+        self.title_label = QLabel("Available Courses")
+        self.title_label.setStyleSheet("""
+            QLabel {
+                color: #1A237E;
+                font-size: 18pt;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+        """)
+        self.title_label.setAlignment(Qt.AlignCenter)
+        self.layout.addWidget(self.title_label)
+        
+        # Add a separator line
+        self.separator = QFrame()
+        self.separator.setFrameShape(QFrame.HLine)
+        self.separator.setFrameShadow(QFrame.Sunken)
+        self.separator.setStyleSheet("background-color: #C5CAE9;")
+        self.layout.addWidget(self.separator)
         
         # Create the list widget
         self.list_widget = QListWidget()
@@ -44,7 +72,7 @@ class CourseSelector(QWidget):
         self.list_widget.setUniformItemSizes(True)
         
         # Set spacing between items
-        self.list_widget.setSpacing(8)
+        self.list_widget.setSpacing(6)
         
         # Make the widget resize dynamically with the window
         self.list_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -57,57 +85,61 @@ class CourseSelector(QWidget):
         # Apply custom styles using a stylesheet
         self.list_widget.setStyleSheet("""
             QListWidget::item:selected {
-                background-color: #81C784;
+                background-color: #5C6BC0;  /* Indigo color */
                 color: white;
-                border: 1px solid #388E3C;
+                border: 1px solid #3949AB;
                 border-radius: 8px;
             }
             QListWidget::item:hover {
-                background-color: #A5D6A7;
-                color: black;
+                background-color: #9FA8DA;  /* Lighter indigo */
+                color: #1A237E;
             }
             QListWidget {
                 padding: 15px;
-                border: 2px solid #BDBDBD;
-                border-radius: 15px;
-                background-color: #F9FBE7;
+                border: 2px solid #C5CAE9;
+                border-radius: 12px;
+                background-color: #E8EAF6;  /* Light indigo background */
                 font-size: 13pt;
-                color: #424242;
+                color: #283593;
             }
             QListWidget::item {
                 padding: 12px;
-                margin: 8px;
-                border: 1px solid #E0E0E0;
+                margin: 5px;
+                border: 1px solid #C5CAE9;
                 border-radius: 8px;
                 background-color: #FFFFFF;
             }
-            QListWidget::item:!selected {
         """)
         
         # Add the list widget to the layout
         self.layout.addWidget(self.list_widget)
         
-        # Create a horizontal layout for buttons
+        # Add a spacer to push buttons to the bottom
+        # self.layout.addStretch(1)
+        
+        # Create a horizontal layout for buttons with right alignment
         self.button_layout = QHBoxLayout()
+        self.button_layout.addStretch(1)  # Push buttons to the right
         
         # Create Submit button
-        self.submit_button = QPushButton("Submit")
+        self.submit_button = QPushButton("Submit Selection")
         self.submit_button.setCursor(Qt.PointingHandCursor)  # Change cursor to hand when hovering
         self.submit_button.setStyleSheet("""
             QPushButton {
-                background-color: #4CAF50;
+                background-color: #3F51B5;  /* Indigo */
                 color: white;
                 border: none;
                 border-radius: 6px;
-                padding: 10px 20px;
+                padding: 12px 24px;
                 font-size: 12pt;
                 font-weight: bold;
+                min-width: 180px;
             }
             QPushButton:hover {
-                background-color: #388E3C;
+                background-color: #303F9F;
             }
             QPushButton:pressed {
-                background-color: #2E7D32;
+                background-color: #1A237E;
             }
         """)
         
@@ -116,27 +148,28 @@ class CourseSelector(QWidget):
         self.clear_button.setCursor(Qt.PointingHandCursor)  # Change cursor to hand when hovering
         self.clear_button.setStyleSheet("""
             QPushButton {
-                background-color: #F44336;
+                background-color: #F44336;  /* Red */
                 color: white;
                 border: none;
                 border-radius: 6px;
-                padding: 10px 20px;
+                padding: 12px 24px;
                 font-size: 12pt;
                 font-weight: bold;
+                min-width: 120px;
             }
             QPushButton:hover {
                 background-color: #D32F2F;
             }
             QPushButton:pressed {
-                background-color: #C62828;
+                background-color: #B71C1C;
             }
         """)
         
         # Add buttons to the button layout
-        self.button_layout.addWidget(self.submit_button)
         self.button_layout.addWidget(self.clear_button)
+        self.button_layout.addWidget(self.submit_button)
         
-        # Add the button layout to the main layout
+        # Add the button layout to the main layout with minimal space
         self.layout.addLayout(self.button_layout)
         
         # Initialize the list of courses
@@ -173,6 +206,9 @@ class CourseSelector(QWidget):
             
             # Add the item to the list widget
             self.list_widget.addItem(item)
+        
+        # Update the title with course count
+        self.title_label.setText(f"Available Courses ({len(courses)})")
 
     def _handle_selection_changed(self):
         """
@@ -182,6 +218,12 @@ class CourseSelector(QWidget):
         # Initialize a list to store selected courses
         selected_courses = self.get_selected_courses()
         
+        # Update title to show selection count
+        if selected_courses:
+            self.title_label.setText(f"Available Courses ({len(selected_courses)} selected)")
+        else:
+            self.title_label.setText(f"Available Courses ({len(self.courses)} total)")
+            
         # Emit the signal with the selected courses
         self.coursesSelected.emit(selected_courses)
     
@@ -202,6 +244,9 @@ class CourseSelector(QWidget):
         """
         # Clear all selections
         self.list_widget.clearSelection()
+        
+        # Reset the title
+        self.title_label.setText(f"Available Courses ({len(self.courses)} total)")
         
         # Emit the selection changed signal with an empty list
         self.coursesSelected.emit([])
@@ -252,6 +297,11 @@ class CourseSelector(QWidget):
                 # Select the item if its course number is in the list
                 if course.number in course_numbers:
                     item.setSelected(True)
+        
+        # Update title to show selection count
+        selected_count = len(self.get_selected_courses())
+        if selected_count > 0:
+            self.title_label.setText(f"Available Courses ({selected_count} selected)")
 
 
 # main for testing purposes TODO: remove this when integrating into the main application
