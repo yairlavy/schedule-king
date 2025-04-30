@@ -64,9 +64,7 @@ class CourseSelector(QWidget):
         
         # Set selection mode to allow multiple selections
         self.list_widget.setSelectionMode(QAbstractItemView.MultiSelection)
-        
-        # Enable alternating row colors for better readability
-        self.list_widget.setAlternatingRowColors(True)
+
         
         # Optimize item rendering by using uniform item sizes
         self.list_widget.setUniformItemSizes(True)
