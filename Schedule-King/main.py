@@ -3,15 +3,9 @@ from src.views.course_window import CourseWindow
 from src.views.schedule_window import ScheduleWindow
 
 if __name__ == "__main__":
-    # Define the default source file path for input data
-    DEFAULT_SOURCE = r"C:\Users\orlib\Documents\Barilan\simester 4\kugler\schedule-king\Schedule-King\tests\test_files\7courses.txt"
-    
-    # Define the default destination file path for output data
-    DEFAULT_DESTINATION = r"C:\Users\orlib\Documents\Barilan\simester 4\kugler\schedule-king\Schedule-King\tests\test_files\OrOut.txt"
-    
-    # Create the ScheduleAPI instance
-    api = ScheduleAPI(DEFAULT_SOURCE, DEFAULT_DESTINATION)
-
+    api = ScheduleAPI()
+    DEFAULT_SOURCE = ""
+    DEFAULT_DESTINATION = ""
     # Create the CourseWindow and load/display courses
     course_window = CourseWindow(api)
     course_window.load_courses()

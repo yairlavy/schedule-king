@@ -13,7 +13,7 @@ class CourseWindow:
         """
         Load courses from the file via ScheduleAPI.
         """
-        self.available_courses = self.schedule_api.get_courses()
+        self.available_courses = self.schedule_api.get_courses("/home/ido/Documents/BIU/Scheduler/Software-for-building-a-student-study-schedule/Schedule-King/tests/test_files/7courses.txt")
 
     def display_courses(self) -> None:
         """
