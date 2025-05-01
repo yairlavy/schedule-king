@@ -14,21 +14,20 @@ class CourseWindow(QMainWindow):
         self.setWindowTitle("Select Courses")
         self.showMaximized()
 
-        # Course selection list
-        self.courseSelector = CourseSelector([])
+        self.courseSelector = CourseSelector()
 
-        # Buttons
         self.load_button = QPushButton("Load Courses")
         self.load_button.setFixedSize(150, 50)
 
         self.next_button = QPushButton("Generate Schedules")
         self.next_button.setFixedSize(150, 50)
 
-        # Connect signals
         self.load_button.clicked.connect(self.load_courses_from_file)
         self.next_button.clicked.connect(self.navigateToSchedulesWindow)
 
-        # Layout
+        # גם כשלוחצים Submit ברכיב המעוצב שלך
+        self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
+
         layout = QVBoxLayout()
         layout.addWidget(self.load_button, alignment=Qt.AlignCenter)
         layout.addWidget(self.courseSelector)
@@ -39,15 +38,15 @@ class CourseWindow(QMainWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-        # External callbacks (set by controller)
+        # Callbacks
         self.on_courses_loaded: Callable[[str], None] = lambda path: None
         self.on_continue: Callable[[List[Course]], None] = lambda selected: None
 
     def displayCourses(self, courses: List[Course]):
         """
-        Display courses in the selector.
+        Populate the selector with new courses.
         """
-        self.courseSelector.load_courses(courses)
+        self.courseSelector.populate_courses(courses)
 
     def handleSelection(self) -> List[Course]:
         """
@@ -60,7 +59,8 @@ class CourseWindow(QMainWindow):
         Move to the ScheduleWindow with selected courses.
         """
         selected = self.handleSelection()
-        self.on_continue(selected)
+        if selected:
+            self.on_continue(selected)
 
     def load_courses_from_file(self):
         """

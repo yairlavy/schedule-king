@@ -1,5 +1,4 @@
-# src/controllers/main_controller.py
-
+from PyQt5.QtWidgets import QMessageBox
 from src.controllers.CourseController import CourseController
 from src.controllers.ScheduleController import ScheduleController
 from src.views.course_window import CourseWindow
@@ -16,9 +15,8 @@ class MainController:
         self.schedule_controller = ScheduleController(api)
 
         self.course_window = CourseWindow()
-        self.schedule_window = None  # <-- שים לב: לא יוצרים ScheduleWindow בהתחלה!
+        self.schedule_window = None  
 
-        # קישור callbackים
         self.course_window.on_courses_loaded = self.on_file_selected
         self.course_window.on_continue = self.on_courses_selected
 
@@ -30,10 +28,18 @@ class MainController:
         self.course_window.displayCourses(courses)
 
     def on_courses_selected(self, selected_courses: List[Course]):
+        if not selected_courses:
+            QMessageBox.warning(
+                self.course_window,
+                "No Courses Selected",
+                "Please select at least one course before proceeding."
+            )
+            return
+
         self.course_controller.set_selected_courses(selected_courses)
         schedules = self.schedule_controller.generate_schedules(selected_courses)
 
-        # עכשיו יוצרים את ScheduleWindow רק כשצריך
+        # יצירת ScheduleWindow רק עכשיו
         self.schedule_window = ScheduleWindow(schedules, self.api)
         self.schedule_window.on_back = self.on_navigate_back_to_courses
 
@@ -49,4 +55,5 @@ class MainController:
     def on_navigate_back_to_courses(self):
         if self.schedule_window:
             self.schedule_window.hide()
+            self.schedule_window = None  # משחרר מהזיכרון (אם תיצור חדש אחר כך)
         self.course_window.show()

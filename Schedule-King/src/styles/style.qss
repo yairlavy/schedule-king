@@ -1,14 +1,14 @@
-/* style.qss */
-
+/* Base style for all QWidget-based elements */
 QWidget {
-    background-color: #e3f2fd;
+    background-color: #F0F7FF;  /* Soft light blue background */
     font-family: "Segoe UI", sans-serif;
     font-size: 14px;
     color: #212121;
 }
 
+/* Default button style */
 QPushButton {
-    background-color: #2e7d32;
+    background-color: #2e7d32;  /* Dark green */
     color: white;
     border: none;
     border-radius: 8px;
@@ -17,14 +17,41 @@ QPushButton {
     min-height: 50px;
 }
 
+/* Hover and pressed states for default buttons */
 QPushButton:hover {
     background-color: #388e3c;
 }
-
 QPushButton:pressed {
     background-color: #1b5e20;
 }
 
+/* Style for the Submit Selection button */
+QPushButton[text="Submit Selection"] {
+    background-color: #3F51B5;  /* Indigo */
+    font-size: 12pt;
+    font-weight: bold;
+}
+QPushButton[text="Submit Selection"]:hover {
+    background-color: #303F9F;
+}
+QPushButton[text="Submit Selection"]:pressed {
+    background-color: #1A237E;
+}
+
+/* Style for the Clear All button */
+QPushButton[text="Clear All"] {
+    background-color: #F44336;  /* Red */
+    font-size: 12pt;
+    font-weight: bold;
+}
+QPushButton[text="Clear All"]:hover {
+    background-color: #D32F2F;
+}
+QPushButton[text="Clear All"]:pressed {
+    background-color: #B71C1C;
+}
+
+/* Text input fields */
 QLineEdit {
     padding: 6px;
     border: 1px solid #90caf9;
@@ -32,12 +59,7 @@ QLineEdit {
     background-color: white;
 }
 
-QTableWidget {
-    background-color: white;
-    gridline-color: #cfd8dc;
-    border: 1px solid #b0bec5;
-}
-
+/* Table header sections */
 QHeaderView::section {
     background-color: #bbdefb;
     padding: 6px;
@@ -45,9 +67,42 @@ QHeaderView::section {
     border: 1px solid #90caf9;
 }
 
+/* Tooltips */
 QToolTip {
     background-color: #ffffff;
     color: #000000;
     border: 1px solid #90a4ae;
     padding: 5px;
+}
+
+/* Course list container */
+QListWidget {
+    padding: 15px;
+    border: 2px solid #C5CAE9;
+    border-radius: 12px;
+    background-color: #E8EAF6;  /* Light indigo */
+    font-size: 13pt;
+    color: #283593;
+}
+
+/* Course list items */
+QListWidget::item {
+    padding: 12px;
+    margin: 5px;
+    border: 1px solid #C5CAE9;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+}
+
+/* Course list item when selected */
+QListWidget::item:selected {
+    background-color: #5C6BC0;  /* Indigo */
+    color: white;
+    border: 1px solid #3949AB;
+}
+
+/* Course list item on hover */
+QListWidget::item:hover {
+    background-color: #9FA8DA;  /* Light indigo hover */
+    color: #1A237E;
 }
