@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from PyQt5.QtWidgets import QApplication
 
 from src.services.schedule_api import ScheduleAPI
-from src.controllers.MainConroller import MainController  # שים לב גם כאן לתיקון שם
+from src.controllers.MainConroller import MainController 
 
 if __name__ == "__main__":
     # Load environment variables
