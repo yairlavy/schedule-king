@@ -50,25 +50,10 @@ class FileHandler:
     @staticmethod
     def format(schedules: List[Schedule], destination: str) -> None:
         """
-        Exports schedules to the specified destination file.
-
-        :param schedules: List of Schedule objects
-        :param destination: path to the output file
-        :raises ValueError: if no formatter is registered for the file extension
-        """
-        formatted_text = self.formatter.formatText(schedules)
-        return formatted_text
-
-    def export(self, schedules: List[Schedule], file_path: str) -> None:
-        """
         Exports the formatted schedules to a specific file path.
         :param schedules: List of Schedule objects
-        :param file_path: Destination file path
+        :param destination: Destination file path
         """
-        formatted_text = self.format(schedules)
-        with open(file_path, "w", encoding="utf-8") as f:
-            f.write(formatted_text)
-
         # Ensure the destination directory exists, create it if necessary
         dest_dir = os.path.dirname(destination)
         if dest_dir and not os.path.exists(dest_dir):
