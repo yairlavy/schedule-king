@@ -1,17 +1,36 @@
+# main.py
+
+import sys
+import os
+from dotenv import load_dotenv
+from PyQt5.QtWidgets import QApplication
+
 from src.services.schedule_api import ScheduleAPI
-from src.views.course_window import CourseWindow
-from src.views.schedule_window import ScheduleWindow
+from src.controllers.MainConroller import MainController 
 
 if __name__ == "__main__":
-    api = ScheduleAPI()
-    DEFAULT_SOURCE = ""
-    DEFAULT_DESTINATION = ""
-    # Create the CourseWindow and load/display courses
-    course_window = CourseWindow(api)
-    course_window.load_courses()
-    course_window.handle_selection()  # user selects courses
+    # Load environment variables
+    load_dotenv(dotenv_path=".env.local")
 
-    # Create the ScheduleWindow with api AND output path
-    schedule_window = ScheduleWindow(api, DEFAULT_DESTINATION)
-    schedule_window.generate_schedules(course_window.get_selected_courses())
-    schedule_window.display_schedules()
+    DEFAULT_SOURCE = os.getenv("DEFAULT_SOURCE")
+
+    if not DEFAULT_SOURCE:
+        print("Error: DEFAULT_SOURCE not set in .env.local")
+        exit(1)
+
+    # Create the QApplication
+    app = QApplication(sys.argv)
+
+    # Load and apply the stylesheet
+    with open("src/styles/style.qss", "r") as f:
+        app.setStyleSheet(f.read())
+
+    # Create the ScheduleAPI instance
+    api = ScheduleAPI(DEFAULT_SOURCE)
+
+    # Create and start the MainController
+    controller = MainController(api)
+    controller.start_application()
+
+    # Run the event loop
+    sys.exit(app.exec_())

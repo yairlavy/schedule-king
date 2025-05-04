@@ -1,78 +1,73 @@
+# views/course_window.py
+
+from PyQt5.QtWidgets import (
+    QMainWindow, QFileDialog, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy
+)
+from PyQt5.QtCore import Qt
+from src.componnents.CourseSelector import CourseSelector
 from src.models.course import Course
+from typing import List, Callable
 
-class CourseWindow:
-    def __init__(self, schedule_api):
+class CourseWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Select Courses")
+        self.showMaximized()
+
+        self.courseSelector = CourseSelector()
+
+        self.load_button = QPushButton("Load Courses")
+        self.load_button.setFixedSize(150, 50)
+
+        self.next_button = QPushButton("Generate Schedules")
+        self.next_button.setFixedSize(150, 50)
+
+        self.load_button.clicked.connect(self.load_courses_from_file)
+        self.next_button.clicked.connect(self.navigateToSchedulesWindow)
+
+        # גם כשלוחצים Submit ברכיב המעוצב שלך
+        self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
+
+        layout = QVBoxLayout()
+        layout.addWidget(self.load_button, alignment=Qt.AlignCenter)
+        layout.addWidget(self.courseSelector)
+        layout.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        layout.addWidget(self.next_button, alignment=Qt.AlignCenter)
+
+        container = QWidget()
+        container.setLayout(layout)
+        self.setCentralWidget(container)
+
+        # Callbacks
+        self.on_courses_loaded: Callable[[str], None] = lambda path: None
+        self.on_continue: Callable[[List[Course]], None] = lambda selected: None
+
+    def displayCourses(self, courses: List[Course]):
         """
-        Window for displaying and selecting courses.
+        Populate the selector with new courses.
         """
-        self.schedule_api = schedule_api
-        self.available_courses: list[Course] = []
-        self.selected_courses: list[Course] = []
+        self.courseSelector.populate_courses(courses)
 
-    def load_courses(self) -> None:
+    def handleSelection(self) -> List[Course]:
         """
-        Load courses from the file via ScheduleAPI.
+        Return selected courses from the selector.
         """
-        self.available_courses = self.schedule_api.get_courses("/home/ido/Documents/BIU/Scheduler/Software-for-building-a-student-study-schedule/Schedule-King/tests/test_files/7courses.txt")
+        return self.courseSelector.get_selected_courses()
 
-    def display_courses(self) -> None:
+    def navigateToSchedulesWindow(self):
         """
-        Display the list of available courses.
+        Move to the ScheduleWindow with selected courses.
         """
-        print("\nAvailable Courses:")
-        for index, course in enumerate(self.available_courses, 1):
-            print(f"{index}. {course.name} (Code: {course.course_code})")
-        print()
+        selected = self.handleSelection()
+        if selected:
+            self.on_continue(selected)
 
-    def handle_selection(self, course_codes: list[str] = None) -> None:
+    def load_courses_from_file(self):
         """
-        Handle user selection of courses.
+        Open file dialog and load courses.
         """
-        code_to_course = {course.course_code: course for course in self.available_courses}
-        print("Please select between 1 and 7 valid courses.")
-
-        while True:
-            if course_codes is None:
-                self.display_courses()
-                raw_input_line = input("Enter course codes (space-separated): ")
-                course_codes = raw_input_line.strip().split()
-
-            # Check for duplicates
-            seen = set()
-            duplicates = [code for code in course_codes if code in seen or seen.add(code)]
-            if duplicates:
-                print(f"Error: Duplicate course codes found: {', '.join(duplicates)}. Please try again.")
-                course_codes = None
-                continue
-
-            # Check for invalid codes
-            invalid = [code for code in course_codes if code not in code_to_course]
-            if invalid:
-                print(f"Error: Invalid course codes: {', '.join(invalid)}. Please try again.")
-                course_codes = None
-                continue
-
-            if len(course_codes) == 0:
-                print("Error: No course codes provided. Please try again.")
-                course_codes = None
-                continue
-
-            if len(course_codes) > 7:
-                print("Error: Cannot select more than 7 courses. Please try again.")
-                course_codes = None
-                continue
-
-            # All codes are valid
-            self.selected_courses = [code_to_course[code] for code in course_codes]
-            print("\nSelected Courses:")
-            for course in self.selected_courses:
-                print(f"- {course.name} (Code: {course.course_code})")
-            print()
-
-            break
-
-    def get_selected_courses(self) -> list[Course]:
-        """
-        Return the selected courses.
-        """
-        return self.selected_courses
+        file_path, _ = QFileDialog.getOpenFileName(
+            self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
+        )
+        if file_path:
+            self.on_courses_loaded(file_path)
