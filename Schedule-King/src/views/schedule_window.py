@@ -67,7 +67,7 @@ class ScheduleWindow(QMainWindow):
         )
         if file_path:
             try:
-                self.api.export_schedules(self.navigator.schedules, file_path)
+                self.api.export(self.navigator.schedules, file_path)
                 QMessageBox.information(
                     self, "Export Successful",
                     f"Schedules were saved successfully to:\n{file_path}"

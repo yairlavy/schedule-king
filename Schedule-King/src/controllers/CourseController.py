@@ -12,8 +12,7 @@ class CourseController:
         """
         Loads the courses from the file path using the ScheduleAPI.
         """
-        self.api.file_handler.file_path = file_path
-        self.courses = self.api.get_courses()
+        self.courses = self.api.get_courses(file_path)
         return self.courses
 
     def set_selected_courses(self, selected: List[Course]) -> None:

@@ -26,7 +26,7 @@ if __name__ == "__main__":
         app.setStyleSheet(f.read())
 
     # Create the ScheduleAPI instance
-    api = ScheduleAPI(DEFAULT_SOURCE)
+    api = ScheduleAPI()
 
     # Create and start the MainController
     controller = MainController(api)
