@@ -39,7 +39,6 @@ class MainController:
         self.course_controller.set_selected_courses(selected_courses)
         schedules = self.schedule_controller.generate_schedules(selected_courses)
 
-        # יצירת ScheduleWindow רק עכשיו
         self.schedule_window = ScheduleWindow(schedules, self.api)
         self.schedule_window.on_back = self.on_navigate_back_to_courses
 
@@ -55,5 +54,5 @@ class MainController:
     def on_navigate_back_to_courses(self):
         if self.schedule_window:
             self.schedule_window.hide()
-            self.schedule_window = None  # משחרר מהזיכרון (אם תיצור חדש אחר כך)
+            self.schedule_window = None  
         self.course_window.show()
