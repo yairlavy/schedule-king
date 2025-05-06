@@ -3,7 +3,6 @@
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
 from PyQt5.QtCore import Qt
 from src.models.schedule import Schedule
-from collections import defaultdict
 
 class ScheduleTable(QTableWidget):
     def __init__(self):
@@ -20,8 +19,9 @@ class ScheduleTable(QTableWidget):
         time_labels = [f"{hour}:00-{hour + 1}:00" for hour in range(8, 20)]
         self.setVerticalHeaderLabels(time_labels)
         self.setWordWrap(True)
+        # Adjust column widths and row heights to fit the content
+        self.resizeRowsToContents()
 
-        
 
     def display_schedule(self, schedule: Schedule):
         """

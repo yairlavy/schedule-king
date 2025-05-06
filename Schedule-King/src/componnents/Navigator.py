@@ -1,5 +1,6 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QMessageBox
+    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QMessageBox,
+    QFrame
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from src.componnents.ScheduleTable import ScheduleTable
@@ -21,6 +22,7 @@ class Navigator(QWidget):
 
         # Info label to show the current schedule index and total schedules
         self.info_label = QLabel()
+        self.info_label.setObjectName("info_label")
         self.info_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.info_label)
 
@@ -33,19 +35,23 @@ class Navigator(QWidget):
 
         # Input field to enter a specific schedule number
         self.schedule_num = QLineEdit()
+        self.schedule_num.setObjectName("schedule_num")
         self.schedule_num.setFixedSize(100, 50)
         self.schedule_num.setPlaceholderText("Go to...")
+        self.schedule_num.setAlignment(Qt.AlignCenter)
 
         # Button to navigate to the next schedule
         self.next_btn = QPushButton("Next")
         self.next_btn.setFixedSize(150, 50)
 
         # Add controls to the layout
+        controls_layout.addStretch(1)
         controls_layout.addWidget(self.prev_btn)
-        controls_layout.addSpacing(10)
+        controls_layout.addSpacing(20)
         controls_layout.addWidget(self.schedule_num)
-        controls_layout.addSpacing(10)
+        controls_layout.addSpacing(20)
         controls_layout.addWidget(self.next_btn)
+        controls_layout.addStretch(1)
         controls_layout.setAlignment(Qt.AlignCenter)
 
         # Connect button clicks and input field to their respective methods
@@ -55,10 +61,23 @@ class Navigator(QWidget):
 
         # Add the controls layout to the main layout
         self.layout.addLayout(controls_layout)
-
+        
+        # Add a separator line
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)
+        line.setFrameShadow(QFrame.Sunken)
+        line.setObjectName("separator_line")
+        self.layout.addWidget(line)
+        
         # Schedule display table to show the current schedule
         self.table = ScheduleTable()
-        self.layout.addWidget(self.table)
+        
+        # Create a layout to center the table
+        table_layout = QHBoxLayout()
+        table_layout.addWidget(self.table)
+        
+        # Add the centered table layout to the main layout
+        self.layout.addLayout(table_layout)
 
         # Display the first schedule by default
         self.display_schedule(0)

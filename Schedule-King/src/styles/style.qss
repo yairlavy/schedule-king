@@ -61,10 +61,12 @@ QLineEdit {
 
 /* Table header sections */
 QHeaderView::section {
-    background-color: #bbdefb;
-    padding: 6px;
+    background-color: #1976D2;
+    color: white;
+    padding: 10px;
+    border: none;
     font-weight: bold;
-    border: 1px solid #90caf9;
+    border-radius: 0px;
 }
 
 /* Tooltips */
@@ -107,6 +109,7 @@ QListWidget::item:hover {
     color: #1A237E;
 }
 
+
 /* Schedule Window Specific Styles */
 QTableWidget {
     background-color: #FFFFFF;
@@ -119,21 +122,14 @@ QTableWidget {
 QTableWidget::item {
     padding: 8px;
     border-radius: 4px;
+    border: 1px solid #BBDEFB; /* Light blue border */
+    background-color: #F5F5F5; /* Light gray background */
+    color: #212121; /* Dark text color */
 }
 
 QTableWidget::item:selected {
     background-color: #E3F2FD;
     color: #1976D2;
-}
-
-/* Schedule table headers */
-QHeaderView::section {
-    background-color: #1976D2;
-    color: white;
-    padding: 10px;
-    border: none;
-    font-weight: bold;
-    border-radius: 0px;
 }
 
 /* Navigation controls */
@@ -191,5 +187,62 @@ QLabel#info_label {
     font-size: 16px;
     font-weight: bold;
     color: #1976D2;
+    padding: 10px;
+}
+
+/* Headline styling */
+QLabel#headline_label {
+    font-size: 36px;
+    font-weight: bold;
+    color: #1565C0;
+    padding: 20px 10px 5px 10px;
+    font-family: "Segoe UI", sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Subtitle styling */
+QLabel#subtitle_label {
+    font-size: 18px;
+    color: #5C6BC0;
+    padding: 0px 10px 20px 10px;
+    font-style: italic;
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* Main window background and shadow */
+QMainWindow {
+    background-color: #F0F7FF;
+}
+
+/* Enhancement for the table to make it more prominent */
+QTableWidget {
+    background-color: #FFFFFF;
+    gridline-color: #90CAF9;
+    border: 2px solid #90CAF9;
+    border-radius: 12px;
+    padding: 8px;
+    margin: 10px;
+}
+
+/* Enhance table cells for better readability */
+QTableWidget::item {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #BBDEFB;
+    background-color: #F5F5F5;
+    color: #212121;
+    margin: 2px;
+}
+
+/* Add a nice highlight effect for cells with events */
+QTableWidget::item:!empty {
+    background-color: #E3F2FD;
+    border: 1px solid #90CAF9;
+}
+
+/* Centralize and enhance navigator positioning */
+Navigator {
+    margin: 20px;
     padding: 10px;
 }
