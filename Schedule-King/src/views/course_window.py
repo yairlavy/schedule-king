@@ -25,7 +25,6 @@ class CourseWindow(QMainWindow):
         self.load_button.clicked.connect(self.load_courses_from_file)
         self.next_button.clicked.connect(self.navigateToSchedulesWindow)
 
-        # גם כשלוחצים Submit ברכיב המעוצב שלך
         self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
 
         layout = QVBoxLayout()
