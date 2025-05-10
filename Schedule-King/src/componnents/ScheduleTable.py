@@ -2,8 +2,9 @@
 
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont, QColor, QBrush, QLinearGradient
 from src.models.schedule import Schedule
+import hashlib
 
 class ScheduleTable(QTableWidget):
     def __init__(self):
@@ -11,7 +12,7 @@ class ScheduleTable(QTableWidget):
         # Set the number of columns to represent days of the week (Sunday to Friday)
         self.setColumnCount(6)
         # Set the column headers to the days of the week
-        self.setHorizontalHeaderLabels(["Sun", "Mon", "Tue", "Wed", "Thu", "Fri"])
+        self.setHorizontalHeaderLabels(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
         # Set the number of rows to represent time slots (e.g., 12 rows for 12 hours)
         self.setRowCount(12)
         # Enable word wrapping for table cells
@@ -22,17 +23,19 @@ class ScheduleTable(QTableWidget):
         
         # Configure table appearance
         self.setShowGrid(True)
-        self.setGridStyle(Qt.SolidLine)
+        self.setGridStyle(Qt.DotLine)
         self.setAlternatingRowColors(True)
         
         # Set header properties
         header = self.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
         header.setDefaultAlignment(Qt.AlignCenter)
+        header.setFixedHeight(50)  # Make the header more prominent
         
         vertical_header = self.verticalHeader()
         vertical_header.setSectionResizeMode(QHeaderView.Fixed)
         vertical_header.setDefaultSectionSize(80)  # Increased row height
+        vertical_header.setFixedWidth(120)  # Make the time column wider
         
         # Set table properties
         self.setSelectionMode(QTableWidget.SingleSelection)
@@ -40,7 +43,39 @@ class ScheduleTable(QTableWidget):
         self.setEditTriggers(QTableWidget.NoEditTriggers)
         
         # Set minimum size
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(900, 600)
+        
+        # Dict to store course colors
+        self.course_colors = {}
+
+    def get_color_for_course(self, course_code):
+        """
+        Generate a consistent color for a course based on its code.
+        
+        Args:
+            course_code (str): The course code to generate a color for.
+            
+        Returns:
+            QColor: A color specific to this course.
+        """
+        if course_code in self.course_colors:
+            return self.course_colors[course_code]
+            
+        # Generate a hash from the course code
+        hash_object = hashlib.md5(course_code.encode())
+        hex_dig = hash_object.hexdigest()
+        
+        # Use the first 6 characters of the hash as a color
+        color_hex = hex_dig[:6]
+        
+        # Create a color that's not too dark (for readability)
+        r = min(int(color_hex[0:2], 16) + 100, 255)
+        g = min(int(color_hex[2:4], 16) + 100, 255)
+        b = min(int(color_hex[4:6], 16) + 100, 255)
+        
+        # Store and return the color
+        self.course_colors[course_code] = QColor(r, g, b, 100)  # Semi-transparent
+        return self.course_colors[course_code]
 
     def display_schedule(self, schedule: Schedule):
         """
@@ -49,8 +84,10 @@ class ScheduleTable(QTableWidget):
         Args:
             schedule (Schedule): The schedule object containing events to display.
         """
-        # Clear the table contents before populating it
+        # Clear the table contents and course colors cache before populating it
+        self.course_colors = {}
         self.clearContents()
+        
         # Extract events grouped by day from the schedule
         day_map = schedule.extract_by_day()
 
@@ -62,35 +99,62 @@ class ScheduleTable(QTableWidget):
                 # Calculate the row index based on the event's start time
                 row = slot.start_time.hour - 8
 
-                # Create the text to display in the table cell
-                item_text = (
-                    f"{event_type}\n"
-                    f"{course_name} ({code})\n"
-                    f"Room {slot.room}, Bldg {slot.building}"
-                )
-
                 # Create a table widget item with the event details
-                item = QTableWidgetItem(item_text)
+                item = QTableWidgetItem()
                 
-                # Configure item appearance
-                item.setTextAlignment(Qt.AlignLeft | Qt.AlignTop)
-                item.setToolTip(item_text)
+                # Get a unique color for this course
+                course_color = self.get_color_for_course(code)
                 
-                # Apply enhanced styling to the text
-                font = QFont("Segoe UI", 9)
-                font.setBold(True)
-                item.setFont(font)
+                # Apply a gradient background based on the event type
+                gradient = QLinearGradient(0, 0, 0, 100)
                 
-                # Set background color based on event type
+                # Base color from course
+                gradient.setColorAt(0, course_color)
+                
+                # Different shade based on event type
                 if "Lecture" in event_type:
-                    item.setBackground(QColor("#E3F2FD"))  # Light blue for lectures
+                    # Lighter gradient for lectures
+                    gradient.setColorAt(1, QColor(255, 255, 255, 100))
+                    border_color = QColor("#1976D2")  # Blue border for lectures
                 elif "Lab" in event_type:
-                    item.setBackground(QColor("#E8F5E9"))  # Light green for labs
+                    # Different gradient for labs
+                    gradient.setColorAt(1, QColor(240, 240, 255, 150))
+                    border_color = QColor("#4CAF50")  # Green border for labs
                 else:
-                    item.setBackground(QColor("#FFF3E0"))  # Light orange for other events
-
+                    # Another gradient for other events
+                    gradient.setColorAt(1, QColor(255, 245, 240, 150))
+                    border_color = QColor("#FF9800")  # Orange border for others
+                
+                # Set the background brush with the gradient
+                item.setBackground(QBrush(gradient))
+                
+                # Format the cell text
+                item_text = (
+                    f"<b>{event_type}</b><br>"
+                    f"{course_name} ({code})<br>"
+                    f"<i>Room {slot.room}, Bldg {slot.building}</i>"
+                )
+                
+                # Set formatted text
+                item.setData(Qt.DisplayRole, "")  # Clear default text
+                item.setData(Qt.UserRole, f"{event_type}|{code}")  # Store type and code
+                
+                # Use HTML formatting for rich text display
+                item.setToolTip(item_text.replace("<br>", "\n").replace("<b>", "").replace("</b>", "").replace("<i>", "").replace("</i>", ""))
+                
                 # Add the item to the table at the calculated row and day column
                 self.setItem(row, day, item)
+                
+                # Create a QLabel with HTML content for each cell
+                from PyQt5.QtWidgets import QLabel
+                label = QLabel(item_text)
+                label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+                label.setWordWrap(True)
+                label.setMargin(5)
+                label.setStyleSheet(f"border: 2px solid {border_color.name()}; border-radius: 6px; background: transparent;")
+                
+                # Set the cell widget
+                self.setCellWidget(row, day, label)
 
         # Adjust row heights to fit the content
         self.resizeRowsToContents()

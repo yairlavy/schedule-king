@@ -1,9 +1,8 @@
-# views/schedule_window.py
-
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout
+    QHBoxLayout, QLabel, QFrame, QSplitter
 )
+from PyQt5.QtCore import Qt
 from src.componnents.Navigator import Navigator
 from src.componnents.ScheduleTable import ScheduleTable
 from src.models.schedule import Schedule
@@ -25,56 +24,88 @@ class ScheduleWindow(QMainWindow):
             controller (ScheduleController): Controller for schedule operations.
         """
         super().__init__()
+        self.setObjectName("ScheduleWindow")  # Set object name for styling
         self.setWindowTitle("Generated Schedules")
         self.showMaximized()
-        self.controller = controller
-        self.schedules = schedules
+        self.controller = controller  # Controller for handling schedule-related operations
+        self.schedules = schedules  # List of schedules to display
 
         # Create the main container widget and layout
         self.central_widget = QWidget()
         self.main_layout = QVBoxLayout(self.central_widget)
+        self.main_layout.setSpacing(10)
+        self.main_layout.setContentsMargins(15, 15, 15, 15)
         
-        # Create the navigator
+        # Top section: Header and action buttons
+        top_section = QHBoxLayout()
+        
+        # Header area (left side of top section)
+        header_area = QVBoxLayout()
+        
+        # Add headline and subtitle
+        self.headline = QLabel("Schedule King")  # Main headline label
+        self.headline.setObjectName("headline_label")
+        self.headline.setAlignment(Qt.AlignLeft)
+        
+        self.subtitle = QLabel("Plan Your Study Schedule Like a King")  # Subtitle label
+        self.subtitle.setObjectName("subtitle_label")
+        self.subtitle.setAlignment(Qt.AlignLeft)
+        
+        header_area.addWidget(self.headline)
+        header_area.addWidget(self.subtitle)
+        header_area.addStretch()
+        
+        # Action buttons area (right side of top section)
+        buttons_area = QHBoxLayout()
+        buttons_area.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        
+        # Buttons for exporting schedules and navigating back
+        self.export_button = QPushButton("Export to TXT File")  # Export button
+        self.export_button.setObjectName("top_action_button")
+        
+        self.back_button = QPushButton("Back to Course Selection")  # Back button
+        self.back_button.setObjectName("top_action_button")
+        
+        # Connect button signals to their respective slots
+        self.export_button.clicked.connect(self.export_to_file)  # Export schedules
+        self.back_button.clicked.connect(self.navigateToCourseWindow)  # Navigate back
+        
+        # Add buttons to the action area
+        buttons_area.addWidget(self.export_button)
+        buttons_area.addWidget(self.back_button)
+        
+        # Combine header and buttons in the top section
+        top_section.addLayout(header_area, 2)
+        top_section.addLayout(buttons_area, 1)
+        
+        # Add the top section to the main layout
+        self.main_layout.addLayout(top_section)
+        
+        # Add a separator line
+        line = QFrame()
+        line.setFrameShape(QFrame.HLine)  # Horizontal line
+        line.setFrameShadow(QFrame.Sunken)
+        line.setObjectName("separator_line")
+        self.main_layout.addWidget(line)
+        
+        # Create the navigator for navigating through schedules - more compact
         self.navigator = Navigator(schedules)
-        
-        # Create the schedule table
-        self.schedule_table = ScheduleTable()
-        
-        # Connect navigator's schedule_changed signal to update the table
-        self.navigator.schedule_changed.connect(self.on_schedule_changed)
+        self.navigator.setObjectName("compact_navigator")
+        self.navigator.setMaximumHeight(100)  # Limit the height
         
         # Add navigator to the main layout
         self.main_layout.addWidget(self.navigator)
         
-        # Add the schedule table inside a horizontal layout for centering
-        table_layout = QHBoxLayout()
-        table_layout.addWidget(self.schedule_table)
-        self.main_layout.addLayout(table_layout)
-
-        # Buttons
-        self.export_button = QPushButton("Export to TXT File")
-        self.export_button.setFixedSize(150, 50)  # Set fixed size for export button
-
-        self.back_button = QPushButton("Back to Course Selection")
-        self.back_button.setFixedSize(150, 50)  # Set fixed size for back button
-
-        # Connect button signals to their respective slots
-        self.export_button.clicked.connect(self.export_to_file)
-        self.back_button.clicked.connect(self.navigateToCourseWindow)
-
-        # Buttons layout
-        buttons_layout = QHBoxLayout()
+        # Create the schedule table for displaying schedule details
+        self.schedule_table = ScheduleTable()
+        self.schedule_table.setObjectName("enhanced_table")
         
-        # Add buttons to the layout with spacing and alignment
-        buttons_layout.addStretch()
-        buttons_layout.addWidget(self.export_button)
-        buttons_layout.addSpacing(20)
-        buttons_layout.addWidget(self.back_button)
-        buttons_layout.addStretch()
-
-        # Add buttons layout to the main layout
-        self.main_layout.addLayout(buttons_layout)
-
+        # Connect navigator's schedule_changed signal to update the table
+        self.navigator.schedule_changed.connect(self.on_schedule_changed)
+        
+        # Add the schedule table with expanded size
+        self.main_layout.addWidget(self.schedule_table, 1)
+        
         # Set the central widget
         self.setCentralWidget(self.central_widget)
 
@@ -92,8 +123,8 @@ class ScheduleWindow(QMainWindow):
         Args:
             index (int): The index of the selected schedule.
         """
-        if 0 <= index < len(self.schedules):
-            self.schedule_table.display_schedule(self.schedules[index])
+        if 0 <= index < len(self.schedules):  # Ensure the index is valid
+            self.schedule_table.display_schedule(self.schedules[index])  # Display the selected schedule
 
     def displaySchedules(self, schedules: List[Schedule]):
         """
@@ -102,18 +133,18 @@ class ScheduleWindow(QMainWindow):
         Args:
             schedules (List[Schedule]): List of schedules to display.
         """
-        self.schedules = schedules
-        self.navigator.set_schedules(schedules)
+        self.schedules = schedules  # Update the schedules list
+        self.navigator.set_schedules(schedules)  # Update the navigator with new schedules
         if schedules:
-            self.on_schedule_changed(0)
+            self.on_schedule_changed(0)  # Display the first schedule
         else:
-            self.schedule_table.clearContents()
+            self.schedule_table.clearContents()  # Clear the table if no schedules are available
 
     def navigateToCourseWindow(self):
         """
         Triggers the callback to navigate back to the course selection window.
         """
-        self.on_back()
+        self.on_back()  # Call the callback function
 
     def export_to_file(self):
         """
@@ -123,7 +154,7 @@ class ScheduleWindow(QMainWindow):
         file_path, _ = QFileDialog.getSaveFileName(
             self, "Save Schedules", "", "Text Files (*.txt)"
         )
-        if file_path:
+        if file_path:  # If a file path is selected
             try:
                 # Use the controller to export schedules to the selected file
                 self.controller.export_schedules(file_path)
