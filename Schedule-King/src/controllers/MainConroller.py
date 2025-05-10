@@ -39,7 +39,7 @@ class MainController:
         self.course_controller.set_selected_courses(selected_courses)
         schedules = self.schedule_controller.generate_schedules(selected_courses)
 
-        self.schedule_window = ScheduleWindow(schedules, self.api)
+        self.schedule_window = ScheduleWindow(schedules, self.schedule_controller)
         self.schedule_window.on_back = self.on_navigate_back_to_courses
 
         self.course_window.hide()

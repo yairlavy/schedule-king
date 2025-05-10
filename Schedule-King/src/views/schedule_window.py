@@ -1,13 +1,14 @@
+# views/schedule_window.py
+
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QSpacerItem, QSizePolicy, QHBoxLayout
+    QHBoxLayout
 )
-from PyQt5.QtCore import Qt
 from src.componnents.Navigator import Navigator
 from src.componnents.ScheduleTable import ScheduleTable
 from src.models.schedule import Schedule
+from src.controllers.ScheduleController import ScheduleController
 from typing import List, Callable
-from src.services.schedule_api import ScheduleAPI
 
 class ScheduleWindow(QMainWindow):
     """
@@ -15,18 +16,18 @@ class ScheduleWindow(QMainWindow):
     Allows navigation through schedules, exporting them to a file,
     and returning to the course selection window.
     """
-    def __init__(self, schedules: List[Schedule], api: ScheduleAPI):
+    def __init__(self, schedules: List[Schedule], controller: ScheduleController):
         """
         Initializes the ScheduleWindow.
 
         Args:
             schedules (List[Schedule]): List of schedules to display.
-            api (ScheduleAPI): API for exporting schedules.
+            controller (ScheduleController): Controller for schedule operations.
         """
         super().__init__()
         self.setWindowTitle("Generated Schedules")
         self.showMaximized()
-        self.api = api
+        self.controller = controller
         self.schedules = schedules
 
         # Create the main container widget and layout
@@ -116,7 +117,7 @@ class ScheduleWindow(QMainWindow):
 
     def export_to_file(self):
         """
-        Opens a file dialog and saves the schedules to the selected file.
+        Opens a file dialog and saves the schedules to the selected file using the controller.
         """
         # Open a file dialog to select the save location
         file_path, _ = QFileDialog.getSaveFileName(
@@ -124,8 +125,8 @@ class ScheduleWindow(QMainWindow):
         )
         if file_path:
             try:
-                # Use the API to export schedules to the selected file
-                self.api.export(self.schedules, file_path)
+                # Use the controller to export schedules to the selected file
+                self.controller.export_schedules(file_path)
                 QMessageBox.information(
                     self, "Export Successful",
                     f"Schedules were saved successfully to:\n{file_path}"
