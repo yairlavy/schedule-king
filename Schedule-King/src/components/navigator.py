@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QMessageBox
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from src.componnents.ScheduleTable import ScheduleTable
+from src.components.schedule_table import ScheduleTable
 from src.models.schedule import Schedule
 from typing import List
 
