@@ -129,7 +129,6 @@ class ScheduleTable(QTableWidget):
                 # Format the cell text with improved styling and layout
                 item_text = (
                     f'<div style="padding: 1px; font-family: Arial, sans-serif;">'
-                    f'<div style="color: #1E88E5; font-size: 12px; font-weight: bold; margin-bottom: 4px;">{event_type}</div>'
                     f'<div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">{course_name} ({code})</div>'
                     f'<div style="color: #777; font-size: 16px; margin-top: 8px;">Room: {slot.room} | Building: {slot.building}</div>'
                     f'</div>'
