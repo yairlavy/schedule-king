@@ -114,208 +114,216 @@ QListWidget::item:hover {
 
 /* Schedule Window Specific Styles */
 QMainWindow#ScheduleWindow {
-    background-color: #F0F7FA;  /* Slightly bluer background */
-    border: 1px solid #BBDEFB;
-    border-radius: 15px;
+    background-color: #F0F7FA;  /* Slightly bluer background for the main window */
+    border: 1px solid #BBDEFB;  /* Light blue border */
+    border-radius: 15px;        /* Rounded corners for the window */
 }
 
 /* Schedule Table Styles */
 QTableWidget#enhanced_table {
-    background-color: #FFFFFF;
-    gridline-color: #E1F5FE;
+    background-color: #FFFFFF;  /* White background for the table */
+    gridline-color: #E1F5FE;    /* Light blue gridlines */
     border: 2px solid #29B6F6;  /* Brighter blue border */
-    border-radius: 18px;
-    padding: 12px;
-    margin: 20px;
-    selection-background-color: #E1F5FE;
-    selection-color: #01579B;
-    font-size: 13px;
+    border-radius: 18px;        /* Rounded corners for the table */
+    padding: 12px;              /* Padding inside the table */
+    margin: 20px;               /* Margin around the table */
+    selection-background-color: #E1F5FE; /* Light blue background for selected cells */
+    selection-color: #01579B;   /* Dark blue text color for selected cells */
+    font-size: 13px;            /* Font size for table content */
 }
 
+/* Table cell styles */
 QTableWidget#enhanced_table::item {
-    padding: 10px;
-    border: 1px solid #B3E5FC;
-    border-radius: 8px;
-    background-color: #F5FCFF;
-    color: #263238;
-    margin: 5px;
+    padding: 10px;              /* Padding inside table cells */
+    border: 1px solid #B3E5FC;  /* Light blue border for cells */
+    border-radius: 8px;         /* Rounded corners for cells */
+    background-color: #F5FCFF;  /* Light blue background for cells */
+    color: #263238;             /* Dark gray text color */
+    margin: 5px;                /* Margin between cells */
 }
 
+/* Table cell styles when selected */
 QTableWidget#enhanced_table::item:selected {
-    background-color: #B3E5FC;
-    color: #01579B;
-    border: 1px solid #0288D1;
+    background-color: #B3E5FC;  /* Light blue background for selected cells */
+    color: #01579B;             /* Dark blue text color for selected cells */
+    border: 1px solid #0288D1;  /* Bright blue border for selected cells */
 }
 
 /* Table cell widgets - custom styling */
 QTableWidget#enhanced_table QLabel {
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 12px;        /* Rounded corners for labels inside table cells */
+    padding: 16px;              /* Padding inside labels */
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
                                stop:0 rgba(255, 255, 255, 245), 
-                               stop:1 rgba(240, 249, 255, 245));
-    border: 3px solid #4FC3F7;
-    font-size: 16px;
-    color: #263238;
-    line-height: 1.6;
+                               stop:1 rgba(240, 249, 255, 245)); /* Gradient background */
+    border: 3px solid #4FC3F7;  /* Bright blue border */
+    font-size: 16px;            /* Font size for labels */
+    color: #263238;             /* Dark gray text color */
+    line-height: 1.6;           /* Line height for better readability */
 }
 
 /* Styling for course labels - all types */
 QTableWidget#enhanced_table QLabel[objectName^="course_label"] {
-    padding-top: 12px;
-    padding-bottom: 12px;
+    padding-top: 12px;          /* Top padding for course labels */
+    padding-bottom: 12px;       /* Bottom padding for course labels */
 }
 
 /* Style for Lecture items */
 QTableWidget#enhanced_table QLabel[objectName^="course_label_Lecture"] {
-    border-left: 8px solid #1976D2;
+    border-left: 8px solid #1976D2; /* Blue left border for lecture items */
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
                               stop:0 rgba(225, 245, 254, 250), 
-                              stop:1 rgba(179, 229, 252, 250));
+                              stop:1 rgba(179, 229, 252, 250)); /* Gradient background */
 }
 
 /* Style for Tirgul items */
 QTableWidget#enhanced_table QLabel[objectName^="course_label_Tirgul"] {
-    border-left: 8px solid #FF9800;
+    border-left: 8px solid #FF9800; /* Orange left border for tirgul items */
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
                               stop:0 rgba(255, 243, 224, 250), 
-                              stop:1 rgba(255, 224, 178, 250));
+                              stop:1 rgba(255, 224, 178, 250)); /* Gradient background */
 }
 
-/* Style for Lab items */
-QTableWidget#enhanced_table QLabel[objectName^="course_label_Lab"] {
-    border-left: 8px solid #4CAF50;
+/* Style for maabada items */
+QTableWidget#enhanced_table QLabel[objectName^="course_label_maabada"] {
+    border-left: 8px solid #4CAF50; /* Green left border for maabada items */
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
                               stop:0 rgba(232, 245, 233, 250), 
-                              stop:1 rgba(200, 230, 201, 250));
+                              stop:1 rgba(200, 230, 201, 250)); /* Gradient background */
 }
 
 /* Schedule Window Navigation Controls */
 QLineEdit#schedule_num {
-    font-size: 26px;
-    font-weight: bold;
-    text-align: center;
-    border: 2px solid #29B6F6;
-    border-radius: 25px;
-    padding: 5px 15px;
-    background-color: #FFFFFF;
-    color: #01579B;
-    min-width: 100px;
-    max-width: 120px;
-    margin: 0 5px;
+    font-size: 26px;            /* Large font size for schedule number input */
+    font-weight: bold;          /* Bold text */
+    text-align: center;         /* Centered text */
+    border: 2px solid #29B6F6;  /* Bright blue border */
+    border-radius: 25px;        /* Rounded corners */
+    padding: 5px 15px;          /* Padding inside the input field */
+    background-color: #FFFFFF;  /* White background */
+    color: #01579B;             /* Dark blue text color */
+    min-width: 100px;           /* Minimum width */
+    max-width: 120px;           /* Maximum width */
+    margin: 0 5px;              /* Margin around the input field */
 }
 
 /* Schedule count label */
 QLabel#schedule_count {
-    font-size: 12px;
-    color: #546E7A;
-    margin-top: 2px;
-    text-align: center;
+    font-size: 12px;            /* Small font size */
+    color: #546E7A;             /* Gray text color */
+    margin-top: 2px;            /* Small margin at the top */
+    text-align: center;         /* Centered text */
 }
 
 /* Schedule Window Action Buttons */
 QPushButton#top_action_button {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #42A5F5, stop:1 #1E88E5);
-    color: white;
-    border-radius: 20px;
-    font-weight: 600;
-    min-width: 180px;
-    padding: 12px 22px;
-    font-size: 14px;
-    border: 2px solid #1976D2;
+                              stop:0 #42A5F5, stop:1 #1E88E5); /* Gradient blue background */
+    color: white;               /* White text color */
+    border-radius: 20px;        /* Rounded corners */
+    font-weight: 600;           /* Semi-bold text */
+    min-width: 180px;           /* Minimum width */
+    padding: 12px 22px;         /* Padding inside the button */
+    font-size: 14px;            /* Font size */
+    border: 2px solid #1976D2;  /* Blue border */
 }
 
+/* Hover state for action buttons */
 QPushButton#top_action_button:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1E88E5, stop:1 #1565C0);
-    border-color: #0D47A1;
+                              stop:0 #1E88E5, stop:1 #1565C0); /* Darker gradient on hover */
+    border-color: #0D47A1;      /* Darker blue border on hover */
 }
 
+/* Pressed state for action buttons */
 QPushButton#top_action_button:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1565C0, stop:1 #0D47A1);
-    border-color: #0D47A1;
-    padding-top: 14px;
-    padding-bottom: 10px;
+                              stop:0 #1565C0, stop:1 #0D47A1); /* Even darker gradient on press */
+    border-color: #0D47A1;      /* Darker blue border on press */
+    padding-top: 14px;          /* Adjusted padding for pressed state */
+    padding-bottom: 10px;       /* Adjusted padding for pressed state */
 }
 
+/* Back to Course Selection button */
 QPushButton#top_action_button[text="Back to Course Selection"] {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #78909C, stop:1 #546E7A);
-    border-color: #455A64;
+                              stop:0 #78909C, stop:1 #546E7A); /* Gray gradient background */
+    border-color: #455A64;      /* Dark gray border */
 }
 
+/* Hover state for Back to Course Selection button */
 QPushButton#top_action_button[text="Back to Course Selection"]:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #546E7A, stop:1 #455A64);
-    border-color: #37474F;
+                              stop:0 #546E7A, stop:1 #455A64); /* Darker gray gradient on hover */
+    border-color: #37474F;      /* Darker gray border on hover */
 }
 
 /* Schedule Window Navigation Buttons - SMALLER and more stylish */
 QPushButton#nav_button {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #42A5F5, stop:1 #1E88E5);
-    color: white;
-    border-radius: 15px;
-    font-weight: bold;
-    min-width: 80px;  /* Smaller width */
-    max-width: 80px;  /* Fixed maximum width */
-    min-height: 30px; /* Smaller height */
-    max-height: 30px; /* Fixed maximum height */
-    padding: 5px 10px;
-    font-size: 12px;
-    border: 1px solid #1565C0;
+                              stop:0 #42A5F5, stop:1 #1E88E5); /* Gradient blue background */
+    color: white;               /* White text color */
+    border-radius: 15px;        /* Rounded corners */
+    font-weight: bold;          /* Bold text */
+    min-width: 80px;            /* Fixed minimum width */
+    max-width: 80px;            /* Fixed maximum width */
+    min-height: 30px;           /* Fixed minimum height */
+    max-height: 30px;           /* Fixed maximum height */
+    padding: 5px 10px;          /* Padding inside the button */
+    font-size: 12px;            /* Small font size */
+    border: 1px solid #1565C0;  /* Blue border */
 }
 
+/* Hover state for navigation buttons */
 QPushButton#nav_button:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1E88E5, stop:1 #1565C0);
-    border-color: #0D47A1;
+                              stop:0 #1E88E5, stop:1 #1565C0); /* Darker gradient on hover */
+    border-color: #0D47A1;      /* Darker blue border on hover */
 }
 
+/* Pressed state for navigation buttons */
 QPushButton#nav_button:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1565C0, stop:1 #0D47A1);
-    border-color: #0D47A1;
-    padding-top: 6px;
-    padding-bottom: 4px;
+                              stop:0 #1565C0, stop:1 #0D47A1); /* Even darker gradient on press */
+    border-color: #0D47A1;      /* Darker blue border on press */
+    padding-top: 6px;           /* Adjusted padding for pressed state */
+    padding-bottom: 4px;        /* Adjusted padding for pressed state */
 }
 
 /* Schedule Window Info Label */
 QLabel#info_label {
-    font-size: 14px;
-    color: #455A64;
-    padding: 5px 16px;
-    background-color: rgba(255, 255, 255, 0.75);
-    border-radius: 12px;
-    border: 1px solid #B3E5FC;
-    margin: 0px 10px;
+    font-size: 14px;            /* Font size for info label */
+    color: #455A64;             /* Gray text color */
+    padding: 5px 16px;          /* Padding inside the label */
+    background-color: rgba(255, 255, 255, 0.75); /* Semi-transparent white background */
+    border-radius: 12px;        /* Rounded corners */
+    border: 1px solid #B3E5FC;  /* Light blue border */
+    margin: 0px 10px;           /* Margin around the label */
 }
 
 /* Schedule Window Navigator - with improved styling */
 Navigator#compact_navigator {
-    margin: 10px 20px;
-    padding: 15px;
+    margin: 10px 20px;          /* Margin around the navigator */
+    padding: 15px;              /* Padding inside the navigator */
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
                               stop:0 rgba(255, 255, 255, 0.98), 
-                              stop:1 rgba(236, 246, 255, 0.98));
-    border-radius: 20px;
-    border: 1px solid #B3E5FC;
+                              stop:1 rgba(236, 246, 255, 0.98)); /* Gradient background */
+    border-radius: 20px;        /* Rounded corners */
+    border: 1px solid #B3E5FC;  /* Light blue border */
 }
 
 /* Schedule Window Headline and Subtitle */
 QLabel#headline_label {
-    font-size: 34px;
-    font-weight: bold;
-    color: #01579B;
-    margin-bottom: 8px;
+    font-size: 34px;            /* Large font size for headline */
+    font-weight: bold;          /* Bold text */
+    color: #01579B;             /* Dark blue text color */
+    margin-bottom: 8px;         /* Margin below the headline */
 }
 
 QLabel#subtitle_label {
-    font-size: 16px;
-    color: #546E7A;
-    margin-bottom: 15px;
+    font-size: 16px;            /* Font size for subtitle */
+    color: #546E7A;             /* Gray text color */
+    margin-bottom: 15px;        /* Margin below the subtitle */
 }
 
 /* Schedule Window Separator Line */
@@ -324,20 +332,20 @@ QFrame#separator_line {
                               stop:0 rgba(187, 222, 251, 0), 
                               stop:0.4 rgba(187, 222, 251, 255),
                               stop:0.6 rgba(187, 222, 251, 255),
-                              stop:1 rgba(187, 222, 251, 0));
-    height: 2px;
-    margin: 15px 10px;
-    border-radius: 1px;
+                              stop:1 rgba(187, 222, 251, 0)); /* Gradient line */
+    height: 2px;                /* Line height */
+    margin: 15px 10px;          /* Margin around the line */
+    border-radius: 1px;         /* Slightly rounded corners */
 }
 
 /* Table Vertical Header */
 QTableWidget#enhanced_table QHeaderView::section:vertical {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
-                              stop:0 #90CAF9, stop:1 #64B5F6);
-    color: #01579B;
-    border-radius: 8px;
-    margin: 3px;
-    font-weight: bold;
-    font-size: 17px;
-    padding: 15px;
+                              stop:0 #90CAF9, stop:1 #64B5F6); /* Gradient blue background */
+    color: #01579B;             /* Dark blue text color */
+    border-radius: 8px;         /* Rounded corners */
+    margin: 3px;                /* Margin around the header */
+    font-weight: bold;          /* Bold text */
+    font-size: 17px;            /* Font size */
+    padding: 15px;              /* Padding inside the header */
 }

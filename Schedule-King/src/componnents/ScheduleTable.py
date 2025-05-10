@@ -1,5 +1,3 @@
-# schedule_table.py
-
 from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QFont, QColor, QBrush, QLinearGradient
@@ -22,30 +20,30 @@ class ScheduleTable(QTableWidget):
         self.setVerticalHeaderLabels(time_labels)
         
         # Configure table appearance
-        self.setShowGrid(True)
-        self.setGridStyle(Qt.DotLine)
-        self.setAlternatingRowColors(True)
+        self.setShowGrid(True)  # Show grid lines in the table
+        self.setGridStyle(Qt.DotLine)  # Use dotted lines for the grid
+        self.setAlternatingRowColors(True)  # Alternate row colors for better readability
         
         # Set header properties
         header = self.horizontalHeader()
-        header.setSectionResizeMode(QHeaderView.Stretch)
-        header.setDefaultAlignment(Qt.AlignCenter)
-        header.setFixedHeight(70)  # Further increased header height
+        header.setSectionResizeMode(QHeaderView.Stretch)  # Stretch columns to fit the table width
+        header.setDefaultAlignment(Qt.AlignCenter)  # Center-align the header text
+        header.setFixedHeight(70)  # Set a fixed height for the header
         
         vertical_header = self.verticalHeader()
-        vertical_header.setSectionResizeMode(QHeaderView.Fixed)
-        vertical_header.setDefaultSectionSize(150)  # Further increased default row height
-        vertical_header.setFixedWidth(160)  # Made the time column even wider
+        vertical_header.setSectionResizeMode(QHeaderView.Fixed)  # Fix the row height
+        vertical_header.setDefaultSectionSize(150)  # Set a default row height
+        vertical_header.setFixedWidth(160)  # Set a fixed width for the time column
         
         # Set table properties
-        self.setSelectionMode(QTableWidget.SingleSelection)
-        self.setSelectionBehavior(QTableWidget.SelectItems)
-        self.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.setSelectionMode(QTableWidget.SingleSelection)  # Allow selecting only one cell at a time
+        self.setSelectionBehavior(QTableWidget.SelectItems)  # Allow selecting individual items
+        self.setEditTriggers(QTableWidget.NoEditTriggers)  # Disable editing of table cells
         
-        # Set minimum size
+        # Set minimum size for the table
         self.setMinimumSize(900, 600)
         
-        # Dict to store course colors
+        # Dictionary to store colors for courses
         self.course_colors = {}
 
     def get_color_for_course(self, course_code):
@@ -69,14 +67,13 @@ class ScheduleTable(QTableWidget):
         color_hex = hex_dig[:6]
         
         # Create a color that's not too dark (for readability)
-        r = min(int(color_hex[0:2], 16) + 100, 255)
-        g = min(int(color_hex[2:4], 16) + 100, 255)
-        b = min(int(color_hex[4:6], 16) + 100, 255)
+        r = min(int(color_hex[0:2], 16) + 100, 255)  # Adjust red component
+        g = min(int(color_hex[2:4], 16) + 100, 255)  # Adjust green component
+        b = min(int(color_hex[4:6], 16) + 100, 255)  # Adjust blue component
         
         # Store and return the color
-        self.course_colors[course_code] = QColor(r, g, b, 100)  # Semi-transparent
+        self.course_colors[course_code] = QColor(r, g, b, 100)  # Semi-transparent color
         return self.course_colors[course_code]
-
 
     def display_schedule(self, schedule: Schedule):
         """
@@ -119,9 +116,9 @@ class ScheduleTable(QTableWidget):
                 if "Lecture" in event_type:
                     border_color = QColor("#1976D2")  # Blue border for lectures
                     event_class = "Lecture"
-                elif "Lab" in event_type:
+                elif "Maabadas" in event_type:
                     border_color = QColor("#4CAF50")  # Green border for labs
-                    event_class = "Lab"
+                    event_class = "Maabadas"
                 else:
                     border_color = QColor("#FF9800")  # Orange border for others
                     event_class = "Tirgul"
@@ -148,12 +145,12 @@ class ScheduleTable(QTableWidget):
                 from PyQt5.QtWidgets import QLabel
                 label = QLabel(item_text)
                 label.setObjectName(f"course_label_{event_class}_{code}")
-                label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-                label.setWordWrap(True)
-                label.setContentsMargins(14, 14, 14, 14)
+                label.setAlignment(Qt.AlignLeft | Qt.AlignTop)  # Align label to the top-left
+                label.setWordWrap(True)  # Enable word wrapping for the label
+                label.setContentsMargins(14, 14, 14, 14)  # Add padding around the label content
                 label.setStyleSheet("""
                     QLabel {
-                        padding: 8px;
+                        padding: 4px;
                         line-height: 1.6;
                     }
                 """)

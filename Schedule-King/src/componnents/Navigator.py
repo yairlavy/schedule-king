@@ -10,8 +10,6 @@ class Navigator(QWidget):
     # Signal emitted when the schedule changes
     schedule_changed = pyqtSignal(int)
     
-   # Update to the Navigator class to show the schedule count below the input field
-
     def __init__(self, schedules: List[Schedule]):
         """
         Initialize the Navigator widget.
@@ -32,26 +30,26 @@ class Navigator(QWidget):
         # Button to navigate to the previous schedule
         self.prev_btn = QPushButton("Previous")
         self.prev_btn.setObjectName("nav_button")
-        self.prev_btn.setFixedSize(80, 30)  
+        self.prev_btn.setFixedSize(80, 30)  # Set fixed size for uniformity
         
         # Info label to show the current schedule index and total schedules
         self.info_label = QLabel()
         self.info_label.setObjectName("info_label")
-        self.info_label.setAlignment(Qt.AlignCenter)
-        self.info_label.setMinimumWidth(120)  # Set minimum width
+        self.info_label.setAlignment(Qt.AlignCenter)  # Center-align the text
+        self.info_label.setMinimumWidth(120)  # Set minimum width for consistent layout
         self.info_label.setFixedHeight(35)  # Match button height
         
         # Input field container (vertical layout for input and count label)
         input_container = QVBoxLayout()
-        input_container.setSpacing(0)
-        input_container.setContentsMargins(0, 0, 0, 0)
+        input_container.setSpacing(0)  # No spacing between input field and label
+        input_container.setContentsMargins(0, 0, 0, 0)  # No margins for compact design
         
         # Input field to enter a specific schedule number
         self.schedule_num = QLineEdit()
         self.schedule_num.setObjectName("schedule_num")
-        self.schedule_num.setFixedSize(80, 35) 
-        self.schedule_num.setPlaceholderText("Go to...")
-        self.schedule_num.setAlignment(Qt.AlignCenter)
+        self.schedule_num.setFixedSize(80, 35)  # Set fixed size for uniformity
+        self.schedule_num.setPlaceholderText("Go to...")  # Placeholder text for guidance
+        self.schedule_num.setAlignment(Qt.AlignCenter)  # Center-align the input text
         
         # Add widgets to the input container
         input_container.addWidget(self.schedule_num)
@@ -59,21 +57,21 @@ class Navigator(QWidget):
         # Button to navigate to the next schedule
         self.next_btn = QPushButton("Next")
         self.next_btn.setObjectName("nav_button")
-        self.next_btn.setFixedSize(80, 30)  
+        self.next_btn.setFixedSize(80, 30)  # Set fixed size for uniformity
 
         # Add controls to the horizontal layout
-        self.layout.addStretch(1)
-        self.layout.addWidget(self.prev_btn)
-        self.layout.addWidget(self.info_label)
-        self.layout.addLayout(input_container) 
-        self.layout.addWidget(self.next_btn)
-        self.layout.addStretch(1)
-        self.layout.setAlignment(Qt.AlignCenter)
+        self.layout.addStretch(1)  # Add stretch for spacing
+        self.layout.addWidget(self.prev_btn)  # Add previous button
+        self.layout.addWidget(self.info_label)  # Add info label
+        self.layout.addLayout(input_container)  # Add input field container
+        self.layout.addWidget(self.next_btn)  # Add next button
+        self.layout.addStretch(1)  # Add stretch for spacing
+        self.layout.setAlignment(Qt.AlignCenter)  # Center-align the layout
 
         # Connect button clicks and input field to their respective methods
-        self.prev_btn.clicked.connect(self.go_to_previous)
-        self.next_btn.clicked.connect(self.go_to_next)
-        self.schedule_num.returnPressed.connect(self.on_schedule_num_entered)
+        self.prev_btn.clicked.connect(self.go_to_previous)  # Connect previous button
+        self.next_btn.clicked.connect(self.go_to_next)  # Connect next button
+        self.schedule_num.returnPressed.connect(self.on_schedule_num_entered)  # Connect input field
         
         # Update the display
         self.update_display()
@@ -85,11 +83,11 @@ class Navigator(QWidget):
         if self.schedules:
             # Display the current schedule index and total schedules
             self.info_label.setText(f"Schedule {self.current_index + 1} / {len(self.schedules)}")
-            self.schedule_num.setText(str(self.current_index + 1))
+            self.schedule_num.setText(str(self.current_index + 1))  # Update input field
         else:
             # Display a message if no schedules are available
             self.info_label.setText("No schedules available")
-            self.schedule_num.setText("")
+            self.schedule_num.setText("")  # Clear input field
 
     def go_to_next(self):
         """
@@ -148,7 +146,7 @@ class Navigator(QWidget):
         Args:
             schedules (List[Schedule]): The new list of schedules.
         """
-        self.schedules = schedules
+        self.schedules = schedules  # Update the schedules list
         self.current_index = 0 if schedules else -1  # Reset the current index
         self.update_display()  # Update the display
         if self.schedules:

@@ -25,16 +25,16 @@ class ScheduleWindow(QMainWindow):
         """
         super().__init__()
         self.setObjectName("ScheduleWindow")  # Set object name for styling
-        self.setWindowTitle("Generated Schedules")
-        self.showMaximized()
+        self.setWindowTitle("Generated Schedules")  # Set the window title
+        self.showMaximized()  # Maximize the window on launch
         self.controller = controller  # Controller for handling schedule-related operations
         self.schedules = schedules  # List of schedules to display
 
         # Create the main container widget and layout
         self.central_widget = QWidget()
         self.main_layout = QVBoxLayout(self.central_widget)
-        self.main_layout.setSpacing(10)
-        self.main_layout.setContentsMargins(15, 15, 15, 15)
+        self.main_layout.setSpacing(10)  # Set spacing between elements
+        self.main_layout.setContentsMargins(15, 15, 15, 15)  # Set margins for the layout
         
         # Top section: Header and action buttons
         top_section = QHBoxLayout()
@@ -45,19 +45,19 @@ class ScheduleWindow(QMainWindow):
         # Add headline and subtitle
         self.headline = QLabel("Schedule King")  # Main headline label
         self.headline.setObjectName("headline_label")
-        self.headline.setAlignment(Qt.AlignLeft)
+        self.headline.setAlignment(Qt.AlignLeft)  # Align headline to the left
         
         self.subtitle = QLabel("Plan Your Study Schedule Like a King")  # Subtitle label
         self.subtitle.setObjectName("subtitle_label")
-        self.subtitle.setAlignment(Qt.AlignLeft)
+        self.subtitle.setAlignment(Qt.AlignLeft)  # Align subtitle to the left
         
-        header_area.addWidget(self.headline)
-        header_area.addWidget(self.subtitle)
-        header_area.addStretch()
+        header_area.addWidget(self.headline)  # Add headline to the header area
+        header_area.addWidget(self.subtitle)  # Add subtitle to the header area
+        header_area.addStretch()  # Add stretch to push content to the top
         
         # Action buttons area (right side of top section)
         buttons_area = QHBoxLayout()
-        buttons_area.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+        buttons_area.setAlignment(Qt.AlignRight | Qt.AlignVCenter)  # Align buttons to the right and center vertically
         
         # Buttons for exporting schedules and navigating back
         self.export_button = QPushButton("Export to TXT File")  # Export button
@@ -75,8 +75,8 @@ class ScheduleWindow(QMainWindow):
         buttons_area.addWidget(self.back_button)
         
         # Combine header and buttons in the top section
-        top_section.addLayout(header_area, 2)
-        top_section.addLayout(buttons_area, 1)
+        top_section.addLayout(header_area, 2)  # Header takes 2/3 of the space
+        top_section.addLayout(buttons_area, 1)  # Buttons take 1/3 of the space
         
         # Add the top section to the main layout
         self.main_layout.addLayout(top_section)
@@ -84,14 +84,14 @@ class ScheduleWindow(QMainWindow):
         # Add a separator line
         line = QFrame()
         line.setFrameShape(QFrame.HLine)  # Horizontal line
-        line.setFrameShadow(QFrame.Sunken)
+        line.setFrameShadow(QFrame.Sunken)  # Sunken shadow for the line
         line.setObjectName("separator_line")
         self.main_layout.addWidget(line)
         
         # Create the navigator for navigating through schedules - more compact
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
-        self.navigator.setMaximumHeight(100)  # Limit the height
+        self.navigator.setMaximumHeight(100)  # Limit the height of the navigator
         
         # Add navigator to the main layout
         self.main_layout.addWidget(self.navigator)
@@ -104,17 +104,17 @@ class ScheduleWindow(QMainWindow):
         self.navigator.schedule_changed.connect(self.on_schedule_changed)
         
         # Add the schedule table with expanded size
-        self.main_layout.addWidget(self.schedule_table, 1)
+        self.main_layout.addWidget(self.schedule_table, 1)  # Expand the table to fill available space
         
         # Set the central widget
         self.setCentralWidget(self.central_widget)
 
         # Callback for navigating back to the course selection window
-        self.on_back: Callable[[], None] = lambda: None
+        self.on_back: Callable[[], None] = lambda: None  # Default callback does nothing
         
         # Display the first schedule if available
         if schedules:
-            self.on_schedule_changed(0)
+            self.on_schedule_changed(0)  # Display the first schedule
 
     def on_schedule_changed(self, index: int):
         """
