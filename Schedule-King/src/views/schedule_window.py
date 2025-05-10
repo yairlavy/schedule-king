@@ -5,7 +5,8 @@ from PyQt5.QtWidgets import (
     QSpacerItem, QSizePolicy, QHBoxLayout
 )
 from PyQt5.QtCore import Qt
-from src.componnents.Navigator import Navigator
+from PyQt5.QtGui import QFont
+from src.components.navigator import Navigator
 from src.models.schedule import Schedule
 from typing import List, Callable
 from src.services.schedule_api import ScheduleAPI

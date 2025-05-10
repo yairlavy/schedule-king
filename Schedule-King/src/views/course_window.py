@@ -3,10 +3,10 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, QWidget, QSizePolicy
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QFont
 from typing import List, Callable
 from src.models.course import Course
-from src.componnents.CourseSelector import CourseSelector
+from src.components.course_selector import CourseSelector
 import os
 
 
@@ -26,8 +26,9 @@ class CourseWindow(QMainWindow):
         self.courseSelector = CourseSelector()
         self.courseSelector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Connect generate signal
+        # Connect signals
         self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
+        self.courseSelector.loadRequested.connect(self.load_courses_from_file)
 
         # === Layout Setup ===
         outer_layout = QVBoxLayout()
