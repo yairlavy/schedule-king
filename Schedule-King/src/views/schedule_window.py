@@ -11,8 +11,20 @@ from src.models.schedule import Schedule
 from typing import List, Callable
 from src.services.schedule_api import ScheduleAPI
 
+
 class ScheduleWindow(QMainWindow):
+    """
+    Main window for displaying generated schedules.
+    """
+
     def __init__(self, schedules: List[Schedule], api: ScheduleAPI):
+        """
+        Initialize the schedule window.
+
+        Args:
+        schedules (List[Schedule]): The list of generated schedules.
+        api (ScheduleAPI): The API instance for exporting schedules.
+        """
         super().__init__()
         self.setWindowTitle("Generated Schedules")
         self.showMaximized()
@@ -23,11 +35,10 @@ class ScheduleWindow(QMainWindow):
         # Buttons
         self.export_button = QPushButton("Export to TXT File")
         self.export_button.setFixedSize(150, 50)
+        self.export_button.clicked.connect(self.export_to_file)
 
         self.back_button = QPushButton("Back to Course Selection")
         self.back_button.setFixedSize(150, 50)
-
-        self.export_button.clicked.connect(self.export_to_file)
         self.back_button.clicked.connect(self.navigateToCourseWindow)
 
         # Layouts
@@ -50,13 +61,25 @@ class ScheduleWindow(QMainWindow):
         self.on_back: Callable[[], None] = lambda: None
 
     def displaySchedules(self, schedules: List[Schedule]):
+        """
+        Update the navigator with the new list of schedules.
+
+        Args:
+        schedules (List[Schedule]): The new list of schedules.
+        """
         self.navigator.schedules = schedules
         self.navigator.display_schedule(0)
 
     def navigateSchedule(self):
+        """
+        Navigate to the next/previous schedule in the list.
+        """
         pass
 
     def navigateToCourseWindow(self):
+        """
+        Navigate back to the course selection window.
+        """
         self.on_back()
 
     def export_to_file(self):
@@ -78,3 +101,4 @@ class ScheduleWindow(QMainWindow):
                     self, "Export Failed",
                     f"Failed to export schedules:\n{str(e)}"
                 )
+
