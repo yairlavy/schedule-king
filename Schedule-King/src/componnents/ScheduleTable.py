@@ -77,6 +77,7 @@ class ScheduleTable(QTableWidget):
         self.course_colors[course_code] = QColor(r, g, b, 100)  # Semi-transparent
         return self.course_colors[course_code]
 
+
     def display_schedule(self, schedule: Schedule):
         """
         Populate the table with schedule data.
@@ -111,27 +112,24 @@ class ScheduleTable(QTableWidget):
                 # Base color from course
                 gradient.setColorAt(0, course_color)
                 
-                # Different shade based on event type
-                if "Lecture" in event_type:
-                    # Lighter gradient for lectures
-                    gradient.setColorAt(1, QColor(255, 255, 255, 100))
-                    border_color = QColor("#1976D2")  # Blue border for lectures
-                elif "Lab" in event_type:
-                    # Different gradient for labs
-                    gradient.setColorAt(1, QColor(240, 240, 255, 150))
-                    border_color = QColor("#4CAF50")  # Green border for labs
-                else:
-                    # Another gradient for other events
-                    gradient.setColorAt(1, QColor(255, 245, 240, 150))
-                    border_color = QColor("#FF9800")  # Orange border for others
-                
                 # Set the background brush with the gradient
                 item.setBackground(QBrush(gradient))
                 
-                # Format the cell text
+                # Determine border color based on event type
+                if "Lecture" in event_type:
+                    border_color = QColor("#1976D2")  # Blue border for lectures
+                    event_class = "Lecture"
+                elif "Lab" in event_type:
+                    border_color = QColor("#4CAF50")  # Green border for labs
+                    event_class = "Lab"
+                else:
+                    border_color = QColor("#FF9800")  # Orange border for others
+                    event_class = "Tirgul"
+                
+                # Format the cell text - now with course name bold instead of event type
                 item_text = (
-                    f"<b>{event_type}</b><br>"
-                    f"{course_name} ({code})<br>"
+                    f"{event_type}<br>"
+                    f"<b>{course_name}</b> ({code})<br>"
                     f"<i>Room {slot.room}, Bldg {slot.building}</i>"
                 )
                 
@@ -148,10 +146,10 @@ class ScheduleTable(QTableWidget):
                 # Create a QLabel with HTML content for each cell
                 from PyQt5.QtWidgets import QLabel
                 label = QLabel(item_text)
+                label.setObjectName(f"course_label_{event_class}_{code}")  # Set object name for CSS targeting
                 label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
                 label.setWordWrap(True)
-                label.setMargin(5)
-                label.setStyleSheet(f"border: 2px solid {border_color.name()}; border-radius: 6px; background: transparent;")
+                label.setContentsMargins(8, 8, 8, 8)
                 
                 # Set the cell widget
                 self.setCellWidget(row, day, label)

@@ -111,55 +111,108 @@ QListWidget::item:hover {
 
 /* Schedule Window Specific Styles */
 QMainWindow#ScheduleWindow {
-    background-color: #ECF4FF;
+    background-color: #F0F7FA;  /* Slightly bluer background */
     border: 1px solid #BBDEFB;
-    border-radius: 10px;
+    border-radius: 15px;
 }
 
 /* Schedule Table Styles */
 QTableWidget#enhanced_table {
     background-color: #FFFFFF;
-    gridline-color: #D6EAF8;
-    border: 2px solid #64B5F6;
+    gridline-color: #E1F5FE;
+    border: 2px solid #29B6F6;  /* Brighter blue border */
     border-radius: 18px;
     padding: 12px;
     margin: 20px;
-    selection-background-color: #D6EAF8;
-    selection-color: #0D47A1;
+    selection-background-color: #E1F5FE;
+    selection-color: #01579B;
     font-size: 13px;
 }
 
 QTableWidget#enhanced_table::item {
     padding: 10px;
-    border: 1px solid #BBDEFB;
-    border-radius: 6px;
-    background-color: #F8FBFF;
-    color: #2E3B4E;
-    margin: 3px;
+    border: 1px solid #B3E5FC;
+    border-radius: 8px;
+    background-color: #F5FCFF;
+    color: #263238;
+    margin: 5px;
 }
 
 QTableWidget#enhanced_table::item:selected {
-    background-color: #D6EAF8;
-    color: #0D47A1;
-    border: 1px solid #42A5F5;
+    background-color: #B3E5FC;
+    color: #01579B;
+    border: 1px solid #0288D1;
+}
+
+/* Table cell widgets - custom styling */
+QTableWidget#enhanced_table QLabel {
+    border-radius: 8px;
+    padding: 10px;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                               stop:0 rgba(255, 255, 255, 235), 
+                               stop:1 rgba(240, 249, 255, 235));
+    border: 2px solid #4FC3F7;
+    font-size: 13px;
+    color: #263238;
+}
+
+/* Styling for course labels - all types */
+QTableWidget#enhanced_table QLabel[objectName^="course_label"] {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
+/* Style for Lecture items */
+QTableWidget#enhanced_table QLabel[objectName^="course_label_Lecture"] {
+    border-left: 5px solid #1976D2;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(225, 245, 254, 240), 
+                              stop:1 rgba(179, 229, 252, 240));
+}
+
+/* Style for Tirgul items */
+QTableWidget#enhanced_table QLabel[objectName^="course_label_Tirgul"] {
+    border-left: 5px solid #FF9800;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(255, 243, 224, 240), 
+                              stop:1 rgba(255, 224, 178, 240));
+}
+
+/* Style for Lab items */
+QTableWidget#enhanced_table QLabel[objectName^="course_label_Lab"] {
+    border-left: 5px solid #4CAF50;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(232, 245, 233, 240), 
+                              stop:1 rgba(200, 230, 201, 240));
 }
 
 /* Schedule Window Navigation Controls */
 QLineEdit#schedule_num {
-    font-size: 20px;
+    font-size: 26px;
     font-weight: bold;
     text-align: center;
-    border: 2px solid #2196F3;
-    border-radius: 20px;
-    padding: 10px 25px;
+    border: 2px solid #29B6F6;
+    border-radius: 25px;
+    padding: 5px 15px;
     background-color: #FFFFFF;
-    color: #0D47A1;
-    min-width: 130px;
+    color: #01579B;
+    min-width: 100px;
+    max-width: 120px;
+    margin: 0 5px;
+}
+
+/* Schedule count label */
+QLabel#schedule_count {
+    font-size: 12px;
+    color: #546E7A;
+    margin-top: 2px;
+    text-align: center;
 }
 
 /* Schedule Window Action Buttons */
 QPushButton#top_action_button {
-    background-color: #2196F3;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);
     color: white;
     border-radius: 20px;
     font-weight: 600;
@@ -170,63 +223,88 @@ QPushButton#top_action_button {
 }
 
 QPushButton#top_action_button:hover {
-    background-color: #1976D2;
-    border-color: #1565C0;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1E88E5, stop:1 #1565C0);
+    border-color: #0D47A1;
+}
+
+QPushButton#top_action_button:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);
+    border-color: #0D47A1;
+    padding-top: 14px;
+    padding-bottom: 10px;
 }
 
 QPushButton#top_action_button[text="Back to Course Selection"] {
-    background-color: #90A4AE;
-    border-color: #607D8B;
-}
-
-QPushButton#top_action_button[text="Back to Course Selection"]:hover {
-    background-color: #607D8B;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #78909C, stop:1 #546E7A);
     border-color: #455A64;
 }
 
-/* Schedule Window Navigation Buttons */
+QPushButton#top_action_button[text="Back to Course Selection"]:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #546E7A, stop:1 #455A64);
+    border-color: #37474F;
+}
+
+/* Schedule Window Navigation Buttons - SMALLER and more stylish */
 QPushButton#nav_button {
-    background-color: #1976D2;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);
     color: white;
-    border-radius: 20px;
+    border-radius: 15px;
     font-weight: bold;
-    min-width: 130px;
-    padding: 10px 20px;
-    font-size: 14px;
-    border: 2px solid #1565C0;
+    min-width: 80px;  /* Smaller width */
+    max-width: 80px;  /* Fixed maximum width */
+    min-height: 30px; /* Smaller height */
+    max-height: 30px; /* Fixed maximum height */
+    padding: 5px 10px;
+    font-size: 12px;
+    border: 1px solid #1565C0;
 }
 
 QPushButton#nav_button:hover {
-    background-color: #1565C0;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1E88E5, stop:1 #1565C0);
     border-color: #0D47A1;
+}
+
+QPushButton#nav_button:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);
+    border-color: #0D47A1;
+    padding-top: 6px;
+    padding-bottom: 4px;
 }
 
 /* Schedule Window Info Label */
 QLabel#info_label {
-    font-size: 18px;
-    font-weight: bold;
-    color: #0D47A1;
-    padding: 12px 16px;
-    background-color: rgba(255, 255, 255, 0.95);
+    font-size: 14px;
+    color: #455A64;
+    padding: 5px 16px;
+    background-color: rgba(255, 255, 255, 0.75);
     border-radius: 12px;
-    border: 1px solid #BBDEFB;
-    margin: 10px;
+    border: 1px solid #B3E5FC;
+    margin: 0px 10px;
 }
 
-/* Schedule Window Navigator */
+/* Schedule Window Navigator - with improved styling */
 Navigator#compact_navigator {
-    margin: 20px;
+    margin: 10px 20px;
     padding: 15px;
-    background-color: rgba(255, 255, 255, 0.92);
-    border-radius: 15px;
-    border: 1px solid #BBDEFB;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 rgba(255, 255, 255, 0.98), 
+                              stop:1 rgba(236, 246, 255, 0.98));
+    border-radius: 20px;
+    border: 1px solid #B3E5FC;
 }
 
 /* Schedule Window Headline and Subtitle */
 QLabel#headline_label {
     font-size: 34px;
     font-weight: bold;
-    color: #0D47A1;
+    color: #01579B;
     margin-bottom: 8px;
 }
 
@@ -238,15 +316,20 @@ QLabel#subtitle_label {
 
 /* Schedule Window Separator Line */
 QFrame#separator_line {
-    background-color: #BBDEFB;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                              stop:0 rgba(187, 222, 251, 0), 
+                              stop:0.4 rgba(187, 222, 251, 255),
+                              stop:0.6 rgba(187, 222, 251, 255),
+                              stop:1 rgba(187, 222, 251, 0));
     height: 2px;
-    margin: 20px 0;
+    margin: 15px 10px;
     border-radius: 1px;
 }
 
 /* Schedule Window Table Header */
 QHeaderView#enhanced_table::section {
-    background-color: #1976D2;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #29B6F6, stop:1 #0288D1);
     color: white;
     padding: 12px;
     border: none;
@@ -254,4 +337,14 @@ QHeaderView#enhanced_table::section {
     font-size: 14px;
     border-radius: 5px;
     margin: 1px;
+}
+
+/* Schedule Table Vertical Header */
+QTableWidget#enhanced_table QHeaderView::section:vertical {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
+                              stop:0 #90CAF9, stop:1 #64B5F6);
+    color: #01579B;
+    border-radius: 5px;
+    margin: 1px;
+    font-weight: bold;
 }
