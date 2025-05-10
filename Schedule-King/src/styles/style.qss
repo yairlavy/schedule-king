@@ -114,34 +114,45 @@ QListWidget::item:hover {
 QTableWidget {
     background-color: #FFFFFF;
     gridline-color: #E3F2FD;
-    border: 2px solid #BBDEFB;
-    border-radius: 8px;
-    padding: 5px;
+    border: 2px solid #90CAF9;
+    border-radius: 15px;
+    padding: 10px;
+    margin: 15px;
+    selection-background-color: #E3F2FD;
+    selection-color: #1976D2;
 }
 
 QTableWidget::item {
-    padding: 8px;
-    border-radius: 4px;
-    border: 1px solid #BBDEFB; /* Light blue border */
-    background-color: #F5F5F5; /* Light gray background */
-    color: #212121; /* Dark text color */
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #BBDEFB;
+    background-color: #F8F9FA;
+    color: #2C3E50;
+    margin: 3px;
 }
 
 QTableWidget::item:selected {
     background-color: #E3F2FD;
     color: #1976D2;
+    border: 2px solid #64B5F6;
+}
+
+QTableWidget::item:!empty {
+    background-color: #E3F2FD;
+    border: 1px solid #90CAF9;
 }
 
 /* Navigation controls */
 QLineEdit#schedule_num {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     text-align: center;
     border: 2px solid #1976D2;
     border-radius: 25px;
-    padding: 5px 15px;
+    padding: 8px 20px;
     background-color: white;
     color: #1976D2;
+    min-width: 120px;
 }
 
 /* Export and Back buttons in schedule window */
@@ -150,11 +161,15 @@ QPushButton[text="Export to TXT File"] {
     color: white;
     border-radius: 25px;
     font-weight: bold;
-    min-width: 180px;
+    min-width: 200px;
+    padding: 12px 25px;
+    font-size: 14px;
+    border: 2px solid #1976D2;
 }
 
 QPushButton[text="Export to TXT File"]:hover {
     background-color: #1976D2;
+    border: 2px solid #1565C0;
 }
 
 QPushButton[text="Back to Course Selection"] {
@@ -162,11 +177,15 @@ QPushButton[text="Back to Course Selection"] {
     color: white;
     border-radius: 25px;
     font-weight: bold;
-    min-width: 180px;
+    min-width: 200px;
+    padding: 12px 25px;
+    font-size: 14px;
+    border: 2px solid #546E7A;
 }
 
 QPushButton[text="Back to Course Selection"]:hover {
     background-color: #546E7A;
+    border: 2px solid #37474F;
 }
 
 /* Navigation buttons */
@@ -175,74 +194,58 @@ QPushButton[text="Previous"], QPushButton[text="Next"] {
     color: white;
     border-radius: 25px;
     font-weight: bold;
-    min-width: 120px;
+    min-width: 140px;
+    padding: 10px 20px;
+    font-size: 14px;
+    border: 2px solid #1565C0;
 }
 
 QPushButton[text="Previous"]:hover, QPushButton[text="Next"]:hover {
     background-color: #1565C0;
+    border: 2px solid #0D47A1;
 }
 
 /* Schedule info label */
 QLabel#info_label {
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     color: #1976D2;
-    padding: 10px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    margin: 10px;
+    border: 1px solid #BBDEFB;
 }
 
-/* Headline styling */
-QLabel#headline_label {
-    font-size: 36px;
-    font-weight: bold;
-    color: #1565C0;
-    padding: 20px 10px 5px 10px;
-    font-family: "Segoe UI", sans-serif;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+/*  Navigator positioning and appearance */
+Navigator {
+    margin: 25px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    border: 1px solid #BBDEFB;
 }
 
-/* Subtitle styling */
-QLabel#subtitle_label {
-    font-size: 18px;
-    color: #5C6BC0;
-    padding: 0px 10px 20px 10px;
-    font-style: italic;
-    font-family: "Segoe UI", sans-serif;
-}
-
-/* Main window background and shadow */
+/* Add a subtle border to the main window */
 QMainWindow {
     background-color: #F0F7FF;
-}
-
-/* Enhancement for the table to make it more prominent */
-QTableWidget {
-    background-color: #FFFFFF;
-    gridline-color: #90CAF9;
-    border: 2px solid #90CAF9;
-    border-radius: 12px;
-    padding: 8px;
-    margin: 10px;
-}
-
-/* Enhance table cells for better readability */
-QTableWidget::item {
-    padding: 10px;
-    border-radius: 6px;
     border: 1px solid #BBDEFB;
-    background-color: #F5F5F5;
-    color: #212121;
+}
+
+/* table header */
+QHeaderView::section {
+    background-color: #1976D2;
+    color: white;
+    padding: 12px;
+    border: none;
+    font-weight: bold;
+    border-radius: 5px;
     margin: 2px;
 }
 
-/* Add a nice highlight effect for cells with events */
-QTableWidget::item:!empty {
-    background-color: #E3F2FD;
-    border: 1px solid #90CAF9;
-}
-
-/* Centralize and enhance navigator positioning */
-Navigator {
-    margin: 20px;
-    padding: 10px;
+/* Add a separator line style */
+QFrame#separator_line {
+    background-color: #BBDEFB;
+    height: 2px;
+    margin: 15px 0;
 }

@@ -1,7 +1,8 @@
 # schedule_table.py
 
-from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem
+from PyQt5.QtWidgets import QTableWidget, QTableWidgetItem, QHeaderView
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont, QColor
 from src.models.schedule import Schedule
 
 class ScheduleTable(QTableWidget):
@@ -18,10 +19,28 @@ class ScheduleTable(QTableWidget):
         # Set the vertical labels to represent time slots (e.g., 8:00-9:00, 9:00-10:00, etc.)
         time_labels = [f"{hour}:00-{hour + 1}:00" for hour in range(8, 20)]
         self.setVerticalHeaderLabels(time_labels)
-        self.setWordWrap(True)
-        # Adjust column widths and row heights to fit the content
-        self.resizeRowsToContents()
-
+        
+        # Configure table appearance
+        self.setShowGrid(True)
+        self.setGridStyle(Qt.SolidLine)
+        self.setAlternatingRowColors(True)
+        
+        # Set header properties
+        header = self.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Stretch)
+        header.setDefaultAlignment(Qt.AlignCenter)
+        
+        vertical_header = self.verticalHeader()
+        vertical_header.setSectionResizeMode(QHeaderView.Fixed)
+        vertical_header.setDefaultSectionSize(80)  # Increased row height
+        
+        # Set table properties
+        self.setSelectionMode(QTableWidget.SingleSelection)
+        self.setSelectionBehavior(QTableWidget.SelectItems)
+        self.setEditTriggers(QTableWidget.NoEditTriggers)
+        
+        # Set minimum size
+        self.setMinimumSize(800, 600)
 
     def display_schedule(self, schedule: Schedule):
         """
@@ -52,19 +71,30 @@ class ScheduleTable(QTableWidget):
 
                 # Create a table widget item with the event details
                 item = QTableWidgetItem(item_text)
-                # Align the text to the top-left corner of the cell
+                
+                # Configure item appearance
                 item.setTextAlignment(Qt.AlignLeft | Qt.AlignTop)
-                # Set a tooltip with the same text for additional context
                 item.setToolTip(item_text)
-
-                # Apply styling to the text
-                font = item.font()
-                font.setBold(True)  # Make the text bold
-                font.setPointSize(7)  # Set font size
+                
+                # Apply enhanced styling to the text
+                font = QFont("Segoe UI", 9)
+                font.setBold(True)
                 item.setFont(font)
+                
+                # Set background color based on event type
+                if "Lecture" in event_type:
+                    item.setBackground(QColor("#E3F2FD"))  # Light blue for lectures
+                elif "Lab" in event_type:
+                    item.setBackground(QColor("#E8F5E9"))  # Light green for labs
+                else:
+                    item.setBackground(QColor("#FFF3E0"))  # Light orange for other events
 
                 # Add the item to the table at the calculated row and day column
                 self.setItem(row, day, item)
 
         # Adjust row heights to fit the content
         self.resizeRowsToContents()
+        
+        # Set minimum row height
+        for row in range(self.rowCount()):
+            self.setRowHeight(row, max(80, self.rowHeight(row)))
