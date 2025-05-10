@@ -3,14 +3,13 @@ from PyQt5.QtWidgets import (
     QFrame
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from src.componnents.ScheduleTable import ScheduleTable
-from src.models.schedule import Schedule
 from typing import List
+from src.models.schedule import Schedule
 
 class Navigator(QWidget):
     # Signal emitted when the schedule changes
     schedule_changed = pyqtSignal(int)
-
+    
     def __init__(self, schedules: List[Schedule]):
         super().__init__()
         self.schedules = schedules  # List of schedules to navigate
@@ -69,45 +68,37 @@ class Navigator(QWidget):
         line.setObjectName("separator_line")
         self.layout.addWidget(line)
         
-        # Schedule display table to show the current schedule
-        self.table = ScheduleTable()
-        
-        # Create a layout to center the table
-        table_layout = QHBoxLayout()
-        table_layout.addWidget(self.table)
-        
-        # Add the centered table layout to the main layout
-        self.layout.addLayout(table_layout)
+        # Update the display
+        self.update_display()
 
-        # Display the first schedule by default
-        self.display_schedule(0)
-
-    def display_schedule(self, index: int):
+    def update_display(self):
         """
-        Display the schedule at the given index.
-        Updates the table, info label, and input field.
-        Emits the schedule_changed signal.
+        Updates the info label and input field based on the current index.
         """
-        if 0 <= index < len(self.schedules):
-            self.current_index = index
-            self.table.display_schedule(self.schedules[index])  # Update the table
-            self.schedule_num.setText(str(index + 1))  # Update the input field
-            self.info_label.setText(f"Schedule {index + 1} / {len(self.schedules)}")  # Update the info label
-            self.schedule_changed.emit(index)  # Emit the signal
+        if self.schedules:
+            self.info_label.setText(f"Schedule {self.current_index + 1} / {len(self.schedules)}")
+            self.schedule_num.setText(str(self.current_index + 1))
+        else:
+            self.info_label.setText("No schedules available")
+            self.schedule_num.setText("")
 
     def go_to_next(self):
         """
         Navigate to the next schedule if it exists.
         """
         if self.current_index + 1 < len(self.schedules):
-            self.display_schedule(self.current_index + 1)
+            self.current_index += 1
+            self.update_display()
+            self.schedule_changed.emit(self.current_index)
 
     def go_to_previous(self):
         """
         Navigate to the previous schedule if it exists.
         """
         if self.current_index - 1 >= 0:
-            self.display_schedule(self.current_index - 1)
+            self.current_index -= 1
+            self.update_display()
+            self.schedule_changed.emit(self.current_index)
 
     def on_schedule_num_entered(self):
         """
@@ -117,7 +108,9 @@ class Navigator(QWidget):
         try:
             index = int(self.schedule_num.text()) - 1  # Convert input to zero-based index
             if 0 <= index < len(self.schedules):
-                self.display_schedule(index)  # Display the schedule if valid
+                self.current_index = index
+                self.update_display()
+                self.schedule_changed.emit(self.current_index)
             else:
                 # Show a warning if the number is out of range
                 QMessageBox.warning(
@@ -134,3 +127,24 @@ class Navigator(QWidget):
                 "Please enter a valid number."
             )
             self.schedule_num.setText(str(self.current_index + 1))  # Reset input field
+
+    def set_schedules(self, schedules: List[Schedule]):
+        """
+        Set new schedules and reset the current index.
+        """
+        self.schedules = schedules
+        self.current_index = 0 if schedules else -1
+        self.update_display()
+        if self.schedules:
+            self.schedule_changed.emit(self.current_index)
+
+    def get_current_schedule(self):
+        """
+        Get the currently selected schedule.
+        
+        Returns:
+            Schedule or None: The current schedule, or None if no schedules are available.
+        """
+        if 0 <= self.current_index < len(self.schedules):
+            return self.schedules[self.current_index]
+        return None

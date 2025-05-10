@@ -1,11 +1,10 @@
-# views/schedule_window.py
-
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
     QSpacerItem, QSizePolicy, QHBoxLayout
 )
 from PyQt5.QtCore import Qt
 from src.componnents.Navigator import Navigator
+from src.componnents.ScheduleTable import ScheduleTable
 from src.models.schedule import Schedule
 from typing import List, Callable
 from src.services.schedule_api import ScheduleAPI
@@ -28,9 +27,28 @@ class ScheduleWindow(QMainWindow):
         self.setWindowTitle("Generated Schedules")
         self.showMaximized()
         self.api = api
+        self.schedules = schedules
 
-        # Navigator for displaying schedules
+        # Create the main container widget and layout
+        self.central_widget = QWidget()
+        self.main_layout = QVBoxLayout(self.central_widget)
+        
+        # Create the navigator
         self.navigator = Navigator(schedules)
+        
+        # Create the schedule table
+        self.schedule_table = ScheduleTable()
+        
+        # Connect navigator's schedule_changed signal to update the table
+        self.navigator.schedule_changed.connect(self.on_schedule_changed)
+        
+        # Add navigator to the main layout
+        self.main_layout.addWidget(self.navigator)
+        
+        # Add the schedule table inside a horizontal layout for centering
+        table_layout = QHBoxLayout()
+        table_layout.addWidget(self.schedule_table)
+        self.main_layout.addLayout(table_layout)
 
         # Buttons
         self.export_button = QPushButton("Export to TXT File")
@@ -43,10 +61,9 @@ class ScheduleWindow(QMainWindow):
         self.export_button.clicked.connect(self.export_to_file)
         self.back_button.clicked.connect(self.navigateToCourseWindow)
 
-        # Layouts
-        main_layout = QVBoxLayout()  # Main vertical layout
-        buttons_layout = QHBoxLayout()  # Horizontal layout for buttons
-
+        # Buttons layout
+        buttons_layout = QHBoxLayout()
+        
         # Add buttons to the layout with spacing and alignment
         buttons_layout.addStretch()
         buttons_layout.addWidget(self.export_button)
@@ -54,27 +71,42 @@ class ScheduleWindow(QMainWindow):
         buttons_layout.addWidget(self.back_button)
         buttons_layout.addStretch()
 
-        # Add navigator and button layout to the main layout
-        main_layout.addWidget(self.navigator)
-        main_layout.addLayout(buttons_layout)
+        # Add buttons layout to the main layout
+        self.main_layout.addLayout(buttons_layout)
 
-        # Set the main layout as the central widget
-        container = QWidget()
-        container.setLayout(main_layout)
-        self.setCentralWidget(container)
+        # Set the central widget
+        self.setCentralWidget(self.central_widget)
 
         # Callback for navigating back to the course selection window
         self.on_back: Callable[[], None] = lambda: None
+        
+        # Display the first schedule if available
+        if schedules:
+            self.on_schedule_changed(0)
+
+    def on_schedule_changed(self, index: int):
+        """
+        Updates the schedule table when the selected schedule changes.
+        
+        Args:
+            index (int): The index of the selected schedule.
+        """
+        if 0 <= index < len(self.schedules):
+            self.schedule_table.display_schedule(self.schedules[index])
 
     def displaySchedules(self, schedules: List[Schedule]):
         """
-        Updates the navigator with new schedules and displays the first one.
+        Updates the navigator and table with new schedules and displays the first one.
 
         Args:
             schedules (List[Schedule]): List of schedules to display.
         """
-        self.navigator.schedules = schedules
-        self.navigator.display_schedule(0)
+        self.schedules = schedules
+        self.navigator.set_schedules(schedules)
+        if schedules:
+            self.on_schedule_changed(0)
+        else:
+            self.schedule_table.clearContents()
 
     def navigateToCourseWindow(self):
         """
@@ -93,7 +125,7 @@ class ScheduleWindow(QMainWindow):
         if file_path:
             try:
                 # Use the API to export schedules to the selected file
-                self.api.export(self.navigator.schedules, file_path)
+                self.api.export(self.schedules, file_path)
                 QMessageBox.information(
                     self, "Export Successful",
                     f"Schedules were saved successfully to:\n{file_path}"
