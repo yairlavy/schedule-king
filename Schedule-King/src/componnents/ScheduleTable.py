@@ -30,12 +30,12 @@ class ScheduleTable(QTableWidget):
         header = self.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.Stretch)
         header.setDefaultAlignment(Qt.AlignCenter)
-        header.setFixedHeight(50)  # Make the header more prominent
+        header.setFixedHeight(70)  # Further increased header height
         
         vertical_header = self.verticalHeader()
         vertical_header.setSectionResizeMode(QHeaderView.Fixed)
-        vertical_header.setDefaultSectionSize(80)  # Increased row height
-        vertical_header.setFixedWidth(120)  # Make the time column wider
+        vertical_header.setDefaultSectionSize(150)  # Further increased default row height
+        vertical_header.setFixedWidth(160)  # Made the time column even wider
         
         # Set table properties
         self.setSelectionMode(QTableWidget.SingleSelection)
@@ -125,12 +125,14 @@ class ScheduleTable(QTableWidget):
                 else:
                     border_color = QColor("#FF9800")  # Orange border for others
                     event_class = "Tirgul"
-                
-                # Format the cell text - now with course name bold instead of event type
+
+                # Format the cell text with improved styling and layout
                 item_text = (
-                    f"{event_type}<br>"
-                    f"<b>{course_name}</b> ({code})<br>"
-                    f"<i>Room {slot.room}, Bldg {slot.building}</i>"
+                    f'<div style="padding: 1px; font-family: Arial, sans-serif;">'
+                    f'<div style="color: #1E88E5; font-size: 12px; font-weight: bold; margin-bottom: 4px;">{event_type}</div>'
+                    f'<div style="font-size: 14px; font-weight: bold; color: #333; margin-bottom: 4px;">{course_name} ({code})</div>'
+                    f'<div style="color: #777; font-size: 16px; margin-top: 8px;">Room: {slot.room} | Building: {slot.building}</div>'
+                    f'</div>'
                 )
                 
                 # Set formatted text
@@ -138,7 +140,7 @@ class ScheduleTable(QTableWidget):
                 item.setData(Qt.UserRole, f"{event_type}|{code}")  # Store type and code
                 
                 # Use HTML formatting for rich text display
-                item.setToolTip(item_text.replace("<br>", "\n").replace("<b>", "").replace("</b>", "").replace("<i>", "").replace("</i>", ""))
+                item.setToolTip(item_text.replace("<div", "").replace("</div>", "\n").replace(" style=\"[^\"]*\"", ""))
                 
                 # Add the item to the table at the calculated row and day column
                 self.setItem(row, day, item)
@@ -146,10 +148,16 @@ class ScheduleTable(QTableWidget):
                 # Create a QLabel with HTML content for each cell
                 from PyQt5.QtWidgets import QLabel
                 label = QLabel(item_text)
-                label.setObjectName(f"course_label_{event_class}_{code}")  # Set object name for CSS targeting
+                label.setObjectName(f"course_label_{event_class}_{code}")
                 label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
                 label.setWordWrap(True)
-                label.setContentsMargins(8, 8, 8, 8)
+                label.setContentsMargins(14, 14, 14, 14)
+                label.setStyleSheet("""
+                    QLabel {
+                        padding: 8px;
+                        line-height: 1.6;
+                    }
+                """)
                 
                 # Set the cell widget
                 self.setCellWidget(row, day, label)
@@ -159,4 +167,4 @@ class ScheduleTable(QTableWidget):
         
         # Set minimum row height
         for row in range(self.rowCount()):
-            self.setRowHeight(row, max(80, self.rowHeight(row)))
+            self.setRowHeight(row, max(150, self.rowHeight(row)))  # Further increased minimum row height

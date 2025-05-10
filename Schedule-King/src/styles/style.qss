@@ -61,12 +61,15 @@ QLineEdit {
 
 /* Table header sections */
 QHeaderView::section {
-    background-color: #1976D2;
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #29B6F6, stop:1 #0288D1);
     color: white;
-    padding: 10px;
+    padding: 18px;
     border: none;
     font-weight: bold;
-    border-radius: 0px;
+    font-size: 18px;
+    border-radius: 8px;
+    margin: 3px;
 }
 
 /* Tooltips */
@@ -146,14 +149,15 @@ QTableWidget#enhanced_table::item:selected {
 
 /* Table cell widgets - custom styling */
 QTableWidget#enhanced_table QLabel {
-    border-radius: 8px;
-    padding: 10px;
+    border-radius: 12px;
+    padding: 16px;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                               stop:0 rgba(255, 255, 255, 235), 
-                               stop:1 rgba(240, 249, 255, 235));
-    border: 2px solid #4FC3F7;
-    font-size: 13px;
+                               stop:0 rgba(255, 255, 255, 245), 
+                               stop:1 rgba(240, 249, 255, 245));
+    border: 3px solid #4FC3F7;
+    font-size: 16px;
     color: #263238;
+    line-height: 1.6;
 }
 
 /* Styling for course labels - all types */
@@ -164,26 +168,26 @@ QTableWidget#enhanced_table QLabel[objectName^="course_label"] {
 
 /* Style for Lecture items */
 QTableWidget#enhanced_table QLabel[objectName^="course_label_Lecture"] {
-    border-left: 5px solid #1976D2;
+    border-left: 8px solid #1976D2;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(225, 245, 254, 240), 
-                              stop:1 rgba(179, 229, 252, 240));
+                              stop:0 rgba(225, 245, 254, 250), 
+                              stop:1 rgba(179, 229, 252, 250));
 }
 
 /* Style for Tirgul items */
 QTableWidget#enhanced_table QLabel[objectName^="course_label_Tirgul"] {
-    border-left: 5px solid #FF9800;
+    border-left: 8px solid #FF9800;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(255, 243, 224, 240), 
-                              stop:1 rgba(255, 224, 178, 240));
+                              stop:0 rgba(255, 243, 224, 250), 
+                              stop:1 rgba(255, 224, 178, 250));
 }
 
 /* Style for Lab items */
 QTableWidget#enhanced_table QLabel[objectName^="course_label_Lab"] {
-    border-left: 5px solid #4CAF50;
+    border-left: 8px solid #4CAF50;
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 rgba(232, 245, 233, 240), 
-                              stop:1 rgba(200, 230, 201, 240));
+                              stop:0 rgba(232, 245, 233, 250), 
+                              stop:1 rgba(200, 230, 201, 250));
 }
 
 /* Schedule Window Navigation Controls */
@@ -326,25 +330,14 @@ QFrame#separator_line {
     border-radius: 1px;
 }
 
-/* Schedule Window Table Header */
-QHeaderView#enhanced_table::section {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #29B6F6, stop:1 #0288D1);
-    color: white;
-    padding: 12px;
-    border: none;
-    font-weight: bold;
-    font-size: 14px;
-    border-radius: 5px;
-    margin: 1px;
-}
-
-/* Schedule Table Vertical Header */
+/* Table Vertical Header */
 QTableWidget#enhanced_table QHeaderView::section:vertical {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, 
                               stop:0 #90CAF9, stop:1 #64B5F6);
     color: #01579B;
-    border-radius: 5px;
-    margin: 1px;
+    border-radius: 8px;
+    margin: 3px;
     font-weight: bold;
+    font-size: 17px;
+    padding: 15px;
 }
