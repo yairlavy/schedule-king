@@ -24,8 +24,28 @@ class MainController:
         self.course_window.show()
 
     def on_file_selected(self, file_path: str):
-        courses = self.course_controller.get_courses_names(file_path)
-        self.course_window.displayCourses(courses)
+        try:
+            courses = self.course_controller.get_courses_names(file_path)
+            if not courses:
+                QMessageBox.critical(
+                    self.course_window,
+                    "Invalid File Format",
+                    "The selected file has an invalid format. Please make sure the file follows the correct course format."
+                )
+                return
+            self.course_window.displayCourses(courses)
+        except FileNotFoundError:
+            QMessageBox.critical(
+                self.course_window,
+                "File Not Found",
+                f"The file '{file_path}' could not be found."
+            )
+        except Exception as e:
+            QMessageBox.critical(
+                self.course_window,
+                "Error Loading File",
+                f"An error occurred while loading the file: {str(e)}"
+            )
 
     def on_courses_selected(self, selected_courses: List[Course]):
         if not selected_courses:
