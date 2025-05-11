@@ -1,7 +1,7 @@
 from src.services.schedule_api import ScheduleAPI
 from src.models.schedule import Schedule
 from src.models.course import Course
-from typing import List
+from typing import List, Optional
 
 class ScheduleController:
     def __init__(self, api: ScheduleAPI):
@@ -21,14 +21,17 @@ class ScheduleController:
         """
         return self.schedules
         
-    def export_schedules(self, file_path: str) -> None:
+    def export_schedules(self, file_path: str, schedules_to_export: Optional[List[Schedule]] = None) -> None:
         """
         Exports the schedules to a file.
         
         Args:
             file_path (str): The path to save the file.
+            schedules_to_export (Optional[List[Schedule]]): Specific schedules to export. 
+                                                          If None, exports all schedules.
             
         Raises:
             Exception: If the export operation fails.
         """
-        self.api.export(self.schedules, file_path)
+        schedules = schedules_to_export if schedules_to_export is not None else self.schedules
+        self.api.export(schedules, file_path)

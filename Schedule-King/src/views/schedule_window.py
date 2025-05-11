@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QSplitter
+    QHBoxLayout, QLabel, QFrame, QSplitter, QCheckBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap, QFont
@@ -92,6 +92,10 @@ class ScheduleWindow(QMainWindow):
         title_layout.addLayout(title_row)
         
         # Export button (right side)
+        export_container = QWidget()
+        export_layout = QVBoxLayout(export_container)
+        export_layout.setSpacing(5)
+        
         self.export_button = QPushButton("  Export Schedule")
         self.export_button.setObjectName("top_action_button")
         export_icon = QIcon("icons/export.png")
@@ -99,14 +103,20 @@ class ScheduleWindow(QMainWindow):
             self.export_button.setIcon(export_icon)
         else:
             # Use text-based icon as fallback
-            self.export_button.setText("📥 Export Schedule")
+            self.export_button.setText("Export Schedule")
+            
+        self.export_visible_only = QCheckBox("Export visible schedule only")
+        self.export_visible_only.setObjectName("export_checkbox")
+        
+        export_layout.addWidget(self.export_button)
+        export_layout.addWidget(self.export_visible_only)
         
         # Assemble header with proper alignment
         header_layout.addWidget(self.back_button)  # Left aligned
         header_layout.addStretch(1)  # Push to left
         header_layout.addWidget(title_container)  # Center
         header_layout.addStretch(1)  # Push to right
-        header_layout.addWidget(self.export_button)  # Right aligned
+        header_layout.addWidget(export_container)  # Right aligned
         
         self.main_layout.addLayout(header_layout)
         
@@ -190,7 +200,7 @@ class ScheduleWindow(QMainWindow):
 
     def export_to_file(self):
         """
-        Exports all schedules to a file in the selected format.
+        Exports schedules to a file in the selected format.
         Shows success/error messages to the user.
         """
         file_path, selected_filter = QFileDialog.getSaveFileName(
@@ -205,8 +215,17 @@ class ScheduleWindow(QMainWindow):
                 file_path += '.xlsx'
             
             try:
+                # Get current schedule index from navigator
+                current_index = self.navigator.current_index
+                
                 # Use the controller to handle the export
-                self.controller.export_schedules(file_path)
+                if self.export_visible_only.isChecked() and 0 <= current_index < len(self.schedules):
+                    # Export only the visible schedule
+                    self.controller.export_schedules(file_path, [self.schedules[current_index]])
+                else:
+                    # Export all schedules
+                    self.controller.export_schedules(file_path)
+                    
                 QMessageBox.information(
                     self, "Export Successful",
                     f"Schedules were saved successfully to:\n{file_path}"
