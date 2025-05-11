@@ -18,9 +18,9 @@ class ScheduleTable(QTableWidget):
         day_map = schedule.extract_by_day()
 
         for day_str, events in day_map.items():
-            day = int(day_str) - 1  # 1 = Sunday → 0
+            day = int(day_str) - 1 
             for event_type, course_name, code, slot in events:
-                row = slot.start_time.hour - 8  # שורות מ-8:00
+                row = slot.start_time.hour - 8  
 
                 item_text = (
                     f"{event_type}\n"
