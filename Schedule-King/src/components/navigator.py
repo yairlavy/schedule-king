@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QIntValidator
+from src.models.schedule import Schedule
 from typing import List
 from src.models.schedule import Schedule
 

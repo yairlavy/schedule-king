@@ -1,5 +1,5 @@
 import pytest
-from src.componnents.course_selector import CourseSelector  
+from src.components.course_selector import CourseSelector  
 from src.models.course import Course
 
 
@@ -7,9 +7,9 @@ from src.models.course import Course
 def sample_courses():
     # Fixture to provide a sample list of courses for testing
     return [
-        Course("Intro to CS", "CS101", "Dr. Smith"),
-        Course("Calculus", "MATH201", "Dr. Jones"),
-        Course("Physics", "PHYS101", "Dr. Brown")
+        Course("Intro to CS", "CS101", "Dr. Smith", lectures=[], tirguls=[], maabadas=[]),
+        Course("Calculus", "MATH201", "Dr. Jones", lectures=[], tirguls=[], maabadas=[]),
+        Course("Physics", "PHYS101", "Dr. Brown", lectures=[], tirguls=[], maabadas=[])
     ]
 
 
@@ -24,7 +24,7 @@ def selector(qtbot, sample_courses):
 
 def test_initial_population(selector, sample_courses):
     # Test that the CourseSelector is populated with the correct number of courses
-    assert selector.list_widget.count() == len(sample_courses)
+    assert selector.course_list.list_widget.count() == len(sample_courses)
     # Verify that the title label starts with "Available Courses"
     assert selector.title_label.text().startswith("Available Courses")
 
@@ -32,9 +32,9 @@ def test_initial_population(selector, sample_courses):
 def test_selection_emits_signal(qtbot, selector, sample_courses):
     # Test that selecting a course emits the `coursesSelected` signal
     with qtbot.waitSignal(selector.coursesSelected, timeout=500) as signal:
-        # Select the first item in the list
-        item = selector.list_widget.item(0)
-        item.setSelected(True)
+        # Use the public API to select the first course
+        selector.select_courses_by_code([sample_courses[0].course_code])
+        qtbot.wait(100)
 
     # Verify that the emitted signal contains the correct course
     selected = signal.args[0]
@@ -44,9 +44,9 @@ def test_selection_emits_signal(qtbot, selector, sample_courses):
 
 def test_submit_emits_signal(qtbot, selector, sample_courses):
     # Test that clicking the submit button emits the `coursesSubmitted` signal
-    # Select two items in the list
-    selector.list_widget.item(0).setSelected(True)
-    selector.list_widget.item(2).setSelected(True)
+    # Use the public API to select two courses
+    selector.select_courses_by_code([sample_courses[0].course_code, sample_courses[2].course_code])
+    qtbot.wait(100)
 
     with qtbot.waitSignal(selector.coursesSubmitted, timeout=500) as signal:
         # Simulate clicking the submit button
@@ -58,11 +58,11 @@ def test_submit_emits_signal(qtbot, selector, sample_courses):
     assert submitted[0].course_code == sample_courses[0].course_code
 
 
-def test_clear_button_clears_selection(qtbot, selector):
+def test_clear_button_clears_selection(qtbot, selector, sample_courses):
     # Test that clicking the clear button clears all selected courses
-    # Select all items in the list
-    for i in range(selector.list_widget.count()):
-        selector.list_widget.item(i).setSelected(True)
+    # Use the public API to select all courses
+    selector.select_courses_by_code([c.course_code for c in sample_courses])
+    qtbot.wait(100)
 
     # Simulate clicking the clear button
     selector.clear_button.click()

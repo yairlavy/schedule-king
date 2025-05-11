@@ -4,11 +4,12 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap, QFont
-from src.componnents.Navigator import Navigator
-from src.componnents.ScheduleTable import ScheduleTable
+from src.components.navigator import Navigator
+from src.components.schedule_table import ScheduleTable
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from typing import List, Callable
+
 
 class ScheduleWindow(QMainWindow):
     """

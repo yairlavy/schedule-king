@@ -1,71 +1,68 @@
-# views/course_window.py
-
 from PyQt5.QtWidgets import (
-    QMainWindow, QFileDialog, QPushButton, QVBoxLayout, QWidget, QSpacerItem, QSizePolicy
+    QMainWindow, QFileDialog, QVBoxLayout,
+    QHBoxLayout, QWidget, QSizePolicy
 )
 from PyQt5.QtCore import Qt
-from src.componnents.CourseSelector import CourseSelector
-from src.models.course import Course
+from PyQt5.QtGui import QIcon, QFont
 from typing import List, Callable
+from src.models.course import Course
+from src.components.course_selector import CourseSelector
+import os
+
 
 class CourseWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Select Courses")
+
+        # Set full-screen display
         self.showMaximized()
 
+        # Set custom icon
+        icon_path = os.path.join(os.path.dirname(__file__), "../../assets/schedule_icon.png")
+        self.setWindowIcon(QIcon(icon_path))
+
+        # === Course Selector ===
         self.courseSelector = CourseSelector()
+        self.courseSelector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        self.load_button = QPushButton("Load Courses")
-        self.load_button.setFixedSize(150, 50)
-
-        self.next_button = QPushButton("Generate Schedules")
-        self.next_button.setFixedSize(150, 50)
-
-        self.load_button.clicked.connect(self.load_courses_from_file)
-        self.next_button.clicked.connect(self.navigateToSchedulesWindow)
-
-        # גם כשלוחצים Submit ברכיב המעוצב שלך
+        # Connect signals
         self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
+        self.courseSelector.loadRequested.connect(self.load_courses_from_file)
 
-        layout = QVBoxLayout()
-        layout.addWidget(self.load_button, alignment=Qt.AlignCenter)
-        layout.addWidget(self.courseSelector)
-        layout.addItem(QSpacerItem(20, 20, QSizePolicy.Minimum, QSizePolicy.Expanding))
-        layout.addWidget(self.next_button, alignment=Qt.AlignCenter)
+        # === Layout Setup ===
+        outer_layout = QVBoxLayout()
+        outer_layout.setContentsMargins(30, 30, 30, 30)
+        outer_layout.setSpacing(20)
 
+        # Center courseSelector horizontally
+        center_row = QHBoxLayout()
+        center_row.addStretch()
+        center_row.addWidget(self.courseSelector)
+        center_row.addStretch()
+        outer_layout.addLayout(center_row)
+
+        # Wrap in container
         container = QWidget()
-        container.setLayout(layout)
+        container.setLayout(outer_layout)
         self.setCentralWidget(container)
 
-        # Callbacks
+        # External callbacks
         self.on_courses_loaded: Callable[[str], None] = lambda path: None
         self.on_continue: Callable[[List[Course]], None] = lambda selected: None
 
     def displayCourses(self, courses: List[Course]):
-        """
-        Populate the selector with new courses.
-        """
         self.courseSelector.populate_courses(courses)
 
     def handleSelection(self) -> List[Course]:
-        """
-        Return selected courses from the selector.
-        """
         return self.courseSelector.get_selected_courses()
 
     def navigateToSchedulesWindow(self):
-        """
-        Move to the ScheduleWindow with selected courses.
-        """
         selected = self.handleSelection()
         if selected:
             self.on_continue(selected)
 
     def load_courses_from_file(self):
-        """
-        Open file dialog and load courses.
-        """
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
         )
