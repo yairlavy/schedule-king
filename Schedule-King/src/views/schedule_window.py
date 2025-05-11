@@ -92,14 +92,14 @@ class ScheduleWindow(QMainWindow):
         title_layout.addLayout(title_row)
         
         # Export button (right side)
-        self.export_button = QPushButton("  Export to TXT File")
+        self.export_button = QPushButton("  Export Schedule")
         self.export_button.setObjectName("top_action_button")
         export_icon = QIcon("icons/export.png")
         if not export_icon.isNull():
             self.export_button.setIcon(export_icon)
         else:
             # Use text-based icon as fallback
-            self.export_button.setText("📥 Export to TXT File")
+            self.export_button.setText("📥 Export Schedule")
         
         # Assemble header with proper alignment
         header_layout.addWidget(self.back_button)  # Left aligned
@@ -190,13 +190,20 @@ class ScheduleWindow(QMainWindow):
 
     def export_to_file(self):
         """
-        Exports all schedules to a text file.
+        Exports all schedules to a file in the selected format.
         Shows success/error messages to the user.
         """
-        file_path, _ = QFileDialog.getSaveFileName(
-            self, "Save Schedules", "", "Text Files (*.txt)"
+        file_path, selected_filter = QFileDialog.getSaveFileName(
+            self, "Save Schedules", "", 
+            "Text Files (*.txt);;Excel Files (*.xlsx);;All Files (*)"
         )
         if file_path:
+            # Add extension based on selected filter if not already present
+            if selected_filter == "Text Files (*.txt)" and not file_path.endswith('.txt'):
+                file_path += '.txt'
+            elif selected_filter == "Excel Files (*.xlsx)" and not file_path.endswith('.xlsx'):
+                file_path += '.xlsx'
+            
             try:
                 # Use the controller to handle the export
                 self.controller.export_schedules(file_path)
@@ -205,7 +212,9 @@ class ScheduleWindow(QMainWindow):
                     f"Schedules were saved successfully to:\n{file_path}"
                 )
             except Exception as e:
+                error_msg = str(e)
+                print(f"Export error: {error_msg}")  # Log the error
                 QMessageBox.critical(
                     self, "Export Failed",
-                    f"Failed to export schedules:\n{str(e)}"
+                    f"Failed to export schedules:\n{error_msg}"
                 )
