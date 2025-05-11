@@ -20,10 +20,10 @@ class SelectedCoursesPanel(QWidget):
                 background-color: #E3F2FD;
                 border: 1px solid #BBDEFB;
                 padding: 12px;
-                font-size: 10.5pt;
+                font-size: 11pt;
                 border-radius: 6px;
                 color: #0D47A1;
-                min-width: 240px;
+                min-width: 300px;
             }
         """)
         

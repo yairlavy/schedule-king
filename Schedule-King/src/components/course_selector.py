@@ -22,12 +22,12 @@ class CourseSelector(QWidget):
 
         # === Main Layout ===
         self.layout = QVBoxLayout(self)
-        self.layout.setContentsMargins(30, 30, 30, 30)
+        self.layout.setContentsMargins(40, 30, 40, 30)
         self.layout.setSpacing(16)
 
         # === Banner Image ===
         banner = QLabel()
-        banner.setPixmap(QPixmap("assets/schedule_banner.png").scaledToWidth(300, Qt.SmoothTransformation))
+        banner.setPixmap(QPixmap("assets/schedule_banner.png").scaledToWidth(400, Qt.SmoothTransformation))
         banner.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(banner)
 
@@ -59,12 +59,13 @@ class CourseSelector(QWidget):
 
         # === Side-by-Side Layout ===
         self.split_layout = QHBoxLayout()
+        self.split_layout.setSpacing(20)
         self.layout.addLayout(self.split_layout)
 
         # === Course List ===
         self.course_list = CourseList()
         self.course_list.selectionChanged.connect(self._handle_selection_changed)
-        self.split_layout.addWidget(self.course_list, 3)
+        self.split_layout.addWidget(self.course_list, 4)
 
         # === Selected Courses Panel ===
         self.selected_panel = SelectedCoursesPanel()

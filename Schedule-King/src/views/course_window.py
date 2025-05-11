@@ -32,15 +32,11 @@ class CourseWindow(QMainWindow):
 
         # === Layout Setup ===
         outer_layout = QVBoxLayout()
-        outer_layout.setContentsMargins(30, 30, 30, 30)
+        outer_layout.setContentsMargins(50, 30, 50, 30)
         outer_layout.setSpacing(20)
 
-        # Center courseSelector horizontally
-        center_row = QHBoxLayout()
-        center_row.addStretch()
-        center_row.addWidget(self.courseSelector)
-        center_row.addStretch()
-        outer_layout.addLayout(center_row)
+        # Add courseSelector directly without extra stretching
+        outer_layout.addWidget(self.courseSelector)
 
         # Wrap in container
         container = QWidget()
