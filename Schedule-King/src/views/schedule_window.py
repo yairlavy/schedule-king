@@ -9,7 +9,7 @@ from src.components.schedule_table import ScheduleTable
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from typing import List, Callable
-
+import os
 
 class ScheduleWindow(QMainWindow):
     """
@@ -25,6 +25,9 @@ class ScheduleWindow(QMainWindow):
             controller (ScheduleController): Controller for schedule operations.
         """
         super().__init__()
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        print(os.path.exists(icon_path))
+        self.setWindowIcon(QIcon(icon_path))
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")

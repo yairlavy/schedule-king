@@ -19,7 +19,8 @@ class CourseWindow(QMainWindow):
         self.showMaximized()
 
         # Set custom icon
-        icon_path = os.path.join(os.path.dirname(__file__), "../../assets/schedule_icon.png")
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        print(os.path.exists(icon_path))
         self.setWindowIcon(QIcon(icon_path))
 
         # === Course Selector ===
