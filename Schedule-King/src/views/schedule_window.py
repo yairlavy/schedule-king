@@ -160,7 +160,7 @@ class ScheduleWindow(QMainWindow):
         # Set up navigation callback
         self.on_back: Callable[[], None] = lambda: None
         
-        # Set the central widget - THIS WAS MISSING!
+        # Set the central widget of the main window
         self.setCentralWidget(self.central_widget)
         
         # Display the first schedule if available
