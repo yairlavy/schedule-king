@@ -3,162 +3,198 @@ from PyQt5.QtWidgets import (
     QFrame
 )
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QIcon, QIntValidator
 from typing import List
 from src.models.schedule import Schedule
 
 class Navigator(QWidget):
+    """
+    An improved navigator component for browsing through schedules.
+    Features better UI design and functionality.
+    
+    The navigator provides:
+    - Previous/Next buttons for sequential navigation
+    - A direct input field to jump to specific schedules
+    - A display showing current position in the schedule list
+    - Visual feedback and validation for user inputs
+    """
     # Signal emitted when the schedule changes
+    # This allows other components to react to navigation changes
     schedule_changed = pyqtSignal(int)
     
     def __init__(self, schedules: List[Schedule]):
         """
-        Initialize the Navigator widget.
+        Initialize the enhanced Navigator widget.
 
         Args:
             schedules (List[Schedule]): List of schedules to navigate.
         """
         super().__init__()
-        self.schedules = schedules  # List of schedules to navigate
-        self.current_index = 0  # Index of the currently displayed schedule
-
-        # Main layout for the widget
-        self.layout = QHBoxLayout()  # Horizontal layout for more compact design
-        self.layout.setContentsMargins(5, 5, 5, 5)  # Reduced margins
-        self.layout.setSpacing(10)  # Reduced spacing
-        self.setLayout(self.layout)
-
-        # Button to navigate to the previous schedule
-        self.prev_btn = QPushButton("Previous")
-        self.prev_btn.setObjectName("nav_button")
-        self.prev_btn.setFixedSize(80, 30)  # Set fixed size for uniformity
+        self.schedules = schedules  # Store the list of schedules
+        self.current_index = 0      # Track current position in the schedule list
         
-        # Info label to show the current schedule index and total schedules
+        # --- LAYOUT SETUP ---
+        # Main layout is horizontal with proper spacing and margins
+        self.layout = QHBoxLayout()
+        self.layout.setContentsMargins(10, 10, 10, 10)
+        self.layout.setSpacing(15)
+        self.setLayout(self.layout)
+        
+        # --- NAVIGATION CONTROLS ---
+        # Create a container for all navigation elements
+        nav_container = QHBoxLayout()
+        nav_container.setSpacing(8)
+        nav_container.setAlignment(Qt.AlignCenter)  # Center all navigation elements
+        
+        # Previous button setup
+        self.prev_btn = QPushButton()
+        self.prev_btn.setObjectName("nav_button")
+        self.prev_btn.setToolTip("Previous Schedule")
+        self.prev_btn.setFixedSize(40, 40)  # Fixed size for consistent appearance
+        
+        # --- INPUT FIELD SETUP ---
+        # Container for the schedule number input and label
+        input_container = QVBoxLayout()
+        input_container.setSpacing(3)
+        input_container.setContentsMargins(0, 0, 0, 0)
+        
+        # Label showing current position (e.g., "Schedule 1 of 5")
         self.info_label = QLabel()
         self.info_label.setObjectName("info_label")
-        self.info_label.setAlignment(Qt.AlignCenter)  # Center-align the text
-        self.info_label.setMinimumWidth(120)  # Set minimum width for consistent layout
-        self.info_label.setFixedHeight(35)  # Match button height
+        self.info_label.setAlignment(Qt.AlignCenter)
         
-        # Input field container (vertical layout for input and count label)
-        input_container = QVBoxLayout()
-        input_container.setSpacing(0)  # No spacing between input field and label
-        input_container.setContentsMargins(0, 0, 0, 0)  # No margins for compact design
-        
-        # Input field to enter a specific schedule number
+        # Input field for direct schedule selection
         self.schedule_num = QLineEdit()
         self.schedule_num.setObjectName("schedule_num")
-        self.schedule_num.setFixedSize(80, 35)  # Set fixed size for uniformity
-        self.schedule_num.setPlaceholderText("Go to...")  # Placeholder text for guidance
-        self.schedule_num.setAlignment(Qt.AlignCenter)  # Center-align the input text
+        self.schedule_num.setFixedHeight(40)
+        self.schedule_num.setPlaceholderText("Jump to...")
+        self.schedule_num.setAlignment(Qt.AlignCenter)
         
-        # Add widgets to the input container
+        # Add integer validator to ensure only valid numbers can be entered
+        validator = QIntValidator(1, 9999999)  # Allow numbers between 1 and 9999999
+        self.schedule_num.setValidator(validator)
+        
+        # Add input elements to their container
+        input_container.addWidget(self.info_label)
         input_container.addWidget(self.schedule_num)
         
-        # Button to navigate to the next schedule
-        self.next_btn = QPushButton("Next")
+        # Next button setup (mirrors previous button)
+        self.next_btn = QPushButton()
         self.next_btn.setObjectName("nav_button")
-        self.next_btn.setFixedSize(80, 30)  # Set fixed size for uniformity
-
-        # Add controls to the horizontal layout
-        self.layout.addStretch(1)  # Add stretch for spacing
-        self.layout.addWidget(self.prev_btn)  # Add previous button
-        self.layout.addWidget(self.info_label)  # Add info label
-        self.layout.addLayout(input_container)  # Add input field container
-        self.layout.addWidget(self.next_btn)  # Add next button
-        self.layout.addStretch(1)  # Add stretch for spacing
-        self.layout.setAlignment(Qt.AlignCenter)  # Center-align the layout
-
-        # Connect button clicks and input field to their respective methods
-        self.prev_btn.clicked.connect(self.go_to_previous)  # Connect previous button
-        self.next_btn.clicked.connect(self.go_to_next)  # Connect next button
-        self.schedule_num.returnPressed.connect(self.on_schedule_num_entered)  # Connect input field
+        self.next_btn.setToolTip("Next Schedule")
+        self.next_btn.setFixedSize(40, 40)
         
-        # Update the display
+        # --- ASSEMBLE NAVIGATION CONTROLS ---
+        # Add all elements to the navigation container with proper spacing
+        nav_container.addStretch(1)  # Add flexible space on left
+        nav_container.addWidget(self.prev_btn)
+        nav_container.addLayout(input_container)
+        nav_container.addWidget(self.next_btn)
+        nav_container.addStretch(1)  # Add flexible space on right
+        
+        # Add navigation container to main layout with proper spacing
+        self.layout.addStretch(2)
+        self.layout.addLayout(nav_container)
+        self.layout.addStretch(2)
+        
+        # --- CONNECT SIGNALS ---
+        # Connect button clicks and input events to their handlers
+        self.prev_btn.clicked.connect(self.go_to_previous)
+        self.next_btn.clicked.connect(self.go_to_next)
+        self.schedule_num.returnPressed.connect(self.on_schedule_num_entered)
+        
+        # Initialize the display
         self.update_display()
 
     def update_display(self):
         """
-        Updates the info label and input field based on the current index.
+        Updates the UI to reflect the current schedule position.
+        This includes:
+        - Updating the info label
+        - Setting the input field value
+        - Enabling/disabling navigation buttons
         """
         if self.schedules:
-            # Display the current schedule index and total schedules
-            self.info_label.setText(f"Schedule {self.current_index + 1} / {len(self.schedules)}")
-            self.schedule_num.setText(str(self.current_index + 1))  # Update input field
+            # Update position display
+            self.info_label.setText(f"Schedule {self.current_index + 1} of {len(self.schedules)}")
+            self.schedule_num.setText(str(self.current_index + 1))
+            
+            # Enable/disable buttons based on position
+            self.prev_btn.setEnabled(self.current_index > 0)  # Disable at start
+            self.next_btn.setEnabled(self.current_index < len(self.schedules) - 1)  # Disable at end
         else:
-            # Display a message if no schedules are available
+            # Handle case when no schedules are available
             self.info_label.setText("No schedules available")
-            self.schedule_num.setText("")  # Clear input field
+            self.schedule_num.setText("")
+            self.prev_btn.setEnabled(False)
+            self.next_btn.setEnabled(False)
 
     def go_to_next(self):
         """
-        Navigate to the next schedule if it exists.
+        Navigate to the next schedule if available.
+        Updates the display and emits the schedule_changed signal.
         """
         if self.current_index + 1 < len(self.schedules):
-            self.current_index += 1  # Increment the current index
-            self.update_display()  # Update the display
-            self.schedule_changed.emit(self.current_index)  # Emit the schedule_changed signal
+            self.current_index += 1
+            self.update_display()
+            self.schedule_changed.emit(self.current_index)
 
     def go_to_previous(self):
         """
-        Navigate to the previous schedule if it exists.
+        Navigate to the previous schedule if available.
+        Updates the display and emits the schedule_changed signal.
         """
-        if self.current_index - 1 >= 0:
-            self.current_index -= 1  # Decrement the current index
-            self.update_display()  # Update the display
-            self.schedule_changed.emit(self.current_index)  # Emit the schedule_changed signal
+        if self.current_index > 0:
+            self.current_index -= 1
+            self.update_display()
+            self.schedule_changed.emit(self.current_index)
 
     def on_schedule_num_entered(self):
         """
-        Handle the event when the user enters a schedule number in the input field.
-        Validates the input and navigates to the corresponding schedule.
+        Handle direct schedule number input.
+        Validates the input and navigates to the selected schedule.
+        Shows warning messages for invalid inputs.
         """
         try:
             # Convert input to zero-based index
             index = int(self.schedule_num.text()) - 1
             if 0 <= index < len(self.schedules):
-                # If the index is valid, update the current index
                 self.current_index = index
-                self.update_display()  # Update the display
-                self.schedule_changed.emit(self.current_index)  # Emit the schedule_changed signal
+                self.update_display()
+                self.schedule_changed.emit(self.current_index)
             else:
-                # Show a warning if the number is out of range
+                # Show warning for out-of-range numbers
                 QMessageBox.warning(
                     self,
                     "Invalid Schedule Number",
                     f"Please enter a number between 1 and {len(self.schedules)}."
                 )
-                # Reset input field to the current schedule number
                 self.schedule_num.setText(str(self.current_index + 1))
         except ValueError:
-            # Show a warning if the input is not a valid number
+            # Show warning for invalid input
             QMessageBox.warning(
                 self,
                 "Invalid Input",
                 "Please enter a valid number."
             )
-            # Reset input field to the current schedule number
             self.schedule_num.setText(str(self.current_index + 1))
 
     def set_schedules(self, schedules: List[Schedule]):
         """
-        Set new schedules and reset the current index.
-
-        Args:
-            schedules (List[Schedule]): The new list of schedules.
+        Update the list of schedules and reset navigation.
+        This is called when new schedules are loaded.
         """
-        self.schedules = schedules  # Update the schedules list
-        self.current_index = 0 if schedules else -1  # Reset the current index
-        self.update_display()  # Update the display
+        self.schedules = schedules
+        self.current_index = 0 if schedules else -1
+        self.update_display()
         if self.schedules:
-            self.schedule_changed.emit(self.current_index)  # Emit the schedule_changed signal
+            self.schedule_changed.emit(self.current_index)
 
     def get_current_schedule(self):
         """
         Get the currently selected schedule.
-        
-        Returns:
-            Schedule or None: The current schedule, or None if no schedules are available.
+        Returns None if no valid schedule is selected.
         """
         if 0 <= self.current_index < len(self.schedules):
-            return self.schedules[self.current_index]  # Return the current schedule
-        return None  # Return None if no schedules are available
+            return self.schedules[self.current_index]
+        return None
