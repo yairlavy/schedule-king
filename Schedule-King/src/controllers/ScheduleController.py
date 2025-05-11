@@ -20,3 +20,15 @@ class ScheduleController:
         Returns the generated schedules.
         """
         return self.schedules
+        
+    def export_schedules(self, file_path: str) -> None:
+        """
+        Exports the schedules to a file.
+        
+        Args:
+            file_path (str): The path to save the file.
+            
+        Raises:
+            Exception: If the export operation fails.
+        """
+        self.api.export(self.schedules, file_path)
