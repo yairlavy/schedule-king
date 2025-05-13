@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QFileDialog, QVBoxLayout,
-    QHBoxLayout, QWidget, QSizePolicy
+    QHBoxLayout, QWidget, QSizePolicy, QMessageBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
@@ -67,6 +67,11 @@ class CourseWindow(QMainWindow):
         """
         selected = self.handleSelection()
         if selected:
+            # Check if the number of selected courses exceeds the limit
+            if len(selected) > 7:
+                # Display a warning message to the user
+                QMessageBox.warning(self, "Warning", "You cannot select more than 7 courses.")
+                return  # Exit the method to prevent further processing
             self.on_continue(selected)  # Trigger the continue callback with selected courses
 
     def load_courses_from_file(self):
