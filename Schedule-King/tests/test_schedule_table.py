@@ -95,21 +95,24 @@ def test_course_more_than_1_hour(qtbot):
     qtbot.wait(1000)
 
     # The lecture spans 9:00–11:00, so it should fill rows for 9:00-10:00 and 10:00-11:00
-    # Right now failure is expected, because the table is not filling the cells correctly
-    # TODO: Fix the table to fill the cells correctly
-    for row in [1, 2]:
-        widget = table.cellWidget(row, 0)  # Sunday is column 0
-        assert widget is not None, (
-            f"Expected to fail because the table is not working correctly.\n"
-            f"Could not fill row {row}, column 0 (Sunday 10:00-11:00)."
-        )
-        txt = widget.text()
-        assert "Math (101)" in txt
-        assert "Room: 101" in txt
+    # First slot should have full details
+    widget1 = table.cellWidget(1, 0)  # Sunday 9:00-10:00
+    assert widget1 is not None
+    txt1 = widget1.text()
+    assert "Math (101)" in txt1
+    assert "Room: 101" in txt1
+    assert "Building: A" in txt1
+
+    # Second slot should show continuation
+    widget2 = table.cellWidget(2, 0)  # Sunday 10:00-11:00
+    assert widget2 is not None
+    txt2 = widget2.text()
+    assert "Math" in txt2
+    assert "(continued)" in txt2
 
     # It should not fill 11:00
-    widget = table.cellWidget(3, 0)
-    assert widget is None
+    widget3 = table.cellWidget(3, 0)
+    assert widget3 is None
 
 
 def test_duplicate_same_slot(qtbot):

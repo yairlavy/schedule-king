@@ -35,6 +35,7 @@ class ScheduleWindow(QMainWindow):
         self.showMaximized()  # Start maximized for better visibility
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
+        self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
 
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
