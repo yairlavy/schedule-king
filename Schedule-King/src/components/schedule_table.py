@@ -89,16 +89,18 @@ class ScheduleTable(QTableWidget):
             day = int(day_str) - 1
             
             # Process each event in the day
-            for event_type, course_name, code, slot in events:
+            for event, course_name, code, slot in events:
                 # Calculate start and end rows based on event times
+                # Assuming slot.start_time and slot.end_time are number objects with hour attribute
+                # Adjust for 8 AM start time (first row is 8:00)
                 start_row = slot.start_time.hour - 8
                 end_row = slot.end_time.hour - 8
                 
                 # Determine event styling based on type
-                if "Lecture" in event_type:
+                if "Lecture" in event:
                     event_class = "Lecture"
                     border_color = "#1976D2"  # Blue border for lectures
-                elif "Maabada" in event_type:
+                elif "Maabada" in event:
                     event_class = "Maabada"
                     border_color = "#4CAF50"  # Green border for labs
                 else:
@@ -109,7 +111,7 @@ class ScheduleTable(QTableWidget):
                 bg_color = self.event_colors.get(event_class, QColor(240, 240, 240, 180))
                 
                 # Create tooltip with plain text
-                tooltip_text = f"{course_name} ({code})\nRoom: {slot.room} | Building: {slot.building}"
+                tooltip_text = f"{course_name} ({code}) - {event_class} \nRoom: {slot.room} | Building: {slot.building}"
                 
                 # Place the event in all its time slots
                 for row in range(start_row, end_row):
@@ -126,7 +128,7 @@ class ScheduleTable(QTableWidget):
                     if row == start_row:
                         item_text = (
                             f'<div style="padding: 2px;">'
-                            f'<div style="font-size: 18px; font-weight: bold; color: #333;">{course_name} ({code})</div>'
+                            f'<div style="font-size: 18px; font-weight: bold; color: #333;">{course_name} ({code}) - {event_class}</div>'
                             f'<div style="color: #555; font-size: 18px;">Room: {slot.room} | Building: {slot.building}</div>'
                             f'</div>'
                         )

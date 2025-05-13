@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QSplitter, QCheckBox
+    QHBoxLayout, QLabel, QFrame, QLayout, QCheckBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
@@ -64,21 +64,23 @@ class ScheduleWindow(QMainWindow):
         crown_label = QLabel()
         crown_pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "../assets/king.png"))
         if not crown_pixmap.isNull():
-            crown_label.setPixmap(crown_pixmap.scaled(38, 38, Qt.KeepAspectRatio, Qt.SmoothTransformation))
+            crown_label.setPixmap(crown_pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
             crown_label = QLabel("👑")
-            crown_label.setFont(QFont("Segoe UI Emoji", 28))
+            crown_label.setFont(QFont("Segoe UI Emoji", 36))
         
         crown_label.setAlignment(Qt.AlignCenter)
-        crown_label.setMaximumWidth(45)  # Larger crown
+        crown_label.setMaximumWidth(60)  # Larger crown
         
         # Title and subtitle
         title_text_layout = QVBoxLayout()
         self.headline = QLabel("Schedule King")
         self.headline.setObjectName("headline_label")
+        self.headline.setFont(QFont("Arial", 24, QFont.Bold))  # Larger font for headline
         
         self.subtitle = QLabel("Plan Your Study Schedule Like a King")
         self.subtitle.setObjectName("subtitle_label")
+        self.subtitle.setFont(QFont("Arial", 16))  # Larger font for subtitle
         
         title_text_layout.addWidget(self.headline)
         title_text_layout.addWidget(self.subtitle)

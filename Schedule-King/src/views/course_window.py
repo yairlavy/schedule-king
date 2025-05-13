@@ -13,55 +13,69 @@ import os
 class CourseWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Select Courses")
+        self.setWindowTitle("Select Courses")  # Set the window title
 
         # Set full-screen display
         self.showMaximized()
 
-        # Set custom icon
+        # Set custom icon for the window
         icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
-        print(os.path.exists(icon_path))
+        print(os.path.exists(icon_path))  # Debug: Check if the icon file exists
         self.setWindowIcon(QIcon(icon_path))
 
         # === Course Selector ===
+        # Initialize the course selector component
         self.courseSelector = CourseSelector()
         self.courseSelector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
-        # Connect signals
+        # Connect signals from the course selector to corresponding methods
         self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
         self.courseSelector.loadRequested.connect(self.load_courses_from_file)
 
         # === Layout Setup ===
+        # Create a vertical layout for the main content
         outer_layout = QVBoxLayout()
-        outer_layout.setContentsMargins(50, 30, 50, 30)
-        outer_layout.setSpacing(20)
+        outer_layout.setContentsMargins(50, 30, 50, 30)  # Set margins
+        outer_layout.setSpacing(20)  # Set spacing between elements
 
         # Add courseSelector directly without extra stretching
         outer_layout.addWidget(self.courseSelector)
 
-        # Wrap in container
+        # Wrap the layout in a container widget
         container = QWidget()
         container.setLayout(outer_layout)
-        self.setCentralWidget(container)
+        self.setCentralWidget(container)  # Set the container as the central widget
 
-        # External callbacks
-        self.on_courses_loaded: Callable[[str], None] = lambda path: None
-        self.on_continue: Callable[[List[Course]], None] = lambda selected: None
+        # External callbacks for handling events
+        self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
+        self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
 
     def displayCourses(self, courses: List[Course]):
+        """
+        Populate the course selector with a list of courses.
+        """
         self.courseSelector.populate_courses(courses)
 
     def handleSelection(self) -> List[Course]:
+        """
+        Retrieve the list of selected courses from the course selector.
+        """
         return self.courseSelector.get_selected_courses()
 
     def navigateToSchedulesWindow(self):
+        """
+        Handle the event when the user submits their course selection.
+        """
         selected = self.handleSelection()
         if selected:
-            self.on_continue(selected)
+            self.on_continue(selected)  # Trigger the continue callback with selected courses
 
     def load_courses_from_file(self):
+        """
+        Open a file dialog to allow the user to select a course file.
+        """
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
         )
         if file_path:
-            self.on_courses_loaded(file_path)
+            self.on_courses_loaded(file_path)  # Trigger the courses loaded callback with the file path
