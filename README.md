@@ -48,6 +48,21 @@ Schedule-King/
    pip install -r dev-requirements.txt
    ```
 
+## Run Tests
+To ensure everything is working correctly, you can run the tests using `pytest`:
+
+```bash
+python -m pytest
+```
+
+Alternatively, you can use the custom test runner `SuperTester.py`:
+
+```bash
+cd tests
+python SuperTester.py
+```
+
+
 ## Usage
 
 1. **Run the Application**:
@@ -57,11 +72,46 @@ Schedule-King/
 
 2. **Load Course Data**:
    - Use the UI to select a course file (text format).
-   - The expected input format is a text file with course blocks separated by "$$$$". Each block should include:
-     - Course name
-     - Course code
-     - Instructor name
-     - Time slots for lectures (L), tutorials (T), and labs (M) in the format: `S,5,14:00,16:00,1300,1`
+ 
+ **Explanation of the Course Format**:
+1. **Course Name**: The name of the course (e.g., "Calculus 1").
+2. **Course Code**: A unique identifier for the course (e.g., "00001").
+3. **Instructor Name**: The name of the instructor teaching the course (e.g., "Prof. O. Some").
+4. **Schedule Details**: A list of sessions for the course, where each session is defined as:
+  ```
+  <Session Type> <Day> <Start Time>,<End Time>,<Room Number>,<Building Number>
+  ```
+  - **Session Type**: The type of session (e.g., "L" for Lecture, "T" for Tirgul, etc.).
+  - **Day**: The day of the week (e.g., "1" for Sunday, "2" for Monday, etc.).
+  - **Start Time**: The starting time of the session in 24-hour format (e.g., "16:00").
+  - **End Time**: The ending time of the session in 24-hour format (e.g., "17:00").
+  - **Room Number**: The room where the session is held (e.g., "1100").
+  - **Building Number**: The building where the session is held (e.g., "22").
+
+#### Example Input:
+```bash
+$$$$
+Calculus 1
+00001
+Prof. O. Some
+L S,2,16:00,17:00,1100,22 S,3,17:00,18:00,1100,42
+T S,2,18:00,19:00,1100,22
+T S,3,19:00,20:00,1100,42
+$$$$
+Software Project
+83533
+Dr. Terry Bell
+L S,5,10:00,16:00,605,061
+T S,5,16:00,17:00,605,061
+$$$$
+Calculus 1 (eng)
+83112
+Dr. Erez Scheiner
+L S,1,14:00,16:00,1401,4 S,2,14:00,16:00,1401,4
+T S,1,16:00,18:00,1104,42
+T S,2,16:00,18:00,605,14
+$$$$
+```
 
 3. **Select Courses**:
    - Choose courses from the loaded list.
@@ -79,11 +129,5 @@ Schedule-King/
   - Excel file (`.xlsx`) with styled schedule tables.
 
 ## Development
-
-- **Testing**: Run tests using pytest:
-  ```bash
-  pytest
-  ```
-
 - **Code Style**: The project uses black for formatting and flake8 for linting.
 
