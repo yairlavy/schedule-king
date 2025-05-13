@@ -72,6 +72,7 @@ class ScheduleTable(QTableWidget):
         2. Groups events by day
         3. Creates styled cells for each event
         4. Adds tooltips with event details
+        5. Handles multi-hour events by spanning them across all their time slots
         
         Args:
             schedule (Schedule): The schedule object containing events to display.
@@ -88,15 +89,18 @@ class ScheduleTable(QTableWidget):
             day = int(day_str) - 1
             
             # Process each event in the day
-            for event_type, course_name, code, slot in events:
-                # Calculate row based on event start time
-                row = slot.start_time.hour - 8
+            for event, course_name, code, slot in events:
+                # Calculate start and end rows based on event times
+                # Assuming slot.start_time and slot.end_time are number objects with hour attribute
+                # Adjust for 8 AM start time (first row is 8:00)
+                start_row = slot.start_time.hour - 8
+                end_row = slot.end_time.hour - 8
                 
                 # Determine event styling based on type
-                if "Lecture" in event_type:
+                if "Lecture" in event:
                     event_class = "Lecture"
                     border_color = "#1976D2"  # Blue border for lectures
-                elif "Maabada" in event_type:
+                elif "Maabada" in event:
                     event_class = "Maabada"
                     border_color = "#4CAF50"  # Green border for labs
                 else:
@@ -106,44 +110,63 @@ class ScheduleTable(QTableWidget):
                 # Get background color for this event type
                 bg_color = self.event_colors.get(event_class, QColor(240, 240, 240, 180))
                 
-                # Create HTML content for the cell
-                item_text = (
-                    f'<div style="padding: 2px;">'
-                    f'<div style="font-size: 18px; font-weight: bold; color: #333;">{course_name} ({code})</div>'
-                    f'<div style="color: #555; font-size: 18px;">Room: {slot.room} | Building: {slot.building}</div>'
-                    f'</div>'
-                )
-                
                 # Create tooltip with plain text
-                tooltip_text = f"{course_name} ({code})\nRoom: {slot.room} | Building: {slot.building}"
+                tooltip_text = f"{course_name} ({code}) - {event_class} \nRoom: {slot.room} | Building: {slot.building}"
                 
-                # Create table item with metadata
-                item = QTableWidgetItem()
-                item.setData(Qt.UserRole, f"{event_class}|{code}")  # Store event type and code
-                item.setToolTip(tooltip_text)
-                
-                # Add item to table
-                self.setItem(row, day, item)
-                
-                # Create styled label for the cell
-                label = QLabel(item_text)
-                label.setObjectName(f"course_label_{event_class}")
-                label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
-                label.setWordWrap(True)
-                label.setContentsMargins(8, 8, 8, 8)
-                
-                # Apply custom styling to the label
-                label.setStyleSheet(f"""
-                    QLabel {{
-                        background-color: {bg_color.name(QColor.HexArgb)};
-                        border-left: 4px solid {border_color};
-                        border-radius: 4px;
-                        padding: 3px;
-                    }}
-                """)
-                
-                # Set the label as the cell widget
-                self.setCellWidget(row, day, label)
+                # Place the event in all its time slots
+                for row in range(start_row, end_row):
+                    # Create table item with metadata
+                    item = QTableWidgetItem()
+                    item.setData(Qt.UserRole, f"{event_class}|{code}")  # Store event type and code
+                    item.setToolTip(tooltip_text)
+                    
+                    # Add item to table
+                    self.setItem(row, day, item)
+                    
+                    # Create HTML content for the cell
+                    # Only show full details in the first slot
+                    if row == start_row:
+                        item_text = (
+                            f'<div style="padding: 2px;">'
+                            f'<div style="font-size: 18px; font-weight: bold; color: #333;">{course_name} ({code}) - {event_class}</div>'
+                            f'<div style="color: #555; font-size: 18px;">Room: {slot.room} | Building: {slot.building}</div>'
+                            f'</div>'
+                        )
+                    else:
+                        # For subsequent slots, just show a continuation indicator
+                        item_text = (
+                            f'<div style="padding: 2px;">'
+                            f'<div style="font-size: 18px; font-weight: bold; color: #333;">{course_name}</div>'
+                            f'<div style="color: #555; font-size: 18px;">(continued)</div>'
+                            f'</div>'
+                        )
+                    
+                    # Create styled label for the cell
+                    label = QLabel(item_text)
+                    label.setObjectName(f"course_label_{event_class}")
+                    label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
+                    label.setWordWrap(True)
+                    label.setContentsMargins(8, 8, 8, 8)
+                    
+                    # Apply custom styling to the label
+                    # Add special styling for first and last slots
+                    border_style = ""
+                    if row == start_row:
+                        border_style = f"border-top-left-radius: 4px; border-top-right-radius: 4px;"
+                    if row == end_row - 1:
+                        border_style += f"border-bottom-left-radius: 4px; border-bottom-right-radius: 4px;"
+                    
+                    label.setStyleSheet(f"""
+                        QLabel {{
+                            background-color: {bg_color.name(QColor.HexArgb)};
+                            border-left: 4px solid {border_color};
+                            {border_style}
+                            padding: 3px;
+                        }}
+                    """)
+                    
+                    # Set the label as the cell widget
+                    self.setCellWidget(row, day, label)
 
         # Set fixed row heights for consistency
         for row in range(self.rowCount()):

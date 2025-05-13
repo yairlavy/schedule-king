@@ -1,2 +1,6 @@
 python-dotenv
 PyQt5
+Pandas
+PyQt5-sip
+xlsxwriter
+openpyxl
