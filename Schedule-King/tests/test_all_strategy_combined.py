@@ -80,11 +80,10 @@ def test_generate_conflict_detected(conflicting_courses):
 #STRATEGYALL_FUNC_001
 def test_generate_all_combinations(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
-    combos = strategy._generate_all_lecture_group_combinations(non_conflicting_courses)
-    assert combos  # not empty
-    assert all(isinstance(c, list) for c in combos)
-    assert all(isinstance(g, LectureGroup) for combo in combos for g in combo)
-
+    schedules = strategy.generate()
+    assert schedules  # not empty
+    assert all(isinstance(schedule, Schedule) for schedule in schedules)
+    assert all(isinstance(g, LectureGroup) for s in schedules for g in s.lecture_groups)
 #STRATEGYALL_FUNC_002
 def test__has_conflict_with_real_checker_conflict():
     # Overlapping time slots
