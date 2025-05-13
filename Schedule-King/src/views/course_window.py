@@ -20,7 +20,6 @@ class CourseWindow(QMainWindow):
 
         # Set custom icon for the window
         icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
-        print(os.path.exists(icon_path))  # Debug: Check if the icon file exists
         self.setWindowIcon(QIcon(icon_path))
 
         # === Course Selector ===

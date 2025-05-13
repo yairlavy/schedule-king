@@ -51,7 +51,12 @@ class ScheduleWindow(QMainWindow):
         # Left section: Back button with icon
         self.back_button = QPushButton("  Back to Course Selection")
         self.back_button.setObjectName("top_action_button")
-        self.back_button.setText("← Back to Course Selection")
+        back_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/back.png"))
+        if not back_icon.isNull():
+            self.back_button.setIcon(back_icon)
+            self.back_button.setText(" Back to Course Selection")
+        else:
+            self.back_button.setText("← Back to Course Selection")
         
         # Center section: Title with crown icon and subtitle
         title_container = QWidget()
