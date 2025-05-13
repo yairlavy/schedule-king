@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, QLabel, QFrame, QSplitter, QCheckBox
 )
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QIcon, QPixmap, QFont
+from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
 from src.models.schedule import Schedule
@@ -25,9 +25,10 @@ class ScheduleWindow(QMainWindow):
             controller (ScheduleController): Controller for schedule operations.
         """
         super().__init__()
+        # Set the window icon
         icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
-        print(os.path.exists(icon_path))
         self.setWindowIcon(QIcon(icon_path))
+        
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
@@ -50,12 +51,7 @@ class ScheduleWindow(QMainWindow):
         # Left section: Back button with icon
         self.back_button = QPushButton("  Back to Course Selection")
         self.back_button.setObjectName("top_action_button")
-        back_icon = QIcon("icons/back.png")
-        if not back_icon.isNull():
-            self.back_button.setIcon(back_icon)
-        else:
-            # Fallback to text-based icon if image not found
-            self.back_button.setText("← Back to Course Selection")
+        self.back_button.setText("← Back to Course Selection")
         
         # Center section: Title with crown icon and subtitle
         title_container = QWidget()
@@ -66,7 +62,7 @@ class ScheduleWindow(QMainWindow):
         
         # Create crown icon (or emoji fallback) for the title
         crown_label = QLabel()
-        crown_pixmap = QPixmap("icons/crown.png")
+        crown_pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "../assets/king.png"))
         if not crown_pixmap.isNull():
             crown_label.setPixmap(crown_pixmap.scaled(38, 38, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         else:
@@ -101,7 +97,7 @@ class ScheduleWindow(QMainWindow):
         
         self.export_button = QPushButton("  Export Schedule")
         self.export_button.setObjectName("top_action_button")
-        export_icon = QIcon("icons/export.png")
+        export_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/export.png"))
         if not export_icon.isNull():
             self.export_button.setIcon(export_icon)
         else:
@@ -140,18 +136,20 @@ class ScheduleWindow(QMainWindow):
         self.navigator.setObjectName("compact_navigator")
         
         # Add navigation icons (with fallbacks)
-        prev_icon = QIcon("icons/prev.png")
-        next_icon = QIcon("icons/next.png")
-        
+        next_icon_path = os.path.join(os.path.dirname(__file__), "../assets/next.png")
+        next_icon = QIcon(next_icon_path)
+        prev_icon = QIcon(next_icon_path)
+
+        # Rotate the next icon by 180 degrees for the previous button
         if not prev_icon.isNull():
+            rotated_pixmap = next_icon.pixmap(32, 32).transformed(QTransform().rotate(180))
+            prev_icon = QIcon(rotated_pixmap)
             self.navigator.prev_btn.setIcon(prev_icon)
-            self.navigator.prev_btn.setText("◀")
         else:
             self.navigator.prev_btn.setText("◀")
             
         if not next_icon.isNull():
             self.navigator.next_btn.setIcon(next_icon)
-            self.navigator.next_btn.setText("▶")
         else:
             self.navigator.next_btn.setText("▶")
         
@@ -170,9 +168,6 @@ class ScheduleWindow(QMainWindow):
         # This makes it take up most of the available vertical space
         self.main_layout.addWidget(self.schedule_table, 1)
 
-        # Set up navigation callback
-        self.on_back: Callable[[], None] = lambda: None
-        
         # Set the central widget of the main window
         self.setCentralWidget(self.central_widget)
         
