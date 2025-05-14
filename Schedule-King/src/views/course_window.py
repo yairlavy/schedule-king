@@ -15,8 +15,6 @@ class CourseWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Select Courses")  # Set the window title
 
-        # Set full-screen display
-        self.showMaximized()
 
         # Set custom icon for the window
         icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
@@ -45,6 +43,9 @@ class CourseWindow(QMainWindow):
         container.setLayout(outer_layout)
         self.setCentralWidget(container)  # Set the container as the central widget
 
+        # Set full-screen display
+        self.showMaximized()
+        
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
         self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
