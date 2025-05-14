@@ -27,7 +27,6 @@ class CourseSelector(QWidget):
 
         # === Banner Image ===
         banner = QLabel()
-        banner.setPixmap(QPixmap("assets/schedule_banner.png").scaledToWidth(400, Qt.SmoothTransformation))
         banner.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(banner)
 
