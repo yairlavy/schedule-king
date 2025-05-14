@@ -230,7 +230,15 @@ class ScheduleWindow(QMainWindow):
                     self.controller.export_schedules(file_path, [self.schedules[current_index]])
                 else:
                     # Export all schedules
-                    self.controller.export_schedules(file_path)
+                    if file_path.endswith('.xlsx') and len(self.schedules) > 100:
+                    # Export to Excel only the last 100 schedules - excel import is slow
+                        QMessageBox.warning(
+                            self, "excel Export Warning",
+                            "Exporting only the last 100 schedules to Excel for performance reasons."
+                        )   
+                        self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
+                    else:
+                        self.controller.export_schedules(file_path)
                     
                 QMessageBox.information(
                     self, "Export Successful",

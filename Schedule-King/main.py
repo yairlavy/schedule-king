@@ -2,7 +2,6 @@
 
 import sys
 import os
-from dotenv import load_dotenv
 from PyQt5.QtWidgets import QApplication
 
 from src.services.schedule_api import ScheduleAPI
