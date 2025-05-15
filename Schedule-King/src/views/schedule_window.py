@@ -36,7 +36,7 @@ class ScheduleWindow(QMainWindow):
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
-        self.on_schedule_genreted = lambda schedules: None  
+        self.controller.on_schedules_generated = self.on_schedule_generated
 
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
@@ -257,8 +257,8 @@ class ScheduleWindow(QMainWindow):
     def on_schedule_generated(self, schedules: List[Schedule]):
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
-        self.schedule_table.display_schedule(schedules[0] if schedules else None)
-        self.on_schedule_generated_callback(schedules)
+        if not schedules:
+            self.schedule_table.clearContents()
 
 
 

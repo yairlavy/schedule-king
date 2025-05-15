@@ -8,6 +8,8 @@ class ScheduleController:
     def __init__(self,api: ScheduleAPI):
         self.api = api
         self.schedules: List[Schedule] = []
+        self.on_schedules_generated = lambda schedules: None
+
 
     def generate_schedules(self, selected_courses: List[Course]) -> List[Schedule]:
         """
@@ -24,14 +26,14 @@ class ScheduleController:
         """
         Checks if there are any schedules available in the queue.
         If available, it retrieves and stores them.
-        """
+        """       
         while not self.queue.empty():
             schedule = self.queue.get()
             if schedule is None:
                 break
             self.schedules.append(schedule)
 
-    
+        self.on_schedules_generated(self.schedules)
 
     
     def get_schedules(self) -> List[Schedule]:
