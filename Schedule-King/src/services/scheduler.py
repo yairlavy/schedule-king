@@ -4,7 +4,7 @@ from typing import List
 from src.models.course import Course
 from src.models.schedule import Schedule
 from src.interfaces.schedule_strategy_interface import IScheduleStrategy
-
+from typing import Iterator
 class Scheduler:
     """
     Central class responsible for generating course schedules using a flexible strategy.
@@ -20,7 +20,7 @@ class Scheduler:
         self.selected = selected
         self.strategy = strategy
 
-    def generate(self) -> List[Schedule]:
+    def generate(self) -> Iterator[Schedule]:
         """
         Generate all valid schedules using the provided strategy.
 

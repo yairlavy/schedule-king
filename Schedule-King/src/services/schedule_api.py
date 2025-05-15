@@ -30,7 +30,7 @@ class ScheduleAPI:
         Generate schedules based on selected courses.
         """
         scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
-        return scheduler.generate()
+        return list(scheduler.generate())
 
     def export(self, schedules: List[Schedule], destination: str) -> None:
         """
