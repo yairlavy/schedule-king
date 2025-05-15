@@ -180,6 +180,7 @@ class CourseSelector(QWidget):
 
     def _handle_clear(self):
         """Clear all selections and reset UI."""
+        self.close_progress_bar()
         self.course_list.clear_selection()
         self.selected_panel.clear()
         self.search_bar.clear()
@@ -187,6 +188,7 @@ class CourseSelector(QWidget):
 
     def _handle_load(self):
         """Emit signal to load courses."""
+        self.close_progress_bar()
         self.loadRequested.emit()
 
     def get_selected_courses(self) -> List[Course]:

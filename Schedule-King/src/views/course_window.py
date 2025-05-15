@@ -83,6 +83,6 @@ class CourseWindow(QMainWindow):
             self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
         )
         if file_path:
-            
+            self.courseSelector.close_progress_bar()
             self.courseSelector._handle_clear()
             self.on_courses_loaded(file_path)  # Trigger the courses loaded callback with the file path

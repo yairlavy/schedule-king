@@ -192,6 +192,11 @@ class ScheduleWindow(QMainWindow):
         """
         from PyQt5.QtWidgets import QProgressDialog
         self.course_selector_ref = course_selector  # Store reference to external course selector
+        
+        if self.progress_bar:
+            self.progress_bar.close()
+            self.progress_bar = None
+        
         if not course_selector:
             if self.progress_bar:
                 self.progress_bar.close()
@@ -231,7 +236,11 @@ class ScheduleWindow(QMainWindow):
         # Always close CourseSelector progress bar if exists
         if self.course_selector_ref and hasattr(self.course_selector_ref, 'close_progress_bar'):
             self.course_selector_ref.close_progress_bar()
-
+        # Close the progress bar if it was used locally
+        if self.progress_bar:
+            self.progress_bar.close()
+            self.progress_bar = None    
+        
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
         if schedules and self.navigator.current_index == -1:
