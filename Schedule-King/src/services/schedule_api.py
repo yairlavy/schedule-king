@@ -43,7 +43,8 @@ class ScheduleAPI:
         except ValueError as e:
             print(f"Error exporting schedules: {e}.")
 
-    def _worker_generate(self, selected_courses: List[Course], queue: mp.Queue) -> None:
+    @staticmethod
+    def _worker_generate(selected_courses: List[Course], queue: mp.Queue) -> None:
         """
         Worker function to process courses in a separate process.
         """

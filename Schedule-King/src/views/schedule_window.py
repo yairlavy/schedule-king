@@ -36,6 +36,7 @@ class ScheduleWindow(QMainWindow):
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+        self.controller.on_schedules_generated = self.on_schedule_generated
 
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
@@ -231,7 +232,7 @@ class ScheduleWindow(QMainWindow):
                 else:
                     # Export all schedules
                     if file_path.endswith('.xlsx') and len(self.schedules) > 100:
-                    # Export to Excel only the last 100 schedules - excel import is slow
+                        # Export to Excel only the last 100 schedules - excel import is slow
                         QMessageBox.warning(
                             self, "excel Export Warning",
                             "Exporting only the last 100 schedules to Excel for performance reasons."
@@ -251,3 +252,27 @@ class ScheduleWindow(QMainWindow):
                     self, "Export Failed",
                     f"Failed to export schedules:\n{error_msg}"
                 )
+
+    def on_schedule_generated(self, schedules: List[Schedule]):
+        """
+        Updates the UI when new schedules are generated.
+        This method is called by the controller during schedule generation.
+        """
+        self.schedules = schedules
+        
+        # Update the navigator with new schedules
+        self.navigator.set_schedules(schedules)
+        
+        # If we have schedules and no current selection, show the first one
+        if schedules and self.navigator.current_index == -1:
+            self.navigator.current_index = 0
+            self.on_schedule_changed(0)
+        elif not schedules:
+            # Clear the table if no schedules are available
+            self.schedule_table.clearContents()
+            
+        # Update window title to show generation status
+        if not schedules:
+            self.setWindowTitle("Schedule King - Generating Schedules...")
+        else:
+            self.setWindowTitle("Schedule King")
