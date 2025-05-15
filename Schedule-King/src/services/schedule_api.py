@@ -63,3 +63,21 @@ class ScheduleAPI:
         process.start()
 
         return queue
+    
+    def get_estimated_schedules_count(self, selected_courses: List[Course]) -> int:
+        """
+        Estimate the theoretical number of combinations (without considering conflicts).
+        Returns:
+            int: Estimated number of possible combinations, or -1 if unknown.
+        """
+        try:
+            total = 1
+            for course in selected_courses:
+                lectures = len(course.lectures)
+                tirguls = len(course.tirguls) if course.tirguls else 1
+                maabadas = len(course.maabadas) if course.maabadas else 1
+                total *= lectures * tirguls * maabadas
+            return total if total > 0 else -1
+        except Exception as e:
+            print(f"Error estimating combinations: {e}")
+            return -1

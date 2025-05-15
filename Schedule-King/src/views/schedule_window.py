@@ -10,6 +10,7 @@ from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from typing import List, Callable
 import os
+from src.models.course import Course
 
 class ScheduleWindow(QMainWindow):
     """
@@ -35,9 +36,10 @@ class ScheduleWindow(QMainWindow):
         self.showMaximized()  # Start maximized for better visibility
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
+        self.course_selector_ref = None # Reference to the course selector window
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
         self.controller.on_schedules_generated = self.on_schedule_generated
-
+        self.progress_bar = None  # QProgressDialog for schedule generation progress
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
         self.central_widget = QWidget()
@@ -183,14 +185,65 @@ class ScheduleWindow(QMainWindow):
         # Display the first schedule if available
         if schedules:
             self.on_schedule_changed(0)
+    def start_generation(self, selected_courses: List[Course], course_selector=None):
+        """
+        Starts the generation process with a progress dialog and hooks controller signals.
+        Supports an optional CourseSelector for showing the progress bar there.
+        """
+        from PyQt5.QtWidgets import QProgressDialog
+        self.course_selector_ref = course_selector  # Store reference to external course selector
+        if not course_selector:
+            if self.progress_bar:
+                self.progress_bar.close()
+            self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
+            self.progress_bar.setWindowModality(Qt.WindowModal)
+            self.progress_bar.setMinimumDuration(0)
+            self.progress_bar.setAutoClose(False)
+            self.progress_bar.setAutoReset(False)
+            self.progress_bar.setWindowTitle("Generating")
+            self.progress_bar.canceled.connect(self.controller.stop_schedules_generation)
+            self.progress_bar.show()
 
-    def on_schedule_changed(self, index: int):
+        self.controller.on_progress_updated = self.update_progress
+        self.controller.on_schedules_generated = self.on_schedule_generated
+        self.controller.generate_schedules(selected_courses)
+
+    def update_progress(self, current: int, estimated: int):
         """
-        Updates the schedule table when the selected schedule changes.
-        This is called when the user navigates to a different schedule.
+        Updates the progress dialog with the current and estimated schedule counts.
+        Supports an optional CourseSelector progress bar.
         """
-        if 0 <= index < len(self.schedules):
-            self.schedule_table.display_schedule(self.schedules[index])
+        target_progress = self.course_selector_ref.progress_bar if self.course_selector_ref and hasattr(self.course_selector_ref, 'progress_bar') else self.progress_bar
+        if target_progress:
+            if estimated > 0:
+                target_progress.setMaximum(estimated)
+                target_progress.setValue(current)
+                target_progress.setLabelText(f"Generating schedules... ({current}/{estimated})")
+            else:
+                target_progress.setMaximum(0)
+                target_progress.setLabelText(f"Generating schedules... ({current} generated)")
+
+    def on_schedule_generated(self, schedules: List[Schedule]):
+        """
+        Updates the UI when new schedules are generated.
+        This method is called by the controller during schedule generation.
+        """
+        # Always close CourseSelector progress bar if exists
+        if self.course_selector_ref and hasattr(self.course_selector_ref, 'close_progress_bar'):
+            self.course_selector_ref.close_progress_bar()
+
+        self.schedules = schedules
+        self.navigator.set_schedules(schedules)
+        if schedules and self.navigator.current_index == -1:
+            self.navigator.current_index = 0
+            self.on_schedule_changed(0)
+        elif not schedules:
+            self.schedule_table.clearContents()
+
+        # Also close self progress bar (if used locally and not from selector)
+        if self.progress_bar and not self.controller.generation_active:
+            self.progress_bar.close()
+            self.progress_bar = None
 
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
@@ -252,27 +305,12 @@ class ScheduleWindow(QMainWindow):
                     self, "Export Failed",
                     f"Failed to export schedules:\n{error_msg}"
                 )
-
-    def on_schedule_generated(self, schedules: List[Schedule]):
+    def on_schedule_changed(self, index: int):
         """
-        Updates the UI when new schedules are generated.
-        This method is called by the controller during schedule generation.
+        Updates the schedule table when the selected schedule changes.
+        This is called when the user navigates to a different schedule.
         """
-        self.schedules = schedules
-        
-        # Update the navigator with new schedules
-        self.navigator.set_schedules(schedules)
-        
-        # If we have schedules and no current selection, show the first one
-        if schedules and self.navigator.current_index == -1:
-            self.navigator.current_index = 0
-            self.on_schedule_changed(0)
-        elif not schedules:
-            # Clear the table if no schedules are available
-            self.schedule_table.clearContents()
-            
-        # Update window title to show generation status
-        if not schedules:
-            self.setWindowTitle("Schedule King - Generating Schedules...")
-        else:
-            self.setWindowTitle("Schedule King")
+        if 0 <= index < len(self.schedules):
+            self.schedule_table.display_schedule(self.schedules[index])
+        self.export_button.setEnabled(True)
+        self.back_button.setEnabled(True)

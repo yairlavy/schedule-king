@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QSizePolicy, QLabel, QFrame, QMessageBox
+    QSizePolicy, QLabel, QFrame, QMessageBox ,QProgressDialog
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont, QPixmap
@@ -21,6 +21,7 @@ class CourseSelector(QWidget):
         super().__init__(parent)
         # Set background style
         self.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #E3F2FD, stop:1 #F0F7FF); border-radius: 10px;")
+
 
         # === Main Layout ===
         self.layout = QVBoxLayout(self)
@@ -115,9 +116,28 @@ class CourseSelector(QWidget):
         self.submit_button.clicked.connect(self._handle_submit)
         self.load_button.clicked.connect(self._handle_load)
 
+        # Progress dialog for schedule generation (added)
+        self.progress_bar = None
         # Initialize submit button state
         self._update_submit_button_state([])
+    def show_progress_bar(self):
+        """Show progress bar while schedules are generating."""
+        if self.progress_bar:
+            self.progress_bar.close()
+        self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
+        self.progress_bar.setWindowModality(Qt.WindowModal)
+        self.progress_bar.setMinimumDuration(0)
+        self.progress_bar.setAutoClose(False)
+        self.progress_bar.setAutoReset(False)
+        self.progress_bar.setWindowTitle("Generating")
+        self.progress_bar.show()
 
+    def close_progress_bar(self):
+        """Close the progress bar if active."""
+        if self.progress_bar:
+            self.progress_bar.close()
+            self.progress_bar = None
+    
     def populate_courses(self, courses: List[Course]):
         """Populate the course list with available courses."""
         self.course_list.populate_courses(courses)
@@ -146,9 +166,16 @@ class CourseSelector(QWidget):
     def _handle_submit(self):
         """Emit the selected courses when submitting."""
         selected = self.course_list.get_selected_courses()
+        if len(self.course_list.courses) == 0:
+            QMessageBox.critical(self, "Error", "No courses loaded. Please load courses first.")
+            return
+        if len(selected) == 0:
+            QMessageBox.critical(self, "Error", "No courses selected. Please select courses first.")
+            return
         if len(selected) > self.MAX_COURSES:
             QMessageBox.warning(self, "Course Limit", f"You cannot select more than {self.MAX_COURSES} courses.")
             return
+        self.show_progress_bar()
         self.coursesSubmitted.emit(selected)
 
     def _handle_clear(self):
