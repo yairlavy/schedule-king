@@ -73,7 +73,7 @@ class MainController:
         self.course_controller.set_selected_courses(selected_courses)
         # Make sure any previous schedule generation is stopped if the schedule window exists
         if self.schedule_window:
-            self.schedule_controller.stop_generation()
+            self.schedule_controller.stop_schedules_generation()
             self.schedule_controller.next = 1
         # Initialize the schedule window with the generated schedules
         self.schedule_window = ScheduleWindow([], self.schedule_controller)

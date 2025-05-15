@@ -34,6 +34,8 @@ class ScheduleController:
         self.timer.timeout.connect(self.check_for_schedules)
         self.timer.start(100)
 
+        # Notify immediately with empty list to show generation has started
+        self.on_schedules_generated([])
         return self.schedules
 
     def check_for_schedules(self) -> None:
@@ -48,17 +50,26 @@ class ScheduleController:
         updated = False
         # Retrieve all available schedules from the queue
         while not self.queue.empty():
-            schedule = self.queue.get()
-            if schedule is None:
+            try:
+                schedule = self.queue.get(block=False)
+                if schedule is None:
+                    self.generation_active = False
+                    break
+                self.schedules.append(schedule)
+                updated = True
+            except:
                 break
-            self.schedules.append(schedule)
-            updated = True
 
-        # Notify if enough new schedules have been added
-        if updated and (len(self.schedules) > self.next or not self.generation_active):
+        # Notify if enough new schedules have been added or generation is complete
+        if updated and (len(self.schedules) >= self.next or not self.generation_active):
             if len(self.schedules) >= self.next:
                 self.next *= 10
             self.on_schedules_generated(self.schedules)
+
+        # If generation is complete, stop the timer
+        if not self.generation_active:
+            self.timer.stop()
+            self.timer = None
 
     def stop_schedules_generation(self) -> None:
         """

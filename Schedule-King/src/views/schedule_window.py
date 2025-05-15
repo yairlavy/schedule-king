@@ -259,11 +259,20 @@ class ScheduleWindow(QMainWindow):
         This method is called by the controller during schedule generation.
         """
         self.schedules = schedules
+        
+        # Update the navigator with new schedules
         self.navigator.set_schedules(schedules)
         
-        # Make sure at least one schedule is displayed if available
+        # If we have schedules and no current selection, show the first one
         if schedules and self.navigator.current_index == -1:
             self.navigator.current_index = 0
             self.on_schedule_changed(0)
         elif not schedules:
+            # Clear the table if no schedules are available
             self.schedule_table.clearContents()
+            
+        # Update window title to show generation status
+        if not schedules:
+            self.setWindowTitle("Schedule King - Generating Schedules...")
+        else:
+            self.setWindowTitle("Schedule King")
