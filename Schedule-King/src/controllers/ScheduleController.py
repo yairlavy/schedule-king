@@ -2,9 +2,10 @@ from src.services.schedule_api import ScheduleAPI
 from src.models.schedule import Schedule
 from src.models.course import Course
 from typing import List, Optional
+from PyQt5.QtCore import QTimer
 
 class ScheduleController:
-    def __init__(self, api: ScheduleAPI):
+    def __init__(self,api: ScheduleAPI):
         self.api = api
         self.schedules: List[Schedule] = []
 
@@ -12,9 +13,27 @@ class ScheduleController:
         """
         Generates possible schedules using the API and saves them.
         """
-        self.schedules = self.api.process(selected_courses)
-        return self.schedules
+        self.queue = self.api.generate_schedules_in_parallel(selected_courses)
+        # Check for schedules every 100ms
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.check_for_schedules)
+        self.timer.start(100)
+        
 
+    def check_for_schedules(self) -> None:
+        """
+        Checks if there are any schedules available in the queue.
+        If available, it retrieves and stores them.
+        """
+        while not self.queue.empty():
+            schedule = self.queue.get()
+            if schedule is None:
+                break
+            self.schedules.append(schedule)
+
+    
+
+    
     def get_schedules(self) -> List[Schedule]:
         """
         Returns the generated schedules.
@@ -35,3 +54,4 @@ class ScheduleController:
         """
         schedules = schedules_to_export if schedules_to_export is not None else self.schedules
         self.api.export(schedules, file_path)
+

@@ -36,6 +36,7 @@ class ScheduleWindow(QMainWindow):
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+        self.on_schedule_genreted = lambda schedules: None  
 
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
@@ -251,3 +252,13 @@ class ScheduleWindow(QMainWindow):
                     self, "Export Failed",
                     f"Failed to export schedules:\n{error_msg}"
                 )
+
+    # update the schedule table when a new schedule is generated
+    def on_schedule_generated(self, schedules: List[Schedule]):
+        self.schedules = schedules
+        self.navigator.set_schedules(schedules)
+        self.schedule_table.display_schedule(schedules[0] if schedules else None)
+        self.on_schedule_generated_callback(schedules)
+
+
+

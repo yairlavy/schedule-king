@@ -71,11 +71,10 @@ class MainController:
 
         # Set the selected courses in the course controller
         self.course_controller.set_selected_courses(selected_courses)
-        # Generate schedules based on the selected courses
-        schedules = self.schedule_controller.generate_schedules(selected_courses)
-
         # Initialize the schedule window with the generated schedules
-        self.schedule_window = ScheduleWindow(schedules, self.schedule_controller)
+        self.schedule_window = ScheduleWindow([], self.schedule_controller)
+        # Generate schedules based on the selected courses
+        self.schedule_controller.generate_schedules(selected_courses)
         # Set up the back navigation event handler
         self.schedule_window.on_back = self.on_navigate_back_to_courses
 
