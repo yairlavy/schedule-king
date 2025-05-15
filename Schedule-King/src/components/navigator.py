@@ -185,10 +185,26 @@ class Navigator(QWidget):
         Update the list of schedules and reset navigation.
         This is called when new schedules are loaded.
         """
+        old_count = len(self.schedules)
         self.schedules = schedules
-        self.current_index = 0 if schedules else -1
+        new_count = len(schedules)
+        
+        # Update the validator range when schedule count changes
+        if new_count > 0:
+            self.schedule_num.setValidator(QIntValidator(1, new_count))
+        
+        # Only reset index if we're setting schedules for the first time
+        # or if schedules were previously empty
+        if old_count == 0 or self.current_index < 0:
+            self.current_index = 0 if schedules else -1
+        elif new_count > 0:
+            # Keep current index if possible, otherwise set to last available
+            self.current_index = min(self.current_index, new_count - 1)
+        else:
+            self.current_index = -1
+            
         self.update_display()
-        if self.schedules:
+        if self.schedules and self.current_index >= 0:
             self.schedule_changed.emit(self.current_index)
 
     def get_current_schedule(self):

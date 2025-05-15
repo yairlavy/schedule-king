@@ -71,16 +71,19 @@ class MainController:
 
         # Set the selected courses in the course controller
         self.course_controller.set_selected_courses(selected_courses)
+        # Make sure any previous schedule generation is stopped if the schedule window exists
+        if self.schedule_window:
+            self.schedule_controller.stop_generation()
+            self.schedule_controller.next = 1
         # Initialize the schedule window with the generated schedules
         self.schedule_window = ScheduleWindow([], self.schedule_controller)
-        # Generate schedules based on the selected courses
-        self.schedule_controller.generate_schedules(selected_courses)
         # Set up the back navigation event handler
         self.schedule_window.on_back = self.on_navigate_back_to_courses
-
         # Hide the course window and show the schedule window
         self.course_window.hide()
         self.schedule_window.show()
+        # Generate schedules based on the selected courses
+        self.schedule_controller.generate_schedules(selected_courses)
 
     def on_generate_schedules(self):
         # Generate schedules for the currently selected courses

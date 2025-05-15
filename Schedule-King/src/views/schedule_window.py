@@ -253,12 +253,19 @@ class ScheduleWindow(QMainWindow):
                     f"Failed to export schedules:\n{error_msg}"
                 )
 
-    # update the schedule table when a new schedule is generated
     def on_schedule_generated(self, schedules: List[Schedule]):
+        """
+        Updates the UI when new schedules are generated.
+        This method is called by the controller during schedule generation.
+        """
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
-        if not schedules:
+        
+        # Make sure at least one schedule is displayed if available
+        if schedules and self.navigator.current_index == -1:
+            self.navigator.current_index = 0
+            self.on_schedule_changed(0)
+        elif not schedules:
             self.schedule_table.clearContents()
-
 
 
