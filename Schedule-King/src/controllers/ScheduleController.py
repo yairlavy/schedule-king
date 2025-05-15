@@ -8,6 +8,7 @@ class ScheduleController:
     def __init__(self,api: ScheduleAPI):
         self.api = api
         self.schedules: List[Schedule] = []
+        self.next = 1
         self.on_schedules_generated = lambda schedules: None
 
 
@@ -33,7 +34,9 @@ class ScheduleController:
                 break
             self.schedules.append(schedule)
 
-        self.on_schedules_generated(self.schedules)
+        if len(self.schedules) > self.next:
+            self.next *= 10
+            self.on_schedules_generated(self.schedules)
 
     
     def get_schedules(self) -> List[Schedule]:
