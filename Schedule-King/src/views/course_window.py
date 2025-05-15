@@ -66,6 +66,9 @@ class CourseWindow(QMainWindow):
         """
         Handle the event when the user submits their course selection.
         """
+        if hasattr(self.courseSelector, 'close_progress_bar'):
+            self.courseSelector.close_progress_bar()
+
         selected = self.handleSelection()
         if selected:
             # Check if the number of selected courses exceeds the limit
@@ -79,6 +82,8 @@ class CourseWindow(QMainWindow):
         """
         Open a file dialog to allow the user to select a course file.
         """
+        if hasattr(self.courseSelector, 'close_progress_bar'):
+            self.courseSelector.close_progress_bar()
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
         )

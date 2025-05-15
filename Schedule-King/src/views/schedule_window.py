@@ -198,8 +198,7 @@ class ScheduleWindow(QMainWindow):
             self.progress_bar = None
         
         if not course_selector:
-            if self.progress_bar:
-                self.progress_bar.close()
+            # Create a new progress dialog for the current window
             self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
             self.progress_bar.setWindowModality(Qt.WindowModal)
             self.progress_bar.setMinimumDuration(0)
@@ -265,6 +264,10 @@ class ScheduleWindow(QMainWindow):
 
     def navigateToCourseWindow(self):
         """Navigates back to the course selection window."""
+        # Close any progress bar if it was used
+        if self.progress_bar:
+            self.progress_bar.close()
+            self.progress_bar = None
         self.on_back()
 
     def export_to_file(self):
@@ -272,6 +275,10 @@ class ScheduleWindow(QMainWindow):
         Exports schedules to a file in the selected format.
         Shows success/error messages to the user.
         """
+        if self.progress_bar:
+            self.progress_bar.close()
+            self.progress_bar = None
+        
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self, "Save Schedules", "", 
             "Text Files (*.txt);;Excel Files (*.xlsx);;All Files (*)"
