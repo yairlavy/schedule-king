@@ -232,7 +232,7 @@ class ScheduleWindow(QMainWindow):
                 else:
                     # Export all schedules
                     if file_path.endswith('.xlsx') and len(self.schedules) > 100:
-                    # Export to Excel only the last 100 schedules - excel import is slow
+                        # Export to Excel only the last 100 schedules - excel import is slow
                         QMessageBox.warning(
                             self, "excel Export Warning",
                             "Exporting only the last 100 schedules to Excel for performance reasons."
@@ -267,5 +267,3 @@ class ScheduleWindow(QMainWindow):
             self.on_schedule_changed(0)
         elif not schedules:
             self.schedule_table.clearContents()
-
-
