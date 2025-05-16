@@ -232,8 +232,8 @@ class ScheduleWindow(QMainWindow):
                 # We have an estimated total - show determinate progress
                 self.progress_bar.setMaximum(estimated)
                 self.progress_bar.setValue(current)
-                self.progress_label.setText(f"Generating schedules... ({current}/{estimated})")
-                
+    
+                self.progress_label.setText(f"Generating schedules... {estimated} total estimated")
                 # If we're done (current >= estimated), update text accordingly
                 if current >= estimated:
                     self.progress_label.setText(f"Completed! Generated {current} schedules")
