@@ -54,23 +54,7 @@ class AllStrategy(IScheduleStrategy):
                 maabadas=lab
             )
             current.append(group)
-            if not self._has_conflict(current):
+            if not self._checker.has_conflict_groups(current):
                 yield from self._build_valid_combinations(index + 1, current)
             current.pop()
 
-    def _has_conflict(self, groups: List[LectureGroup]) -> bool:
-        """
-        Build mock Course objects from groups and delegate to ConflictChecker.
-        """
-        courses = [
-            Course(
-                course_name=g.course_name,
-                course_code=g.course_code,
-                instructor=g.instructor,
-                lectures=[g.lecture] if g.lecture else [],
-                tirguls=[g.tirguls] if g.tirguls else [],
-                maabadas=[g.maabadas] if g.maabadas else [],
-            )
-            for g in groups
-        ]
-        return self._checker.find_conflicting_courses(courses)
