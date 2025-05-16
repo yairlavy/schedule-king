@@ -336,8 +336,14 @@ class ScheduleWindow(QMainWindow):
                 
                 # Use the controller to handle the export
                 if self.export_visible_only.isChecked() and 0 <= current_index < len(self.schedules):
-                    # Export only the visible schedule
-                    self.controller.export_schedules(file_path, [self.schedules[current_index]])
+                    # Export only the visible schedule directly without queuing a job
+                    self.controller.api.export([self.schedules[current_index]], file_path)
+                    
+                    # Show immediate success message for direct export
+                    QMessageBox.information(
+                        self, "Export Successful",
+                        f"Schedule was exported successfully to:\n{file_path}"
+                    )
                 else:
                     # Export all schedules
                     if file_path.endswith('.xlsx') and len(self.schedules) > 100:
@@ -350,10 +356,20 @@ class ScheduleWindow(QMainWindow):
                     else:
                         self.controller.export_schedules(file_path)
                     
-                QMessageBox.information(
-                    self, "Export Successful",
-                    f"Schedules were saved successfully to:\n{file_path}"
-                )
+                    # Show queued message for background export
+                    if self.controller.job_controller:
+                        QMessageBox.information(
+                            self, "Export Queued",
+                            f"Your export has been queued and will be processed in the background.\n"
+                            f"The file will be saved to:\n{file_path}\n\n"
+                            f"You can check the status in the Background Jobs window."
+                        )
+                    else:
+                        # Fallback message if no job controller is available (direct export)
+                        QMessageBox.information(
+                            self, "Export Successful",
+                            f"Schedules were exported successfully to:\n{file_path}"
+                        )
             except Exception as e:
                 error_msg = str(e)
                 print(f"Export error: {error_msg}")  # Log the error
