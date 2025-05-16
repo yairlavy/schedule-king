@@ -261,12 +261,13 @@ class ScheduleWindow(QMainWindow):
         if not self.controller.generation_active and not schedules:
             self.progress_bar.setVisible(False)
             self.progress_label.setVisible(False)
-
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
-        if not schedules:
+        if schedules:
+            self.on_schedule_changed(0)
+        else:
             self.schedule_table.clearContents()
 
     def navigateToCourseWindow(self):
