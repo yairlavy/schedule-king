@@ -45,14 +45,16 @@ class ConflictChecker:
 
         # Check all pairs for conflicts
         slots.sort(key=lambda s: (s.day, s.start_time))
-
+        # Iterate through sorted slots and check for conflicts between consecutive slots
         for i in range(len(slots) - 1):
             a, b = slots[i], slots[i + 1]
 
+            # Skip if slots are on different days (no possible conflict)
             if a.day != b.day:
                 continue
 
+            # Check for time or room conflict between the two slots
             if self.check_time_conflict(a, b) or self.check_room_conflict(a, b):
-                return True
+                return True  # Conflict found
 
-        return False
+        return False  # No conflicts found
