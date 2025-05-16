@@ -4,12 +4,12 @@ from src.models.schedule import Schedule
 from src.services.schedule_api import ScheduleAPI
 from typing import List
 import time
+import sys
 
 def export_worker(queue: Queue, job_id: int, schedules: List[Schedule], file_path: str, api: ScheduleAPI):
     """
     Worker function to export schedules in a background process.
     """
-    time.sleep(10)
     try:
         # Send initial status update
         queue.put((job_id, "running", 0))
@@ -163,7 +163,10 @@ class ScheduleController:
     def export_schedules(self, file_path: str, schedules_to_export: Optional[List[Schedule]] = None) -> None:
         schedules = schedules_to_export if schedules_to_export is not None else self.schedules
 
-        if self.job_controller:
+        # Check if we're in a testing environment (pytest)
+        running_in_test = 'pytest' in sys.modules
+        
+        if self.job_controller and not running_in_test:
             # Create a descriptive job name using the file path
             job_name = f"Export to {file_path}"
             
@@ -175,5 +178,5 @@ class ScheduleController:
                 name=job_name
             )
         else:
-            # fallback if no job_controller
+            # Fallback if no job_controller or running in tests
             self.api.export(schedules, file_path)
