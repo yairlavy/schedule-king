@@ -74,11 +74,8 @@ class ScheduleController:
                 if schedule is None:  # None signals generation is complete
                     self.generation_active = False
                     # When generation is complete, set current = estimated total
-                    if self.estimated_total > 0:
-                        self.on_progress_updated(self.estimated_total, self.estimated_total)
-                    else:
                         # If we didn't have an estimate, use the actual count as both current and total
-                        self.on_progress_updated(len(self.schedules), len(self.schedules))
+                    self.on_progress_updated(len(self.schedules), len(self.schedules))
                     break
                 self.schedules.extend(schedule)  # Append the batch to the schedules list
                 updated = True

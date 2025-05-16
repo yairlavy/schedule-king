@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox
+    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox, QSpacerItem, QSizePolicy
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
@@ -34,15 +34,14 @@ class ScheduleWindow(QMainWindow):
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
-        if maximize_on_start:
-            self.showMaximized()
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
         self.course_selector_ref = None # Reference to the course selector window
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
         self.controller.on_schedules_generated = self.on_schedule_generated
         self.controller.on_progress_updated = self.update_progress
-        
+        self.first_schedule_shown = False
+
         # Initialize progress bar
         self.progress_bar = QProgressBar()
         self.progress_bar.setObjectName("schedule_progress")
@@ -164,27 +163,43 @@ class ScheduleWindow(QMainWindow):
         # Create the navigator component for browsing through schedules
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
-        
-        # Connect navigator's schedule change signal to update the table
         self.navigator.schedule_changed.connect(self.on_schedule_changed)
-        
-        # Add the navigator to the main layout
-        self.main_layout.addWidget(self.navigator)
 
-        # --- PROGRESS BAR SECTION ---
-        self.progress_container = QVBoxLayout()
-        self.progress_container.setObjectName("progress_container")
-        self.progress_container.setContentsMargins(10, 0, 10, 10)
-        self.progress_container.setSpacing(5)
-        
-        # Add progress elements to container
-        self.progress_container.addWidget(self.progress_label, alignment=Qt.AlignCenter)
-        self.progress_container.addWidget(self.progress_bar, alignment=Qt.AlignCenter)
+        # Build the progress box (label above bar)
+        progress_box = QVBoxLayout()
+        progress_box.setSpacing(2)
+        self.progress_label = QLabel("Generating schedules…")
+        self.progress_label.setObjectName("progress_label")
+        self.progress_label.setVisible(False)
+        progress_box.addWidget(self.progress_label)
 
-        # Add both navigation and progress sections to main layout
-        self.main_layout.addLayout(self.progress_container)
-        
-        
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("schedule_progress")
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setFixedWidth(250)
+        self.progress_bar.setVisible(False)
+        progress_box.addWidget(self.progress_bar)
+
+        # Build a single HBox that contains [progress][navigator][dummy-spacer]
+        group = QHBoxLayout()
+        group.setSpacing(10)
+        group.addLayout(progress_box)            # progress on left
+        group.addWidget(self.navigator)          # navigator in middle
+        # dummy spacer to balance the progress width on the right
+        dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        group.addSpacerItem(dummy)
+
+        # Center that group in the main layout
+        wrapper = QHBoxLayout()
+        wrapper.addStretch(1)
+        wrapper.addLayout(group)
+        wrapper.addStretch(1)
+
+        self.main_layout.addLayout(wrapper)
+
+ 
         # --- SCHEDULE TABLE ---
         # Create the main schedule display table
         self.schedule_table = ScheduleTable()
@@ -200,6 +215,8 @@ class ScheduleWindow(QMainWindow):
         # Display the first schedule if available
         if schedules:
             self.on_schedule_changed(0)
+        self.showMaximized()  # Start maximized for better visibility
+
 
     def update_progress(self, current: int, estimated: int):
         """
@@ -245,15 +262,14 @@ class ScheduleWindow(QMainWindow):
         """
         # Always update the navigator to refresh the count display
         self.navigator.set_schedules(schedules)
-        
         # Only update schedules and current display if they've actually changed
         if self.schedules != schedules:
             self.schedules = schedules
-            
             # Only update current schedule if we don't have one displayed
-            if schedules and self.navigator.current_index == -1:
+            if schedules and not self.first_schedule_shown:
                 self.navigator.current_index = 0
                 self.on_schedule_changed(0)
+                self.first_schedule_shown = True
             elif not schedules:
                 self.schedule_table.clearContents()
                 
