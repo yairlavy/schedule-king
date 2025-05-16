@@ -117,9 +117,7 @@ class ScheduleTable(QTableWidget):
                 for row in range(start_row, end_row):
                     # Create table item with metadata
                     item = QTableWidgetItem()
-                    item.setData(Qt.UserRole, f"{event_class}|{code}")  # Store event type and code
-                    item.setToolTip(tooltip_text)
-                    
+                    item.setToolTip(tooltip_text)                    
                     # Add item to table
                     self.setItem(row, day, item)
                     
