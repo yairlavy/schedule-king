@@ -44,7 +44,14 @@ class ConflictChecker:
         ]
 
         # Check all pairs for conflicts
-        for a, b in combinations(slots, 2):
+        slots.sort(key=lambda s: (s.day, s.start_time))
+
+        for i in range(len(slots) - 1):
+            a, b = slots[i], slots[i + 1]
+
+            if a.day != b.day:
+                continue
+
             if self.check_time_conflict(a, b) or self.check_room_conflict(a, b):
                 return True
 
