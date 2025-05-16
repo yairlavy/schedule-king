@@ -13,7 +13,7 @@ class ScheduleAPI:
         Initialize ScheduleAPI with a format/parse handler.
         """
         self.file_handler = FileHandler()
-        self.process = None
+        self._process = None
 
     def get_courses(self, source: str) -> List[Course]:
         """
@@ -70,13 +70,13 @@ class ScheduleAPI:
         queue = mp.Queue()
         # Split the courses among the processes
         # For simplicity, we are using a single process here.
-        if self.process and self.process.is_alive():
-            self.process.terminate()
-            self.process.join()
-            self.process = None
+        if self._process and self._process.is_alive():
+            self._process.terminate()
+            self._process.join()
+            self._process = None
         # Start a new process for schedule generation
-        self.process = mp.Process(target=self._worker_generate, args=(selected_courses, queue) , daemon=True)
-        self.process.start()
+        self._process = mp.Process(target=self._worker_generate, args=(selected_courses, queue) , daemon=True)
+        self._process.start()
 
         return queue
     
@@ -102,7 +102,7 @@ class ScheduleAPI:
         """
         Stop the schedule generation process if it's running.
         """
-        if self.process and self.process.is_alive():
-            self.process.terminate()
-            self.process.join()
-            self.process = None
+        if self._process and self._process.is_alive():
+            self._process.terminate()
+            self._process.join()
+            self._process = None
