@@ -309,3 +309,46 @@ QWidget#title_container {
     background-color: rgba(255, 255, 255, 0.6);
     border-radius: 10px;
 }
+
+/* Progress bar styles */
+QProgressBar#schedule_progress {
+    background-color: #E3F2FD;
+    border: 1px solid #BBDEFB;
+    border-radius: 3px;
+    text-align: center;
+    height: 10px;
+    margin: 2px 0;
+}
+
+QProgressBar#schedule_progress::chunk {
+    background-color: #2196F3;
+    border-radius: 2px;
+    margin: 0.5px;
+}
+
+QLabel#progress_label {
+    color: #1565C0;
+    font-size: 12px;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+}
+
+QPushButton#cancel_button {
+    background-color: #F44336;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 5px 15px;
+    font-size: 13px;
+    min-width: 80px;
+    margin: 5px auto;
+}
+
+QPushButton#cancel_button:hover {
+    background-color: #D32F2F;
+}
+
+QPushButton#cancel_button:pressed {
+    background-color: #B71C1C;
+}

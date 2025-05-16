@@ -35,7 +35,7 @@ class ScheduleController:
         self.schedules = []  # Reset schedules list
         self.next = 1  # Reset notification threshold
 
-        # Start the schedule generation in parallel
+        # Start the schedule generation in parallel (returns a queue)
         self.queue = self.api.generate_schedules_in_parallel(selected_courses)
 
         # Attempt to get estimated schedules count if supported by the API
@@ -73,14 +73,21 @@ class ScheduleController:
                 schedule = self.queue.get(block=False)
                 if schedule is None:  # None signals generation is complete
                     self.generation_active = False
+                    # When generation is complete, set current = estimated total
+                    if self.estimated_total > 0:
+                        self.on_progress_updated(self.estimated_total, self.estimated_total)
+                    else:
+                        # If we didn't have an estimate, use the actual count as both current and total
+                        self.on_progress_updated(len(self.schedules), len(self.schedules))
                     break
                 self.schedules.extend(schedule)  # Append the batch to the schedules list
                 updated = True
             except:
                 break
 
-        # Always notify progress update
-        self.on_progress_updated(len(self.schedules), self.estimated_total)
+        # Always notify progress update during active generation
+        if self.generation_active:
+            self.on_progress_updated(len(self.schedules), self.estimated_total)
 
         # Notify UI if new schedules are added or if generation is complete
         if updated or not self.generation_active:
@@ -97,18 +104,25 @@ class ScheduleController:
         Stops the schedule generation process if it's running.
         Stops the timer and clears the queue.
         """
-        self.generation_active = False
-        if self.timer and self.timer.isActive():
-            self.timer.stop()
-            self.timer = None
+        if self.generation_active:
+            self.generation_active = False
+            
+            # If there are schedules, make sure the progress bar shows 100% completion
+            if self.schedules and len(self.schedules) > 0:
+                final_count = len(self.schedules)
+                self.on_progress_updated(final_count, final_count)
+            
+            if self.timer and self.timer.isActive():
+                self.timer.stop()
+                self.timer = None
 
-        # Clear the queue if it exists
-        if self.queue:
-            while not self.queue.empty():
-                try:
-                    self.queue.get(block=False)
-                except:
-                    pass
+            # Clear the queue if it exists
+            if self.queue:
+                while not self.queue.empty():
+                    try:
+                        self.queue.get(block=False)
+                    except:
+                        pass
 
     def get_schedules(self) -> List[Schedule]:
         """
@@ -132,4 +146,5 @@ class ScheduleController:
             Exception: If the export operation fails.
         """
         schedules = schedules_to_export if schedules_to_export is not None else self.schedules
+        # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules, file_path)

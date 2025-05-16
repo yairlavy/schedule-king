@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QLayout, QCheckBox
+    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
@@ -42,7 +42,23 @@ class ScheduleWindow(QMainWindow):
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
         self.controller.on_schedules_generated = self.on_schedule_generated
         self.controller.on_progress_updated = self.update_progress
-        self.progress_bar = None  # QProgressDialog for schedule generation progress
+        
+        # Initialize progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("schedule_progress")
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setFormat("%v / %m schedules")
+        self.progress_bar.setFixedWidth(300)
+        self.progress_bar.setVisible(False)  # Initially hidden
+        
+        # Initialize progress label
+        self.progress_label = QLabel("Generating schedules...")
+        self.progress_label.setObjectName("progress_label")
+        self.progress_label.setAlignment(Qt.AlignCenter)
+        self.progress_label.setVisible(False)  # Initially hidden
+        
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
         self.central_widget = QWidget()
@@ -154,6 +170,20 @@ class ScheduleWindow(QMainWindow):
         
         # Add the navigator to the main layout
         self.main_layout.addWidget(self.navigator)
+
+        # --- PROGRESS BAR SECTION ---
+        self.progress_container = QVBoxLayout()
+        self.progress_container.setObjectName("progress_container")
+        self.progress_container.setContentsMargins(10, 0, 10, 10)
+        self.progress_container.setSpacing(5)
+        
+        # Add progress elements to container
+        self.progress_container.addWidget(self.progress_label, alignment=Qt.AlignCenter)
+        self.progress_container.addWidget(self.progress_bar, alignment=Qt.AlignCenter)
+
+        # Add both navigation and progress sections to main layout
+        self.main_layout.addLayout(self.progress_container)
+        
         
         # --- SCHEDULE TABLE ---
         # Create the main schedule display table
@@ -170,62 +200,88 @@ class ScheduleWindow(QMainWindow):
         # Display the first schedule if available
         if schedules:
             self.on_schedule_changed(0)
-        self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
-        self.progress_bar.setWindowModality(Qt.WindowModal)
-        self.progress_bar.setMinimumDuration(0)
-        self.progress_bar.setAutoClose(False)
-        self.progress_bar.setAutoReset(False)
-        self.progress_bar.setWindowTitle("Generating")
-        self.progress_bar.canceled.connect(self.controller.stop_schedules_generation)
-        if show_progress_on_start:
-            self.progress_bar.show()
 
     def update_progress(self, current: int, estimated: int):
         """
-        Updates the progress dialog with the current and estimated schedule counts.
-        Supports an optional CourseSelector progress bar.
+        Updates the progress bar with the current and estimated schedule counts.
+        Shows a determinate or indeterminate progress bar based on estimate availability.
         """
-        if estimated > 0:
-            self.progress_bar.setMaximum(estimated)
-            self.progress_bar.setValue(current)
-            self.progress_bar.setLabelText(f"Generating schedules... ({current}/{estimated})")
-        else:
-            self.progress_bar.setMaximum(0)
-            self.progress_bar.setLabelText(f"Generating schedules... ({current} generated)")
+        # Make sure progress controls are visible when active generation is happening
+        self.progress_label.setVisible(True)
+        self.progress_bar.setVisible(True)
+        
+        try:
+            if estimated > 0:
+                # We have an estimated total - show determinate progress
+                self.progress_bar.setMaximum(estimated)
+                self.progress_bar.setValue(current)
+                self.progress_label.setText(f"Generating schedules... ({current}/{estimated})")
+                
+                # If we're done (current >= estimated), update text accordingly
+                if current >= estimated:
+                    self.progress_label.setText(f"Completed! Generated {current} schedules")
+            else:
+                # No estimate available - show indeterminate progress for ongoing generation
+                # or determinate if we're at the end (setting both current and max to the same value)
+                if self.controller.generation_active:
+                    self.progress_bar.setMaximum(0)  # Indeterminate mode
+                    self.progress_label.setText(f"Generating schedules... ({current} generated)")
+                else:
+                    # Generation complete but no estimate was available, set max to current
+                    self.progress_bar.setMaximum(current)
+                    self.progress_bar.setValue(current)
+                    self.progress_label.setText(f"Completed! Generated {current} schedules")
+                
+            # Force update the UI
+            self.progress_bar.repaint()
+            self.progress_label.repaint()
+        except Exception as e:
+            print(f"Error updating progress: {str(e)}")
 
     def on_schedule_generated(self, schedules: List[Schedule]):
         """
         Updates the UI when new schedules are generated.
         This method is called by the controller during schedule generation.
         """
-        self.schedules = schedules
+        # Always update the navigator to refresh the count display
         self.navigator.set_schedules(schedules)
-        if schedules and self.navigator.current_index == -1:
-            self.navigator.current_index = 0
-            self.on_schedule_changed(0)
-        elif not schedules:
-            self.schedule_table.clearContents()
-
-        # Also close self progress bar (if used locally and not from selector)
-        #if self.progress_bar and not self.controller.generation_active:
-        #    self.progress_bar.close()
-        #    self.progress_bar = None
+        
+        # Only update schedules and current display if they've actually changed
+        if self.schedules != schedules:
+            self.schedules = schedules
+            
+            # Only update current schedule if we don't have one displayed
+            if schedules and self.navigator.current_index == -1:
+                self.navigator.current_index = 0
+                self.on_schedule_changed(0)
+            elif not schedules:
+                self.schedule_table.clearContents()
+                
+        # Hide progress indicators if generation is complete and no schedules were generated
+        if not self.controller.generation_active and not schedules:
+            self.progress_bar.setVisible(False)
+            self.progress_label.setVisible(False)
 
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
-        if schedules:
-            self.on_schedule_changed(0)
-        else:
+        if not schedules:
             self.schedule_table.clearContents()
 
     def navigateToCourseWindow(self):
-        """Navigates back to the course selection window."""
-        # Close any progress bar if it was used
-        if self.progress_bar:
-            self.progress_bar.close()
-            self.progress_bar = None
+        """
+        Navigates back to the course selection window.
+        Stops any ongoing schedule generation first.
+        """
+        # First stop any ongoing generation
+        self.controller.stop_schedules_generation()
+        
+        # Hide progress indicators
+        self.progress_bar.setVisible(False)
+        self.progress_label.setVisible(False)
+        
+        # Return to course selector
         self.on_back()
 
     def export_to_file(self):
@@ -233,10 +289,6 @@ class ScheduleWindow(QMainWindow):
         Exports schedules to a file in the selected format.
         Shows success/error messages to the user.
         """
-        if self.progress_bar:
-            self.progress_bar.close()
-            self.progress_bar = None
-        
         file_path, selected_filter = QFileDialog.getSaveFileName(
             self, "Save Schedules", "", 
             "Text Files (*.txt);;Excel Files (*.xlsx);;All Files (*)"
@@ -279,6 +331,7 @@ class ScheduleWindow(QMainWindow):
                     self, "Export Failed",
                     f"Failed to export schedules:\n{error_msg}"
                 )
+                
     def on_schedule_changed(self, index: int):
         """
         Updates the schedule table when the selected schedule changes.
