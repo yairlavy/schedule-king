@@ -14,6 +14,7 @@ class ScheduleAPI:
         """
         self.file_handler = FileHandler()
         self.process = None
+        # No shared state needed here anymore
 
     def get_courses(self, source: str) -> List[Course]:
         """
@@ -45,9 +46,10 @@ class ScheduleAPI:
             print(f"Error exporting schedules: {e}.")
 
     @staticmethod
-    def _worker_generate(selected_courses: List[Course], queue: mp.Queue) -> None:
+    def _worker_generate(selected_courses: List[Course], queue: mp.Queue, stop_event: mp.Event) -> None:
         """
         Worker function to process courses in a separate process, sending schedules in batches.
+        Checks stop_event to gracefully terminate when requested.
         """
         scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
         
@@ -55,27 +57,47 @@ class ScheduleAPI:
         batch_size = 1000  # Number of schedules per batch
        
         for schedule in scheduler.generate():
+            # Check if stop is requested
+            if stop_event.is_set():
+                break
+                
             batch.append(schedule)
             if len(batch) >= batch_size:
                 queue.put(batch)  # Send the batch to the queue
                 batch = []  # Reset the batch
-        if batch:  # Send any remaining schedules
+                
+                # Check again after batch send
+                if stop_event.is_set():
+                    break
+                    
+        # Only send remaining schedules if not terminated
+        if batch and not stop_event.is_set():
             queue.put(batch)
-        queue.put(None)  # Signal that this worker is done
+            
+        # Signal completion only if not terminated
+        if not stop_event.is_set():
+            queue.put(None)  # Signal that this worker is done
 
     def generate_schedules_in_parallel(self, selected_courses: List[Course]) -> List[Schedule]:
         """
         Generate schedules in parallel using multiple processes.
         """
         queue = mp.Queue()
+        # Create a proper Event object for signaling termination
+        stop_event = mp.Event()
+        
         # Split the courses among the processes
         # For simplicity, we are using a single process here.
         if self.process and self.process.is_alive():
-            self.process.terminate()
-            self.process.join()
+            self.stop_schedules_generation()
             self.process = None
+            
         # Start a new process for schedule generation
-        self.process = mp.Process(target=self._worker_generate, args=(selected_courses, queue) , daemon=True)
+        self.process = mp.Process(target=self._worker_generate, 
+                                  args=(selected_courses, queue, stop_event),
+                                  daemon=True)
+        # Store the stop event with the process
+        self.process.stop_event = stop_event
         self.process.start()
 
         return queue
@@ -101,8 +123,12 @@ class ScheduleAPI:
     def stop_schedules_generation(self) -> None:
         """
         Stop the schedule generation process if it's running.
+        Uses the process-specific Event object to signal termination.
+        Does not block or join the process.
         """
-        if self.process and self.process.is_alive():
-            self.process.terminate()
-            self.process.join()
-            self.process = None
+        # Signal the worker to stop
+        if self.process and hasattr(self.process, 'stop_event'):
+            self.process.stop_event.set()
+            
+        # Let the process terminate on its own - don't join
+        # The daemon=True setting will ensure cleanup when the main app exits

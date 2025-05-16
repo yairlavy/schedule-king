@@ -9,6 +9,7 @@ from src.services.schedule_api import ScheduleAPI
 from src.components.jobs_status import StatusWindow
 from src.models.course import Course
 from typing import List
+import time
 
 class MainController:
     def __init__(self, api: ScheduleAPI, maximize_on_start=True):
@@ -107,6 +108,8 @@ class MainController:
     def on_navigate_back_to_courses(self):
         # Handle navigation back to the course selection window
         if self.schedule_window:
+            # Stop any ongoing generation before hiding the window
+            self.schedule_controller.stop_schedules_generation()
             # Hide the schedule window and reset it
             self.schedule_window.hide()
             self.schedule_window = None  
