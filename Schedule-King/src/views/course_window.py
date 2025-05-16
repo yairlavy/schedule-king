@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QFileDialog, QVBoxLayout,
-    QHBoxLayout, QWidget, QSizePolicy, QMessageBox
+    QHBoxLayout, QWidget, QSizePolicy, QMessageBox,
+    QPushButton
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
@@ -20,6 +21,11 @@ class CourseWindow(QMainWindow):
         icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
         self.setWindowIcon(QIcon(icon_path))
 
+        # External callbacks for handling events
+        self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
+        self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
+        self.on_open_status: Callable[[], None] = lambda: None
+
         # === Course Selector ===
         # Initialize the course selector component
         self.courseSelector = CourseSelector()
@@ -35,6 +41,20 @@ class CourseWindow(QMainWindow):
         outer_layout.setContentsMargins(50, 30, 50, 30)  # Set margins
         outer_layout.setSpacing(20)  # Set spacing between elements
 
+        # Create header layout for the status button
+        header_layout = QHBoxLayout()
+
+        # Add status button in the top left
+        status_button = QPushButton("Show Background Jobs")
+        status_button.setFixedHeight(40)
+        status_button.setFont(QFont("Arial", 11))
+        status_button.clicked.connect(self.onStatus)
+        header_layout.addWidget(status_button)
+        header_layout.addStretch(1)  # Push button to the left
+
+        # Add header layout to main layout
+        outer_layout.addLayout(header_layout)
+
         # Add courseSelector directly without extra stretching
         outer_layout.addWidget(self.courseSelector)
 
@@ -47,22 +67,6 @@ class CourseWindow(QMainWindow):
         # Optionally set full-screen display (disabled during tests to prevent access violations on Windows)
         if maximize_on_start:
             self.showMaximized()
-        from PyQt5.QtWidgets import QPushButton
-
-
-        
-        # External callbacks for handling events
-        self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
-        self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
-        self.on_open_status: Callable[[], None] = lambda: None
-
-# --- Add button to open status window ---
-        status_button = QPushButton("📊 Show Background Jobs")
-        status_button.setFixedHeight(40)
-        status_button.setFont(QFont("Arial", 11))
-        status_button.clicked.connect(self.onStatus)
-
-        outer_layout.addWidget(status_button, alignment=Qt.AlignRight)
 
     def displayCourses(self, courses: List[Course]):
         """

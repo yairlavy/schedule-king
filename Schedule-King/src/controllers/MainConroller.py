@@ -89,6 +89,7 @@ class MainController:
                                               show_progress_on_start=False)
 
         self.schedule_window.on_back = self.on_navigate_back_to_courses
+        self.schedule_window.on_open_status = self.open_status_window
         # Hide the course window and show the schedule window
         self.course_window.hide()
         self.schedule_window.show()

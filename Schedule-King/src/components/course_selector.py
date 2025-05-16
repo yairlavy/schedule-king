@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QSizePolicy, QLabel, QFrame, QMessageBox ,QProgressDialog
+    QSizePolicy, QLabel, QFrame, QMessageBox, QProgressDialog
 )
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont, QPixmap
@@ -9,6 +9,12 @@ from src.models.course import Course
 from src.components.course_list import CourseList
 from src.components.selected_courses_panel import SelectedCoursesPanel
 from src.components.search_bar import SearchBar
+from src.styles.ui_styles import (
+    red_button_style, green_button_style, blue_button_style, 
+    disabled_button_style, title_label_style, warning_label_style,
+    success_label_style, instruction_label_style, footer_label_style,
+    course_selector_background
+)
 
 class CourseSelector(QWidget):
     # Signals for communicating with parent widgets
@@ -20,14 +26,28 @@ class CourseSelector(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         # Set background style
-        self.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #E3F2FD, stop:1 #F0F7FF); border-radius: 10px;")
-
-
-        # === Main Layout ===
+        self.setStyleSheet(course_selector_background())
+        
+        # Initialize layout
         self.layout = QVBoxLayout(self)
         self.layout.setContentsMargins(40, 30, 40, 30)
         self.layout.setSpacing(16)
-
+        
+        # Initialize UI components in separate methods
+        self._setup_header()
+        self._setup_search_bar()
+        self._setup_course_panels()
+        self._setup_buttons()
+        self._setup_footer()
+        
+        # Progress dialog for schedule generation
+        self.progress_bar = None
+        
+        # Initialize submit button state
+        self._update_submit_button_state([])
+        
+    def _setup_header(self):
+        """Setup header components including title and instruction labels."""
         # === Banner Image ===
         banner = QLabel()
         banner.setAlignment(Qt.AlignCenter)
@@ -35,36 +55,30 @@ class CourseSelector(QWidget):
 
         # === Title ===
         self.title_label = QLabel("Available Courses")
-        self.title_label.setStyleSheet("""
-            QLabel {
-                color: #1A237E;
-                font-size: 34px;
-                font-weight: 800;
-                font-family: 'Segoe UI', sans-serif;
-                border-bottom: 3px solid #C5CAE9;
-                padding-bottom: 12px;
-            }
-        """)
+        self.title_label.setStyleSheet(title_label_style())
         self.title_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.title_label)
 
         # === Course Limit Label ===
         self.limit_label = QLabel(f"Maximum {self.MAX_COURSES} courses allowed")
-        self.limit_label.setStyleSheet("color: #F44336; font-size: 11pt; font-weight: bold;")
+        self.limit_label.setStyleSheet(warning_label_style())
         self.limit_label.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(self.limit_label)
 
         # === Instruction Label ===
         instruction = QLabel("Select your desired courses from the list below and click 'Generate Schedules'")
-        instruction.setStyleSheet("color: #3A3A3A; font-size: 12pt; font-style: italic;")
+        instruction.setStyleSheet(instruction_label_style())
         instruction.setAlignment(Qt.AlignCenter)
         self.layout.addWidget(instruction)
-
-        # === Search Bar ===
+        
+    def _setup_search_bar(self):
+        """Setup the search bar component."""
         self.search_bar = SearchBar()
         self.search_bar.searchTextChanged.connect(self._handle_search)
         self.layout.addWidget(self.search_bar)
-
+        
+    def _setup_course_panels(self):
+        """Setup course list and selected courses panel."""
         # === Side-by-Side Layout for course list and selected panel ===
         self.split_layout = QHBoxLayout()
         self.split_layout.setSpacing(20)
@@ -78,7 +92,9 @@ class CourseSelector(QWidget):
         # === Selected Courses Panel ===
         self.selected_panel = SelectedCoursesPanel()
         self.split_layout.addWidget(self.selected_panel, 2)
-
+        
+    def _setup_buttons(self):
+        """Setup action buttons."""
         # === Buttons Layout ===
         self.button_layout = QHBoxLayout()
         self.button_layout.setSpacing(15)
@@ -87,39 +103,36 @@ class CourseSelector(QWidget):
         # Clear All button
         self.clear_button = QPushButton("Clear All")
         self.clear_button.setCursor(Qt.PointingHandCursor)
-        self.clear_button.setStyleSheet(self._red_button_style())
+        self.clear_button.setStyleSheet(red_button_style())
 
         # Generate Schedules button
         self.submit_button = QPushButton("Generate Schedules")
         self.submit_button.setCursor(Qt.PointingHandCursor)
-        self.submit_button.setStyleSheet(self._green_button_style())
+        self.submit_button.setStyleSheet(green_button_style())
 
         # Load Courses button
         self.load_button = QPushButton("Load Courses")
         self.load_button.setCursor(Qt.PointingHandCursor)
-        self.load_button.setStyleSheet(self._blue_button_style())
+        self.load_button.setStyleSheet(blue_button_style())
 
         # Add buttons to layout
         self.button_layout.addWidget(self.clear_button)
         self.button_layout.addWidget(self.submit_button)
         self.button_layout.addWidget(self.load_button)
         self.layout.addLayout(self.button_layout)
-
-        # === Footer ===
-        footer = QLabel("\U0001F537 Records made by the Schedule Kings")
-        footer.setAlignment(Qt.AlignCenter)
-        footer.setStyleSheet("color: #78909C; font-size: 10pt; margin-top: 20px;")
-        self.layout.addWidget(footer)
-
+        
         # Connect button signals to handlers
         self.clear_button.clicked.connect(self._handle_clear)
         self.submit_button.clicked.connect(self._handle_submit)
         self.load_button.clicked.connect(self._handle_load)
+        
+    def _setup_footer(self):
+        """Setup footer with credits."""
+        footer = QLabel("\U0001F537 Records made by the Schedule Kings")
+        footer.setAlignment(Qt.AlignCenter)
+        footer.setStyleSheet(footer_label_style())
+        self.layout.addWidget(footer)
 
-        # Progress dialog for schedule generation (added)
-        self.progress_bar = None
-        # Initialize submit button state
-        self._update_submit_button_state([])
     def show_progress_bar(self):
         """Show progress bar while schedules are generating."""
         if self.progress_bar:
@@ -195,94 +208,16 @@ class CourseSelector(QWidget):
         """Return the currently selected courses."""
         return self.course_list.get_selected_courses()
 
-    def _red_button_style(self):
-        """Return stylesheet for red button."""
-        return """
-            QPushButton {
-                background-color: #F44336;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 12px 24px;
-                font-size: 12pt;
-                font-weight: bold;
-                min-width: 120px;
-            }
-            QPushButton:hover {
-                background-color: #D32F2F;
-            }
-            QPushButton:pressed {
-                background-color: #B71C1C;
-            }
-        """
-
-    def _green_button_style(self):
-        """Return stylesheet for green button."""
-        return """
-            QPushButton {
-                background-color: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 12px 24px;
-                font-size: 12pt;
-                font-weight: bold;
-                min-width: 180px;
-            }
-            QPushButton:hover {
-                background-color: #388E3C;
-            }
-            QPushButton:pressed {
-                background-color: #1B5E20;
-            }
-        """
-
-    def _blue_button_style(self):
-        """Return stylesheet for blue button."""
-        return """
-            QPushButton {
-                background-color: #2196F3;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 12px 24px;
-                font-size: 12pt;
-                font-weight: bold;
-                min-width: 150px;
-            }
-            QPushButton:hover {
-                background-color: #1976D2;
-            }
-            QPushButton:pressed {
-                background-color: #0D47A1;
-            }
-        """
-
     def _update_submit_button_state(self, selected_courses: List[Course]):
         """Update the submit button state based on the number of selected courses."""
         if len(selected_courses) > self.MAX_COURSES:
             self.submit_button.setEnabled(False)
-            self.submit_button.setStyleSheet(self._disabled_button_style())
-            self.limit_label.setStyleSheet("color: #F44336; font-size: 11pt; font-weight: bold;")
+            self.submit_button.setStyleSheet(disabled_button_style())
+            self.limit_label.setStyleSheet(warning_label_style())
         else:
             self.submit_button.setEnabled(True)
-            self.submit_button.setStyleSheet(self._green_button_style())
-            self.limit_label.setStyleSheet("color: #4CAF50; font-size: 11pt; font-weight: bold;")
-
-    def _disabled_button_style(self):
-        """Return stylesheet for disabled button."""
-        return """
-            QPushButton {
-                background-color: #9E9E9E;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                padding: 12px 24px;
-                font-size: 12pt;
-                font-weight: bold;
-                min-width: 180px;
-            }
-        """
+            self.submit_button.setStyleSheet(green_button_style())
+            self.limit_label.setStyleSheet(success_label_style())
 
     def select_courses_by_code(self, codes):
         """Select courses in the list by their course codes."""

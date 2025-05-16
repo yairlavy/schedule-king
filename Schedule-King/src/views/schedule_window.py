@@ -38,6 +38,7 @@ class ScheduleWindow(QMainWindow):
         self.schedules = schedules    # Store list of schedules
         self.course_selector_ref = None # Reference to the course selector window
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+        self.on_open_status = lambda: None  # Default no-op callback for opening the status window
         self.controller.on_schedules_generated = self.on_schedule_generated
         self.controller.on_progress_updated = self.update_progress
         self.first_schedule_shown = False
@@ -70,7 +71,9 @@ class ScheduleWindow(QMainWindow):
         header_layout = QHBoxLayout()
         header_layout.setSpacing(15)
         
-        # Left section: Back button with icon
+        # Left section: Back button with icon and Show Background Jobs button
+        left_buttons_layout = QHBoxLayout()
+        
         self.back_button = QPushButton("  Back to Course Selection")
         self.back_button.setObjectName("top_action_button")
         back_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/back.png"))
@@ -79,6 +82,15 @@ class ScheduleWindow(QMainWindow):
             self.back_button.setText(" Back to Course Selection")
         else:
             self.back_button.setText("← Back to Course Selection")
+            
+        # Add Show Background Jobs button
+        self.status_button = QPushButton("Show Background Jobs")
+        self.status_button.setObjectName("top_action_button")
+        self.status_button.setFixedHeight(40)
+        self.status_button.setFont(QFont("Arial", 11))
+        
+        left_buttons_layout.addWidget(self.back_button)
+        left_buttons_layout.addWidget(self.status_button)
         
         # Center section: Title with crown icon and subtitle
         title_container = QWidget()
@@ -140,7 +152,7 @@ class ScheduleWindow(QMainWindow):
         export_layout.addWidget(self.export_visible_only)
         
         # Assemble header with proper alignment
-        header_layout.addWidget(self.back_button)  # Left aligned
+        header_layout.addLayout(left_buttons_layout)  # Left aligned with buttons
         header_layout.addStretch(1)  # Push to left
         header_layout.addWidget(title_container)  # Center
         header_layout.addStretch(1)  # Push to right
@@ -151,6 +163,7 @@ class ScheduleWindow(QMainWindow):
         # Connect button actions
         self.export_button.clicked.connect(self.export_to_file)
         self.back_button.clicked.connect(self.navigateToCourseWindow)
+        self.status_button.clicked.connect(self.onStatus)
         
         # Add a separator line
         line = QFrame()
@@ -358,3 +371,10 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.display_schedule(self.schedules[index])
         self.export_button.setEnabled(True)
         self.back_button.setEnabled(True)
+
+    # Add onStatus method to handle the status button click
+    def onStatus(self):
+        """
+        Handle the event when the status button is clicked.
+        """
+        self.on_open_status()
