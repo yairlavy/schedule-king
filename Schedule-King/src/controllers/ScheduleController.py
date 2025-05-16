@@ -4,7 +4,6 @@ from src.models.course import Course
 from typing import List, Optional
 from PyQt5.QtCore import QTimer
 
-
 class ScheduleController:
     def __init__(self, api: ScheduleAPI):
         """
@@ -54,26 +53,28 @@ class ScheduleController:
         self.on_progress_updated(0, self.estimated_total)
         return self.schedules
 
-    def check_for_schedules(self) -> None:
+    def check_for_schedules(self) -> None:   
         """
-        Checks if there are any schedules available in the queue.
-        If available, it retrieves and stores them.
-        Notifies via callbacks if new schedules are found and updates progress.
+        Checks for new schedule batches in the queue.
+        If new schedules are found, it appends them to the list and notifies the UI.
         """
         if not self.generation_active or not self.queue:
             return
 
         updated = False
-
-        # Retrieve all available schedules from the queue
-        while not self.queue.empty():
+        max_batch_per_loop = 100 # Number of batches to process per loop
+        
+        # Retrieve up to max_batches_per_loop batches from the queue
+        for _ in range(max_batch_per_loop):
+            if self.queue.empty():
+                break
+            
             try:
                 schedule = self.queue.get(block=False)
-                if schedule is None:
-                    # None signals the generation is complete
+                if schedule is None:  # None signals generation is complete
                     self.generation_active = False
                     break
-                self.schedules.append(schedule)
+                self.schedules.extend(schedule)  # Append the batch to the schedules list
                 updated = True
             except:
                 break
@@ -81,10 +82,8 @@ class ScheduleController:
         # Always notify progress update
         self.on_progress_updated(len(self.schedules), self.estimated_total)
 
-        # Notify if enough new schedules have been added or generation is complete
-        if updated and (len(self.schedules) >= self.next or not self.generation_active):
-            if len(self.schedules) >= self.next:
-                self.next *= 10
+        # Notify UI if new schedules are added or if generation is complete
+        if updated or not self.generation_active:
             self.on_schedules_generated(self.schedules)
 
         # If generation is complete, stop the timer

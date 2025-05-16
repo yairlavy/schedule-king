@@ -46,11 +46,20 @@ class ScheduleAPI:
     @staticmethod
     def _worker_generate(selected_courses: List[Course], queue: mp.Queue) -> None:
         """
-        Worker function to process courses in a separate process.
+        Worker function to process courses in a separate process, sending schedules in batches.
         """
         scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
+        
+        batch = [] # Temporary list to hold schedules
+        batch_size = 1000  # Number of schedules per batch
+       
         for schedule in scheduler.generate():
-            queue.put(schedule)
+            batch.append(schedule)
+            if len(batch) >= batch_size:
+                queue.put(batch)  # Send the batch to the queue
+                batch = []  # Reset the batch
+        if batch:  # Send any remaining schedules
+            queue.put(batch)
         queue.put(None)  # Signal that this worker is done
 
     def generate_schedules_in_parallel(self, selected_courses: List[Course]) -> List[Schedule]:
