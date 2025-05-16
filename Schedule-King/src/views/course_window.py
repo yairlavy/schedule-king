@@ -11,7 +11,7 @@ import os
 
 
 class CourseWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, maximize_on_start=True):
         super().__init__()
         self.setWindowTitle("Select Courses")  # Set the window title
 
@@ -44,7 +44,10 @@ class CourseWindow(QMainWindow):
         self.setCentralWidget(container)  # Set the container as the central widget
 
         # Set full-screen display
-        self.showMaximized()
+        # Optionally set full-screen display (disabled during tests to prevent access violations on Windows)
+        if maximize_on_start:
+            self.showMaximized()
+
         
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded

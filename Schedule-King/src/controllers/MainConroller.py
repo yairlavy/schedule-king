@@ -8,16 +8,17 @@ from src.models.course import Course
 from typing import List
 
 class MainController:
-    def __init__(self, api: ScheduleAPI):
+    def __init__(self, api: ScheduleAPI, maximize_on_start=True):
         # Initialize the main controller with the API instance
         self.api = api
+        self._maximize_on_start = maximize_on_start
 
         # Initialize course and schedule controllers
         self.course_controller = CourseController(api)
         self.schedule_controller = ScheduleController(api)
 
         # Initialize the course window and set up event handlers
-        self.course_window = CourseWindow()
+        self.course_window = CourseWindow(maximize_on_start=maximize_on_start)
         self.schedule_window = None  # Schedule window will be created later
 
         # Set up event handlers for the course window
@@ -76,8 +77,11 @@ class MainController:
             self.schedule_controller.stop_schedules_generation()
             self.schedule_controller.next = 1
         # Initialize the schedule window with the generated schedules
-        self.schedule_window = ScheduleWindow([], self.schedule_controller)
-        # Set up the back navigation event handler
+        self.schedule_window = ScheduleWindow([],
+                                               self.schedule_controller, 
+                                              maximize_on_start=self._maximize_on_start, 
+                                              show_progress_on_start=False)
+
         self.schedule_window.on_back = self.on_navigate_back_to_courses
         # Hide the course window and show the schedule window
         self.course_window.hide()

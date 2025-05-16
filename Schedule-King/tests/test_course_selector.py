@@ -1,6 +1,7 @@
 import pytest
 from src.components.course_selector import CourseSelector  
 from src.models.course import Course
+from unittest.mock import patch
 
 
 @pytest.fixture
@@ -43,20 +44,16 @@ def test_selection_emits_signal(qtbot, selector, sample_courses):
 
 
 def test_submit_emits_signal(qtbot, selector, sample_courses):
-    # Test that clicking the submit button emits the `coursesSubmitted` signal
-    # Use the public API to select two courses
     selector.select_courses_by_code([sample_courses[0].course_code, sample_courses[2].course_code])
     qtbot.wait(100)
-
-    with qtbot.waitSignal(selector.coursesSubmitted, timeout=500) as signal:
-        # Simulate clicking the submit button
-        selector.submit_button.click()
-
+    # Test that clicking the submit button emits the `coursesSubmitted` signal
+    with patch.object(selector, 'show_progress_bar', return_value=None):
+        with qtbot.waitSignal(selector.coursesSubmitted, timeout=500) as signal:
+            selector.submit_button.click()
     # Verify that the emitted signal contains the correct courses
     submitted = signal.args[0]
     assert len(submitted) == 2
     assert submitted[0].course_code == sample_courses[0].course_code
-
 
 def test_clear_button_clears_selection(qtbot, selector, sample_courses):
     # Test that clicking the clear button clears all selected courses

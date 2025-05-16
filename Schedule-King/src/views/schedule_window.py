@@ -18,7 +18,7 @@ class ScheduleWindow(QMainWindow):
     An improved window for displaying and managing generated schedules.
     Features a modern UI with icons, better layout, and enhanced visual design.
     """
-    def __init__(self, schedules: List[Schedule], controller: ScheduleController):
+    def __init__(self, schedules: List[Schedule], controller: ScheduleController,maximize_on_start=True,show_progress_on_start=True):
         """
         Initializes the ScheduleWindow with enhanced UI.
 
@@ -34,7 +34,8 @@ class ScheduleWindow(QMainWindow):
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
-        self.showMaximized()  # Start maximized for better visibility
+        if maximize_on_start:
+            self.showMaximized()
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
         self.course_selector_ref = None # Reference to the course selector window
@@ -176,8 +177,8 @@ class ScheduleWindow(QMainWindow):
         self.progress_bar.setAutoReset(False)
         self.progress_bar.setWindowTitle("Generating")
         self.progress_bar.canceled.connect(self.controller.stop_schedules_generation)
-        self.progress_bar.show()
-
+        if show_progress_on_start:
+            self.progress_bar.show()
 
     def update_progress(self, current: int, estimated: int):
         """

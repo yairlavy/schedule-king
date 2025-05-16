@@ -69,7 +69,9 @@ def api():
 
 @pytest.fixture
 def controller(api, qtbot):
-    controller = MainController(api)
+    controller = MainController(api, maximize_on_start=False)
+
+    # Patch the course window to avoid showing it during tests
     controller.course_window.show = lambda: None
     controller.course_window.hide = lambda: None
     return controller

@@ -5,6 +5,7 @@ from src.models.course import Course
 from src.models.lecture_group import LectureGroup
 from src.models.schedule import Schedule
 from src.models.time_slot import TimeSlot
+from src.services.conflict_checker import ConflictChecker
 
 # ---------- Helpers ----------
 
@@ -91,9 +92,9 @@ def test__has_conflict_with_real_checker_conflict():
     slot2 = make_timeslot("B", start="13:00", end="15:00")
     group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
     group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
-
-    strategy = AllStrategy([])
-    assert strategy._has_conflict([group1, group2])
+    
+    checker = ConflictChecker()
+    assert checker.has_conflict_groups([group1, group2])
 
 #STRATEGYALL_FUNC_003
 def test__has_conflict_with_real_checker_no_conflict():
@@ -102,5 +103,5 @@ def test__has_conflict_with_real_checker_no_conflict():
     group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
     group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
 
-    strategy = AllStrategy([])
-    assert not strategy._has_conflict([group1, group2])
+    checker = ConflictChecker()
+    assert not checker.has_conflict_groups([group1, group2])
