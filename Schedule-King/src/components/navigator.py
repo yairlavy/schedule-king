@@ -1,7 +1,4 @@
-from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QMessageBox,
-    QFrame
-)
+from PyQt5.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLineEdit, QLabel, QMessageBox)
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QIcon, QIntValidator, QTransform
 from src.models.schedule import Schedule
@@ -33,7 +30,9 @@ class Navigator(QWidget):
         super().__init__()
         self.schedules = schedules  # Store the list of schedules
         self.current_index = 0      # Track current position in the schedule list
-        
+        if schedules is not None:
+            self.available_count = len(schedules) # Number of currect available schedules
+
         # --- LAYOUT SETUP ---
         # Main layout is horizontal with proper spacing and margins
         self.layout = QHBoxLayout()
@@ -102,7 +101,7 @@ class Navigator(QWidget):
             self.next_btn.setIcon(next_icon)
         else:
             self.next_btn.setText("▶")
-        
+
         # --- ASSEMBLE NAVIGATION CONTROLS ---
         # Add all elements to the navigation container with proper spacing
         nav_container.addStretch(1)  # Add flexible space on left
@@ -135,12 +134,15 @@ class Navigator(QWidget):
         """
         if self.schedules:
             # Update position display
-            self.info_label.setText(f"Schedule {self.current_index + 1} of {len(self.schedules)}")
-            self.schedule_num.setText(str(self.current_index + 1))
+            self.info_label.setText(f"Schedule {self.current_index + 1} of {self.available_count}")
             
+            # Prevents the input field from being overwritten while the user is typing
+            if not self.schedule_num.hasFocus():
+                self.schedule_num.setText(str(self.current_index + 1))
+
             # Enable/disable buttons based on position
             self.prev_btn.setEnabled(self.current_index > 0)  # Disable at start
-            self.next_btn.setEnabled(self.current_index < len(self.schedules) - 1)  # Disable at end
+            self.next_btn.setEnabled(self.current_index < self.available_count - 1)  # Disable at end
         else:
             # Handle case when no schedules are available
             self.info_label.setText("No schedules available")
@@ -177,7 +179,7 @@ class Navigator(QWidget):
         try:
             # Convert input to zero-based index
             index = int(self.schedule_num.text()) - 1
-            if 0 <= index < len(self.schedules):
+            if 0 <= index < self.available_count:
                 self.current_index = index
                 self.update_display()
                 self.schedule_changed.emit(self.current_index)
@@ -186,7 +188,7 @@ class Navigator(QWidget):
                 QMessageBox.warning(
                     self,
                     "Invalid Schedule Number",
-                    f"Please enter a number between 1 and {len(self.schedules)}."
+                    f"Please enter a number between 1 and {self.available_count}."
                 )
                 self.schedule_num.setText(str(self.current_index + 1))
         except ValueError:
@@ -203,28 +205,27 @@ class Navigator(QWidget):
         Update the list of schedules and reset navigation.
         This is called when new schedules are loaded.
         """
-        old_count = len(self.schedules)
         self.schedules = schedules
-        new_count = len(schedules)
+        self.available_count = len(schedules)  # Update available_count
         
         # Update the validator range when schedule count changes
-        if new_count > 0:
-            self.schedule_num.setValidator(QIntValidator(1, new_count))
+        if self.available_count > 0:
+            self.schedule_num.setValidator(QIntValidator(1, self.available_count))
         
         # Only reset index if we're setting schedules for the first time
         # or if schedules were previously empty
-        if old_count == 0 or self.current_index < 0:
+        if self.available_count == 0 or self.current_index < 0:
             self.current_index = 0 if schedules else -1
-        elif new_count > 0:
+        elif self.available_count > 0:
             # Keep current index if possible, otherwise set to last available
-            self.current_index = min(self.current_index, new_count - 1)
+            self.current_index = min(self.current_index, self.available_count - 1)
         else:
             self.current_index = -1
             
         self.update_display()
         if self.schedules and self.current_index >= 0:
             self.schedule_changed.emit(self.current_index)
-
+    
     def get_current_schedule(self):
         """
         Get the currently selected schedule.

@@ -150,11 +150,14 @@ def test_export_file(controller, tmp_path):
 # This test checks the performance of the program by measuring the time it takes to generate schedules
 @pytest.mark.parametrize("num,lec,trg,mab", [
     (3, 3, 3, 3),   # small fast
-    (5, 4, 3, 2),   # heavy
+    (5, 4, 3, 2),   # medium
+    (7, 10, 10, 10), # large
 ])
-def test_performance(controller, tmp_path, qtbot, api, num, lec, trg, mab):
+def test_performance(controller, tmp_path, qtbot, num, lec, trg, mab):
     # Write heavy file
-    heavy = write_course_file(str(tmp_path/"heavy.txt"), num, lec, trg, mab)
+    #path = os.path.join(r"enter your path", "heavy.txt")
+    path = tmp_path/"heavy.txt" 
+    heavy = write_course_file(str(path), num, lec, trg, mab)
     assert os.path.exists(heavy)
 
     controller.course_window.show()
