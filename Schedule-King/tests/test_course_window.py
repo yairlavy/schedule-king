@@ -1,8 +1,10 @@
+import os
 import pytest
 from unittest.mock import patch
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QListWidget
+from PyQt5.QtWidgets import QMessageBox
 from src.views.course_window import CourseWindow
 from src.models.course import Course
 
@@ -60,6 +62,9 @@ def loaded_window(qtbot, courses_txt, courses):
         qtbot.mouseClick(window.courseSelector.load_button, Qt.LeftButton)
         return window
 
+def get_wait_time():
+    return int(os.environ.get("WAIT_TIME", 0))
+
 # ——— Tests ————————————————————————————————————————————
 
 def test_load_courses(loaded_window, courses):
@@ -84,13 +89,13 @@ def test_select_and_clear_courses(loaded_window, qtbot):
         qtbot.mouseClick(list_widget.viewport(), Qt.LeftButton, pos=list_widget.visualItemRect(item).center())
     
         # Pause to observe
-        qtbot.wait(500)  
+        qtbot.wait(get_wait_time())  
 
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 selected)"
     
     # Clear selection
     qtbot.mouseClick(list_widget.viewport(), Qt.LeftButton, pos=list_widget.visualItemRect(item).center())
-    qtbot.wait(500)  
+    qtbot.wait(get_wait_time())  
     qtbot.mouseClick(loaded_window.courseSelector.clear_button, Qt.LeftButton)
     assert not list_widget.selectedItems()
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 total)"
@@ -116,5 +121,9 @@ def test_submit_selection(loaded_window, qtbot):
     # Test clear and submit
     captured_selections.clear()
     list_widget.clearSelection()
-    qtbot.mouseClick(loaded_window.courseSelector.submit_button, Qt.LeftButton)
-    assert len(captured_selections) == 0
+    
+    # Mock the selection to be empty to mock the warning
+    with patch.object(QMessageBox, "critical") as mock_critical:
+        qtbot.mouseClick(loaded_window.courseSelector.submit_button, Qt.LeftButton)
+        mock_critical.assert_called_once()
+        assert captured_selections == []

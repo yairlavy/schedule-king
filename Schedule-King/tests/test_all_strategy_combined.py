@@ -61,26 +61,26 @@ def test_init_too_many_courses_raises():
 #STRATEGYALL_VALID_002
 def test_generate_no_courses():
     strategy = AllStrategy([])
-    result = strategy.generate()
+    result = list(strategy.generate())
     assert result == []
 
 #STRATEGYALL_VALID_003
 def test_generate_no_conflict(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
-    schedules = strategy.generate()
+    schedules = list(strategy.generate())
     assert len(schedules) >= 1
     assert all(isinstance(schedule, Schedule) for schedule in schedules)
 
 #STRATEGYALL_VALID_004
 def test_generate_conflict_detected(conflicting_courses):
     strategy = AllStrategy(conflicting_courses)
-    schedules = strategy.generate()
+    schedules = list(strategy.generate())
     assert schedules == []  # All combinations should conflict
 
 #STRATEGYALL_FUNC_001
 def test_generate_all_combinations(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
-    schedules = strategy.generate()
+    schedules = list(strategy.generate())
     assert schedules  # not empty
     assert all(isinstance(schedule, Schedule) for schedule in schedules)
     assert all(isinstance(g, LectureGroup) for s in schedules for g in s.lecture_groups)

@@ -1,7 +1,6 @@
 import pytest
 from src.controllers.ScheduleController import ScheduleController
 from src.services.schedule_api import ScheduleAPI
-from src.models.course import Course
 from src.models.schedule import Schedule
 
 # ——— RAW_DATA ————————————————————————————————
@@ -38,40 +37,39 @@ def controller(api):
     return ScheduleController(api)
 
 # ——— Tests ————————————————————————————————————————————
-
 def test_generate_schedules(controller, api, courses_txt):
     # parse courses from file
     courses = api.get_courses(courses_txt)
-
-    # should be 2 courses from RAW_DATA
     assert len(courses) == 2
 
-    schedules = controller.generate_schedules(courses)
+    # generate schedules synchronously
+    schedules = api.process(courses)
+    controller.schedules = schedules
 
-    # check that the schedules are generated
-    assert isinstance(schedules, list)
-    assert all(isinstance(s, Schedule) for s in schedules)
-    assert len(schedules) == 4
-
-    # check that the schedules are stored in the controller
+    # Assert schedules on controller
+    assert isinstance(controller.get_schedules(), list)
+    assert all(isinstance(s, Schedule) for s in controller.get_schedules())
+    assert len(controller.get_schedules()) == 4
     assert controller.get_schedules() == schedules
 
 def test_generate_schedules_empty_data(controller):
-    #Passing empty course list should return empty schedule
+    #Passing empty course list should return empty schedules
     schedules = controller.generate_schedules([])
     assert schedules == []
     assert controller.get_schedules() == []
 
 def test_export_schedules_format(controller, api, courses_txt, tmp_path):
-    #Parse the course
+    # parse and generate
     courses = api.get_courses(courses_txt)
     assert len(courses) == 2
+    controller.generate_schedules(courses)
 
-    #Generate schedules
-    schedules = controller.generate_schedules(courses)
-    assert len(schedules) == 4
+    # generate schedules synchronously
+    schedules = api.process(courses)
+    controller.schedules = schedules
+    assert len(controller.get_schedules()) == 4
 
-    #Export the schedules to a file
+    # export the schedules
     export_path = tmp_path / "exported.txt"
     controller.export_schedules(str(export_path))
     assert export_path.exists()

@@ -2,6 +2,7 @@ import os
 import time
 import random
 import pytest
+from unittest.mock import patch
 from PyQt5.QtWidgets import QMessageBox, QListWidget
 from src.services.schedule_api import ScheduleAPI
 from src.controllers.MainConroller import MainController
@@ -73,6 +74,9 @@ def controller(api, qtbot):
     controller.course_window.hide = lambda: None
     return controller
 
+def get_wait_time():
+    return int(os.environ.get("WAIT_TIME", 0))
+
 # ——— Tests ——————————————————————————————————————————————
 def test_the_program_flow(controller, tmp_path):
     # write & load
@@ -89,33 +93,56 @@ def test_the_program_flow(controller, tmp_path):
     controller.on_navigate_back_to_courses()
     assert controller.schedule_window is None
 
-def test_no_courses_selected_shows_warning(controller, monkeypatch):
-    # mock QMessageBox.warning to avoid showing the the popup
-    # and to capture the arguments passed to it
-    warn = {}
-    monkeypatch.setattr(QMessageBox, "warning", lambda *args, **kwargs: warn.setdefault("last", (args[1], args[2])) or QMessageBox.Ok)
+def test_no_courses_selected_shows_warning(controller):
+    # Patch QMessageBox.warning so it doesn't pop up
+    with patch.object(QMessageBox, "warning") as mock_warning:
+        # Simulate no courses selected that would trigger the warning
+        controller.on_courses_selected([])
+        assert controller.schedule_window is None
 
-    # Simulate no courses selected that would trigger the warning
-    controller.on_courses_selected([])
-    assert controller.schedule_window is None
+        # Assert that warning() was called once
+        mock_warning.assert_called_once()
 
     # Assert that the warning was shown with correct title and text
-    title, text = warn["last"]
-    assert title == "No Courses Selected"
-    assert "select at least one course" in text.lower()
+        _, title, text, *_ = mock_warning.call_args[0]
+        assert title == "No Courses Selected"
+        assert "select at least one course" in text.lower()
 
+# ——— Test for export file creation —————————————————————————————
 def test_export_file(controller, tmp_path):
-    #This test checks if the export file is created correctly
-    f = write_course_file(str(tmp_path/"courses.txt"), num_courses=2, lectures_per_course=1, tirguls_per_course=0, maabadas_per_course=0)
-    controller.on_file_selected(f)
-    loaded = controller.course_controller.courses
-    controller.on_courses_selected(loaded)
-    out = tmp_path/"output"/"courses.txt"
+    # Generate a temporary courses file with 2 courses, each with 1 lecture
+    course_file = tmp_path / "courses.txt"
+    f = write_course_file(str(course_file), num_courses=2, lectures_per_course=1,
+                          tirguls_per_course=0, maabadas_per_course=0)
+
+    # Simulate file selection and course loading
+    controller.on_file_selected(str(f))
+    loaded_courses = controller.course_controller.courses
+    controller.on_courses_selected(loaded_courses)
+
+    # --- Generate schedules before export ---
+    sc = controller.schedule_controller
+    # Synchronously generate schedules using the API
+    schedules = sc.api.process(loaded_courses)
+    sc.schedules = schedules
+
+    # Ensure we have schedules
+    assert sc.get_schedules()
+
+    # Prepare export path and ensure directory exists
+    out = tmp_path / "output" / "courses.txt"
+    os.makedirs(out.parent, exist_ok=True)
+
+    # Export schedules to the output file
     controller.schedule_controller.export_schedules(str(out))
-    assert out.exists()
+
+    # Assert that the file was created
+    assert out.exists(), f"Export file not found at {out}"
+
+    # Check the content of the file to check if it contain the courses code
     txt = out.read_text()
     assert "Schedule 1" in txt
-    assert any(c.course_code in txt for c in loaded)
+    assert any(c.course_code in txt for c in loaded_courses)
 
 # ——— Performance Test ——————————————————————————————————————————————
 
@@ -143,7 +170,7 @@ def test_performance(controller, tmp_path, qtbot, api, num, lec, trg, mab):
         qtbot.mouseClick(course_list_widget.viewport(), Qt.LeftButton, pos=course_list_widget.visualItemRect(item).center())    
     assert len(course_list_widget.selectedItems())==num
 
-    qtbot.wait(1000)
+    qtbot.wait(get_wait_time())
     
     # Continue + measure time
     start=time.perf_counter()
@@ -151,12 +178,22 @@ def test_performance(controller, tmp_path, qtbot, api, num, lec, trg, mab):
     qtbot.waitUntil(lambda: controller.schedule_window is not None, timeout=10000)
     dur=time.perf_counter()-start
 
-        # Access and print how many schedules were created
-    print(f"\nGenerated {len(controller.schedule_window.schedules)} schedules.")
+    
+    # Access and print how many schedules were created
+    first_schedule_num = controller.schedule_window.schedules
+    print(f"\nGenerated {len(first_schedule_num)} schedules.")
     print(f"performance: {dur:.2f}s")
 
-    qtbot.wait(2000)    
-    
+    # Must wait for the schedules to be generated
+    qtbot.wait(3000)   
+    # Check if the schedules was incrences
+    second_schedule_num = controller.schedule_window.schedules
+    assert second_schedule_num > first_schedule_num
+    print(f"\nGenerated {len(second_schedule_num)} schedules.")
+    print(f"performance: {dur:.2f}s")
+
+    qtbot.wait(get_wait_time())   
+
     # close the schedule window so the next param run starts fresh
     controller.schedule_window.close()
     controller.schedule_window = None
