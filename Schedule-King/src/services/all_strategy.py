@@ -36,25 +36,33 @@ class AllStrategy(IScheduleStrategy):
         :param result: A list of Schedules to which the valid combinations will be appended.
         :return: Iterator[Schedule]: A generator yielding valid Schedule objects.
         """
+        # Base case: if we've selected a group for every course, yield a Schedule
         if index == len(self._selected):
             yield Schedule(current.copy())
             return
 
+        # Get the current course
         course = self._selected[index]
+        # Use [None] if tirguls or maabadas are empty, to allow for courses without these groups
         tirguls = course.tirguls or [None]
         maabadas = course.maabadas or [None]
 
+        # Iterate over all possible combinations of lecture, tirgul, and maabada for this course
         for lec, tir, lab in product(course.lectures, tirguls, maabadas):
+            # Create a LectureGroup for this combination
             group = LectureGroup(
-                course_name=course.name,
-                course_code=course.course_code,
-                instructor=course.instructor,
-                lecture=lec,
-                tirguls=tir,
-                maabadas=lab
+            course_name=course.name,
+            course_code=course.course_code,
+            instructor=course.instructor,
+            lecture=lec,
+            tirguls=tir,
+            maabadas=lab
             )
             current.append(group)
+            # Only proceed if the current combination does not have conflicts
             if not self._checker.has_conflict_groups(current):
+            # Recursively build combinations for the next course
                 yield from self._build_valid_combinations(index + 1, current)
+            # Backtrack: remove the last group to try the next combination
             current.pop()
 
