@@ -52,11 +52,6 @@ Schedule-King/
    pip install -r requirements.txt
    ```
 
-3. For development, install additional dependencies:
-   ```bash
-   pip install -r dev-requirements.txt
-   ```
-
 ## Running the Application
 
 1. **Start the Application**:
