@@ -11,6 +11,7 @@ from src.controllers.ScheduleController import ScheduleController
 from typing import List, Callable
 import os
 from src.models.course import Course
+from PyQt5.QtWidgets import QProgressDialog
 
 class ScheduleWindow(QMainWindow):
     """
@@ -39,6 +40,7 @@ class ScheduleWindow(QMainWindow):
         self.course_selector_ref = None # Reference to the course selector window
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
         self.controller.on_schedules_generated = self.on_schedule_generated
+        self.controller.on_progress_updated = self.update_progress
         self.progress_bar = None  # QProgressDialog for schedule generation progress
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
@@ -167,61 +169,34 @@ class ScheduleWindow(QMainWindow):
         # Display the first schedule if available
         if schedules:
             self.on_schedule_changed(0)
-    def start_generation(self, selected_courses: List[Course], course_selector=None):
-        """
-        Starts the generation process with a progress dialog and hooks controller signals.
-        Supports an optional CourseSelector for showing the progress bar there.
-        """
-        from PyQt5.QtWidgets import QProgressDialog
-        self.course_selector_ref = course_selector  # Store reference to external course selector
-        
-        if self.progress_bar:
-            self.progress_bar.close()
-            self.progress_bar = None
-        
-        if not course_selector:
-            # Create a new progress dialog for the current window
-            self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
-            self.progress_bar.setWindowModality(Qt.WindowModal)
-            self.progress_bar.setMinimumDuration(0)
-            self.progress_bar.setAutoClose(False)
-            self.progress_bar.setAutoReset(False)
-            self.progress_bar.setWindowTitle("Generating")
-            self.progress_bar.canceled.connect(self.controller.stop_schedules_generation)
-            self.progress_bar.show()
+        self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
+        self.progress_bar.setWindowModality(Qt.WindowModal)
+        self.progress_bar.setMinimumDuration(0)
+        self.progress_bar.setAutoClose(False)
+        self.progress_bar.setAutoReset(False)
+        self.progress_bar.setWindowTitle("Generating")
+        self.progress_bar.canceled.connect(self.controller.stop_schedules_generation)
+        self.progress_bar.show()
 
-        self.controller.on_progress_updated = self.update_progress
-        self.controller.on_schedules_generated = self.on_schedule_generated
-        self.controller.generate_schedules(selected_courses)
 
     def update_progress(self, current: int, estimated: int):
         """
         Updates the progress dialog with the current and estimated schedule counts.
         Supports an optional CourseSelector progress bar.
         """
-        target_progress = self.course_selector_ref.progress_bar if self.course_selector_ref and hasattr(self.course_selector_ref, 'progress_bar') else self.progress_bar
-        if target_progress:
-            if estimated > 0:
-                target_progress.setMaximum(estimated)
-                target_progress.setValue(current)
-                target_progress.setLabelText(f"Generating schedules... ({current}/{estimated})")
-            else:
-                target_progress.setMaximum(0)
-                target_progress.setLabelText(f"Generating schedules... ({current} generated)")
+        if estimated > 0:
+            self.progress_bar.setMaximum(estimated)
+            self.progress_bar.setValue(current)
+            self.progress_bar.setLabelText(f"Generating schedules... ({current}/{estimated})")
+        else:
+            self.progress_bar.setMaximum(0)
+            self.progress_bar.setLabelText(f"Generating schedules... ({current} generated)")
 
     def on_schedule_generated(self, schedules: List[Schedule]):
         """
         Updates the UI when new schedules are generated.
         This method is called by the controller during schedule generation.
         """
-        # Always close CourseSelector progress bar if exists
-        if self.course_selector_ref and hasattr(self.course_selector_ref, 'close_progress_bar'):
-            self.course_selector_ref.close_progress_bar()
-        # Close the progress bar if it was used locally
-        if self.progress_bar:
-            self.progress_bar.close()
-            self.progress_bar = None    
-        
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
         if schedules and self.navigator.current_index == -1:
@@ -231,9 +206,9 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.clearContents()
 
         # Also close self progress bar (if used locally and not from selector)
-        if self.progress_bar and not self.controller.generation_active:
-            self.progress_bar.close()
-            self.progress_bar = None
+        #if self.progress_bar and not self.controller.generation_active:
+        #    self.progress_bar.close()
+        #    self.progress_bar = None
 
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
