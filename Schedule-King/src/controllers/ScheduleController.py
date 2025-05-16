@@ -113,6 +113,11 @@ class ScheduleController:
                 self.timer.stop()
                 self.timer = None
 
+            # Terminate the process if it's still running
+            self.api.stop_schedules_generation()
+            # Clear the schedules list
+            self.schedules = []
+
             # Clear the queue if it exists
             if self.queue:
                 while not self.queue.empty():
