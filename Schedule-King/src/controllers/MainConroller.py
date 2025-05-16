@@ -1,9 +1,12 @@
 from PyQt5.QtWidgets import QMessageBox
 from src.controllers.CourseController import CourseController
 from src.controllers.ScheduleController import ScheduleController
+from src.controllers.job_controller import JobController
+from src.models.job import JobTableModel
 from src.views.course_window import CourseWindow
 from src.views.schedule_window import ScheduleWindow
 from src.services.schedule_api import ScheduleAPI
+from src.components.jobs_status import StatusWindow
 from src.models.course import Course
 from typing import List
 
@@ -15,10 +18,13 @@ class MainController:
 
         # Initialize course and schedule controllers
         self.course_controller = CourseController(api)
-        self.schedule_controller = ScheduleController(api)
+        self.job_controller = JobController(JobTableModel())  # Job controller is not used in this context
+        self.schedule_controller = ScheduleController(api, job_controller=self.job_controller)
 
         # Initialize the course window and set up event handlers
         self.course_window = CourseWindow(maximize_on_start=maximize_on_start)
+        self.course_window.on_open_status = self.open_status_window
+
         self.schedule_window = None  # Schedule window will be created later
 
         # Set up event handlers for the course window
@@ -105,3 +111,13 @@ class MainController:
             self.schedule_window = None  
         # Show the course window again
         self.course_window.show()
+
+    # MainController
+    def open_status_window(self):
+        print("OPEN STATUS WINDOW")  # DEBUG
+        if not hasattr(self, "_status_window"):
+            self._status_window = StatusWindow(self.job_controller.model, self.job_controller)
+        self._status_window.show()
+        self._status_window.raise_()
+        self._status_window.activateWindow()
+        self._status_window.setGeometry(300, 300, 600, 400)

@@ -1,3 +1,28 @@
+import os
+from multiprocessing import Queue
+from src.models.schedule import Schedule
+from src.services.schedule_api import ScheduleAPI
+from typing import List
+import time
+
+def export_worker(queue: Queue, job_id: int, schedules: List[Schedule], file_path: str, api: ScheduleAPI):
+    """
+    Worker function to export schedules in a background process.
+    """
+    time.sleep(10)
+    try:
+        # Send initial status update
+        queue.put((job_id, "running", 0))
+        
+        # Export the schedules
+        api.export(schedules, file_path)
+        
+        # Send completion status
+        queue.put((job_id, "finished", 100))
+    except Exception as e:
+        queue.put((job_id, "error", 0))
+        raise  # Re-raise the exception to ensure proper process termination
+
 from src.services.schedule_api import ScheduleAPI
 from src.models.schedule import Schedule
 from src.models.course import Course
@@ -5,7 +30,7 @@ from typing import List, Optional
 from PyQt5.QtCore import QTimer
 
 class ScheduleController:
-    def __init__(self, api: ScheduleAPI):
+    def __init__(self, api: ScheduleAPI, job_controller=None):
         """
         Initializes the ScheduleController with the given API.
         Sets up internal state for schedules, timers, and callbacks.
@@ -19,6 +44,7 @@ class ScheduleController:
         self.queue = None  # Queue for generated schedules
         self.generation_active = False  # Flag to indicate if generation is active
         self.estimated_total = -1  # Estimated total number of schedules (optional, if known)
+        self.job_controller = job_controller  # Optional job controller for managing background tasks
 
     def generate_schedules(self, selected_courses: List[Course]) -> List[Schedule]:
         """
@@ -64,23 +90,22 @@ class ScheduleController:
         updated = False
         max_batch_per_loop = 100 # Number of batches to process per loop
         
-        # Retrieve up to max_batches_per_loop batches from the queue
+        from queue import Empty  # חשוב: זו של multiprocessing
+
         for _ in range(max_batch_per_loop):
-            if self.queue.empty():
-                break
-            
             try:
-                schedule = self.queue.get(block=False)
-                if schedule is None:  # None signals generation is complete
-                    self.generation_active = False
-                    # When generation is complete, set current = estimated total
-                        # If we didn't have an estimate, use the actual count as both current and total
-                    self.on_progress_updated(len(self.schedules), len(self.schedules))
-                    break
-                self.schedules.extend(schedule)  # Append the batch to the schedules list
-                updated = True
-            except:
+                schedule = self.queue.get_nowait()  # בדיוק כמו get(block=False)
+            except Empty:
+                break  # אין עוד מה לקרוא – לא לחסום
+            
+            if schedule is None:
+                self.generation_active = False
+                self.on_progress_updated(len(self.schedules), len(self.schedules))
                 break
+
+            self.schedules.extend(schedule)
+            updated = True
+
 
         # Always notify progress update during active generation
         if self.generation_active:
@@ -136,17 +161,19 @@ class ScheduleController:
         return self.schedules
 
     def export_schedules(self, file_path: str, schedules_to_export: Optional[List[Schedule]] = None) -> None:
-        """
-        Exports the schedules to a file.
-
-        Args:
-            file_path (str): The path to save the file.
-            schedules_to_export (Optional[List[Schedule]]): Specific schedules to export.
-                If None, exports all schedules.
-
-        Raises:
-            Exception: If the export operation fails.
-        """
         schedules = schedules_to_export if schedules_to_export is not None else self.schedules
-        # Use the API's export method to save the schedules to the specified file
-        self.api.export(schedules, file_path)
+
+        if self.job_controller:
+            # Create a descriptive job name using the file path
+            job_name = f"Export to {file_path}"
+            
+            self.job_controller.start_task(
+                export_worker,
+                schedules,
+                file_path,
+                self.api,  # Pass the existing API instance
+                name=job_name
+            )
+        else:
+            # fallback if no job_controller
+            self.api.export(schedules, file_path)

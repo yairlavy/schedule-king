@@ -47,11 +47,22 @@ class CourseWindow(QMainWindow):
         # Optionally set full-screen display (disabled during tests to prevent access violations on Windows)
         if maximize_on_start:
             self.showMaximized()
+        from PyQt5.QtWidgets import QPushButton
+
 
         
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
         self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
+        self.on_open_status: Callable[[], None] = lambda: None
+
+# --- Add button to open status window ---
+        status_button = QPushButton("📊 Show Background Jobs")
+        status_button.setFixedHeight(40)
+        status_button.setFont(QFont("Arial", 11))
+        status_button.clicked.connect(self.onStatus)
+
+        outer_layout.addWidget(status_button, alignment=Qt.AlignRight)
 
     def displayCourses(self, courses: List[Course]):
         """
@@ -94,3 +105,9 @@ class CourseWindow(QMainWindow):
             self.courseSelector.close_progress_bar()
             self.courseSelector._handle_clear()
             self.on_courses_loaded(file_path)  # Trigger the courses loaded callback with the file path
+
+    def onStatus(self):
+        """
+        Handle the event when the status button is clicked.
+        """
+        self.on_open_status()
