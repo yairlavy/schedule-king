@@ -146,24 +146,6 @@ class ScheduleWindow(QMainWindow):
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
         
-        # Add navigation icons (with fallbacks)
-        next_icon_path = os.path.join(os.path.dirname(__file__), "../assets/next.png")
-        next_icon = QIcon(next_icon_path)
-        prev_icon = QIcon(next_icon_path)
-
-        # Rotate the next icon by 180 degrees for the previous button
-        if not prev_icon.isNull():
-            rotated_pixmap = next_icon.pixmap(32, 32).transformed(QTransform().rotate(180))
-            prev_icon = QIcon(rotated_pixmap)
-            self.navigator.prev_btn.setIcon(prev_icon)
-        else:
-            self.navigator.prev_btn.setText("◀")
-            
-        if not next_icon.isNull():
-            self.navigator.next_btn.setIcon(next_icon)
-        else:
-            self.navigator.next_btn.setText("▶")
-        
         # Connect navigator's schedule change signal to update the table
         self.navigator.schedule_changed.connect(self.on_schedule_changed)
         

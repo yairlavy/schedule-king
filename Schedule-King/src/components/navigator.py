@@ -3,10 +3,10 @@ from PyQt5.QtWidgets import (
     QFrame
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QIntValidator
+from PyQt5.QtGui import QIcon, QIntValidator, QTransform
 from src.models.schedule import Schedule
 from typing import List
-from src.models.schedule import Schedule
+import os
 
 class Navigator(QWidget):
     """
@@ -84,6 +84,24 @@ class Navigator(QWidget):
         self.next_btn.setObjectName("nav_button")
         self.next_btn.setToolTip("Next Schedule")
         self.next_btn.setFixedSize(40, 40)
+        
+        # Add navigation icons (with fallbacks)
+        next_icon_path = os.path.join(os.path.dirname(__file__), "../assets/next.png")
+        next_icon = QIcon(next_icon_path)
+        prev_icon = QIcon(next_icon_path)
+
+        # Rotate the next icon by 180 degrees for the previous button
+        if not prev_icon.isNull():
+            rotated_pixmap = next_icon.pixmap(32, 32).transformed(QTransform().rotate(180))
+            prev_icon = QIcon(rotated_pixmap)
+            self.prev_btn.setIcon(prev_icon)
+        else:
+            self.prev_btn.setText("◀")
+            
+        if not next_icon.isNull():
+            self.next_btn.setIcon(next_icon)
+        else:
+            self.next_btn.setText("▶")
         
         # --- ASSEMBLE NAVIGATION CONTROLS ---
         # Add all elements to the navigation container with proper spacing
