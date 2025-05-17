@@ -1,59 +1,60 @@
+
+from itertools import combinations
 from src.models.time_slot import TimeSlot
-from src.models.course import Course
+from src.models.lecture_group import LectureGroup
 
 class ConflictChecker:
     """
-    Responsible for checking conflicts between time slots and courses.
+    Check for time- and room-conflicts directly on LectureGroup objects.
     """
+
+    def _time_overlaps(self, a: TimeSlot, b: TimeSlot) -> bool:
+        """
+        Check if two TimeSlot objects overlap in time on the same day.
+        """
+        if a.day != b.day:
+            return False
+        # Overlap exists unless one ends before the other starts
+        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
 
     def check_time_conflict(self, a: TimeSlot, b: TimeSlot) -> bool:
         """
-        Check if two time slots conflict in time and day.
-
-        :param a: First time slot
-        :param b: Second time slot
-        :return: True if they overlap in time on the same day, False otherwise
+        Public method to check if two TimeSlot objects have a time conflict.
         """
-        if a.day != b.day:
-            return False
-        
-        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
+        return self._time_overlaps(a, b)
 
     def check_room_conflict(self, a: TimeSlot, b: TimeSlot) -> bool:
         """
-        Check if two time slots are in the same room at the same time.
-
-        :param a: First time slot
-        :param b: Second time slot
-        :return: True if they overlap in time and are in the same room, False otherwise
+        Check if two TimeSlot objects are in the same room and overlap in time.
         """
-        if a.day != b.day:
-            return False
-
         if a.building != b.building or a.room != b.room:
             return False
+        return self._time_overlaps(a, b)
 
-        return not (a.end_time <= b.start_time or b.end_time <= a.start_time)
-
-    def find_conflicting_courses(self, courses: list[Course]) -> bool:
+    def has_conflict_groups(self, groups: list[LectureGroup]) -> bool:
         """
-        Check if there is any conflict among the course time slots.
-
-        :param courses: List of Course objects
-        :return: True if any conflicts exist, False otherwise
+        Check if there are any time or room conflicts among a list of LectureGroup objects.
         """
-        all_slots:list[TimeSlot] = []
+        # Flatten all non-None slots from each group (lecture, tirguls, maabadas)
+        slots = [
+            slot
+            for g in groups
+            for slot in (g.lecture, g.tirguls, g.maabadas)
+            if slot is not None
+        ]
 
-        for course in courses:
-            for slot in course.lectures + course.tirguls + course.maabadas:
-                if slot is not None:
-                    all_slots.append(slot)
-        
-        # Pairwise check of conflicts
-        for i in range(len(all_slots)):
-            for j in range(i + 1, len(all_slots)):
-                if (self.check_time_conflict(all_slots[i], all_slots[j]) or
-                        self.check_room_conflict(all_slots[i], all_slots[j])):
-                    return True
+        # Check all pairs for conflicts
+        slots.sort(key=lambda s: (s.day, s.start_time))
+        # Iterate through sorted slots and check for conflicts between consecutive slots
+        for i in range(len(slots) - 1):
+            a, b = slots[i], slots[i + 1]
 
-        return False
+            # Skip if slots are on different days (no possible conflict)
+            if a.day != b.day:
+                continue
+
+            # Check for time or room conflict between the two slots
+            if self.check_time_conflict(a, b) or self.check_room_conflict(a, b):
+                return True  # Conflict found
+
+        return False  # No conflicts found

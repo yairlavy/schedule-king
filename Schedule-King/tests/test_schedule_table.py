@@ -1,7 +1,11 @@
 import pytest
+import os
 import datetime
 from unittest.mock import Mock
 from src.components.schedule_table import ScheduleTable
+
+def get_wait_time():
+    return int(os.environ.get("WAIT_TIME", 0))
 
 def setup_table(qtbot):
     table = ScheduleTable()
@@ -44,7 +48,7 @@ def test_display_schedule_basic(qtbot):
     # Set up the table and populate with data
     table = setup_table(qtbot)
     table.display_schedule(schedule)
-    qtbot.wait(2000)
+    qtbot.wait(get_wait_time())
 
     # Sunday 09:00 - Lecture: "Calculus"
     w1 = table.cellWidget(1, 0)  # Row 1, Column 0
@@ -92,7 +96,7 @@ def test_course_more_than_1_hour(qtbot):
 
     table = setup_table(qtbot)
     table.display_schedule(schedule)
-    qtbot.wait(1000)
+    qtbot.wait(get_wait_time())
 
     # The lecture spans 9:00–11:00, so it should fill rows for 9:00-10:00 and 10:00-11:00
     # First slot should have full details
@@ -127,7 +131,7 @@ def test_duplicate_same_slot(qtbot):
 
     table = setup_table(qtbot)
     table.display_schedule(schedule)
-    qtbot.wait(2000)
+    qtbot.wait(get_wait_time())
 
     # Same slot twice → only one widget in Sunday column
     widgets = table.cellWidget(1, 0)
@@ -143,7 +147,7 @@ def test_display_schedule_empty(qtbot):
 
     table = setup_table(qtbot)
     table.display_schedule(schedule)
-    qtbot.wait(500)
+    qtbot.wait(get_wait_time())
 
     for r in range(table.rowCount()):
         for c in range(table.columnCount()):
@@ -164,7 +168,7 @@ def test_display_schedule_out_of_range_times(qtbot):
 
     table = setup_table(qtbot)
     table.display_schedule(schedule)
-    qtbot.wait(500)
+    qtbot.wait(get_wait_time())
 
     for r in range(table.rowCount()):
         for c in range(table.columnCount()):
@@ -194,7 +198,7 @@ def test_fill_all_schedule_cells(qtbot):
 
     table = setup_table(qtbot)
     table.display_schedule(schedule)
-    qtbot.wait(1000)
+    qtbot.wait(get_wait_time())
 
     # Assert all 12×7 cells are filled
     for row in range(table.rowCount()):

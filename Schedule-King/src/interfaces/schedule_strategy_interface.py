@@ -1,7 +1,7 @@
 # src/core/schedule_strategy_interface.py
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Iterator
 from src.models.schedule import Schedule
 
 class IScheduleStrategy(ABC):
@@ -10,11 +10,11 @@ class IScheduleStrategy(ABC):
     """
 
     @abstractmethod
-    def generate(self) -> List[Schedule]:
+    def generate(self) -> Iterator[Schedule]:
         """
         Generate all possible valid schedules using internal state (e.g. selected courses).
 
         Returns:
-            List[Schedule]: A list of valid, non-conflicting schedules.
+            ListIterator[Schedule]: A list of valid, non-conflicting schedules.
         """
         pass

@@ -20,6 +20,9 @@ class ScheduleTable(QTableWidget):
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
         
+        # Store current schedule for comparison
+        self.current_schedule = None
+        
         # Set up 12 rows for time slots (8:00 to 19:00)
         self.setRowCount(12)
         self.setWordWrap(True)  # Enable text wrapping in cells
@@ -77,6 +80,12 @@ class ScheduleTable(QTableWidget):
         Args:
             schedule (Schedule): The schedule object containing events to display.
         """
+        # Skip redraw if schedule hasn't changed
+        if self.current_schedule == schedule:
+            return
+            
+        self.current_schedule = schedule
+        
         # Clear existing content
         self.clearContents()
         
@@ -117,9 +126,7 @@ class ScheduleTable(QTableWidget):
                 for row in range(start_row, end_row):
                     # Create table item with metadata
                     item = QTableWidgetItem()
-                    item.setData(Qt.UserRole, f"{event_class}|{code}")  # Store event type and code
-                    item.setToolTip(tooltip_text)
-                    
+                    item.setToolTip(tooltip_text)                    
                     # Add item to table
                     self.setItem(row, day, item)
                     

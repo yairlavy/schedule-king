@@ -28,19 +28,26 @@ class SuperTester:
         flags = []
         testNumbers = []
         show_gui = False  # Default to not show GUI
+        qt_wait_time = None # hold the wait time for qt-show default to None
         
         for item in input:
             if item.isdigit():
                 testNumbers.append(int(item))
             elif item.startswith('-') or item.startswith('--'):
                 flags.append(item)
-            elif item == "qt-show":
+            elif item.startswith('qt-show'):
                 show_gui = True  # If 'qt-show' flag is present, show the GUI
+                if ':' in item:
+                    try:
+                        qt_wait_time = int(item.split(':')[1])
+                    except ValueError:
+                        print(f"Invalid qt-show wait time: {item.split(':')[1]} \n")
+                        return False, None, None, None
             else:
                 print(f"Invalid input: {item} \n")
-                return False, None
+                return False, None, None, None
         
-        return testNumbers, flags, show_gui
+        return testNumbers, flags, show_gui, qt_wait_time
 
     def build_command(self, testNumbers, flags):
         # Build the command to run pytest with the selected tests and flags
@@ -55,7 +62,7 @@ class SuperTester:
                     print(f"Invalid test number: {n} \n")
                     return False
         full_paths = [os.path.join(self.folder, t) for t in selected_tests]
-        return ["pytest"] + full_paths + flags
+        return ["python", "-m", "pytest"] + full_paths + flags
 
     def run(self):
         # Main loop to run the tests
@@ -65,12 +72,14 @@ class SuperTester:
         
         while True:
             self.display_tests()
-            user_input = input("Enter test numbers (0 for all) and optional pytest flags like (-v, -s), qt-show for gui window, or 'q' to quit:\n> ").strip()
+            print("Enter test numbers (0 for all) and optional pytest flags like (-v, -s), qt-show:time for gui window, or 'q' to quit")
+            print("Example: 1 2 -v -s qt-show:2 (for show the qt for 2 sec)")
+            user_input = input().strip()
             if user_input.lower() in ('q', 'quit', 'exit'):
                 break
 
             try:
-                testNumbers, flags, show_gui = self.parse_input(user_input)
+                testNumbers, flags, show_gui, qt_wait_time = self.parse_input(user_input)
                 if not testNumbers:  # Continue if invalid input
                     continue
 
@@ -82,6 +91,10 @@ class SuperTester:
                 env = os.environ.copy()
                 if not show_gui:
                     env["QT_QPA_PLATFORM"] = "offscreen"  # Hide GUI
+                
+                # If qt-show is specified, set the wait time
+                if qt_wait_time is not None:
+                    env["WAIT_TIME"] = str(qt_wait_time)
 
                 print(f"Running: {' '.join(command)}\n")
                 subprocess.run(command, env=env)

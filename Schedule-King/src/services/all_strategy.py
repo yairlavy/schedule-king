@@ -1,11 +1,10 @@
-from typing import List
+from typing import List, Iterator
 from itertools import product
 from src.interfaces.schedule_strategy_interface import IScheduleStrategy
 from src.models.schedule import Schedule
 from .conflict_checker import ConflictChecker
 from src.models.course import Course
 from src.models.lecture_group import LectureGroup
-
 
 class AllStrategy(IScheduleStrategy):
     def __init__(self, selected: List[Course]):
@@ -14,63 +13,56 @@ class AllStrategy(IScheduleStrategy):
         :param selected: List of courses to be included in the strategy.
         :raises ValueError: If more than 7 courses are selected.
         """
-        if len(selected) > 7: # Assuming a maximum of 7 courses can be selected
+        if len(selected) > 7:
             raise ValueError("Cannot select more than 7 courses.")
-        self._selected = selected # List of selected courses
-        self._checker = ConflictChecker() # ConflictChecker instance to check for course conflicts
+        self._selected = selected
+        self._checker = ConflictChecker()
 
-    def generate(self) -> List[Schedule]:
-        if not self._selected: # If no courses are selected, return an empty list
-            return []
-
-        valid_schedules = [] # List to store valid schedules
-        self._build_valid_combinations(0, [], valid_schedules) # Start building valid combinations from index 0
-        return valid_schedules # Return the list of valid schedules
-
-    def _build_valid_combinations(self, index: int, current: List[LectureGroup], result: List[Schedule]):
+    def generate(self) -> Iterator[Schedule]:
         """
-        Recursive function to generate all valid combinations of LectureGroups for the selected courses.
+        Lazily generate all valid, conflict-free schedules.
+        """
+        if not self._selected:
+            return  # empty iterator
+        yield from self._build_valid_combinations(0, [])
+
+    def _build_valid_combinations(
+        self, index: int, current: List[LectureGroup]
+    ) -> Iterator[Schedule]:
+        """
+        Recursive generator for valid combinations of LectureGroups.
         :param index: The index of the current course in self._selected.
         :param current: A list of LectureGroups representing the current combination.
         :param result: A list of Schedules to which the valid combinations will be appended.
-        :return: None
+        :return: Iterator[Schedule]: A generator yielding valid Schedule objects.
         """
-
+        # Base case: if we've selected a group for every course, yield a Schedule
         if index == len(self._selected):
-            result.append(Schedule(current[:])) # Append a copy of current to result
+            yield Schedule(current.copy())
             return
 
-        course = self._selected[index] # Get the current course
-        tirguls = course.tirguls if course.tirguls else [None] # Get the list of tirguls or set to [None] if not available
-        maabadas = course.maabadas if course.maabadas else [None] # Get the list of maabadas or set to [None] if not available
+        # Get the current course
+        course = self._selected[index]
+        # Use [None] if tirguls or maabadas are empty, to allow for courses without these groups
+        tirguls = course.tirguls or [None]
+        maabadas = course.maabadas or [None]
 
-        for lec, tir, lab in product(course.lectures, tirguls, maabadas): # Generate combinations of lectures, tirguls, and maabadas
+        # Iterate over all possible combinations of lecture, tirgul, and maabada for this course
+        for lec, tir, lab in product(course.lectures, tirguls, maabadas):
+            # Create a LectureGroup for this combination
             group = LectureGroup(
-                course_name=course.name,
-                course_code=course.course_code,
-                instructor=course.instructor,
-                lecture=lec,
-                tirguls=tir,
-                maabadas=lab
+            course_name=course.name,
+            course_code=course.course_code,
+            instructor=course.instructor,
+            lecture=lec,
+            tirguls=tir,
+            maabadas=lab
             )
             current.append(group)
+            # Only proceed if the current combination does not have conflicts
+            if not self._checker.has_conflict_groups(current):
+            # Recursively build combinations for the next course
+                yield from self._build_valid_combinations(index + 1, current)
+            # Backtrack: remove the last group to try the next combination
+            current.pop()
 
-            if not self._has_conflict(current): # Check for conflicts with the current combination
-                self._build_valid_combinations(index + 1, current, result) # Recur for the next course
-
-            current.pop() # Backtrack by removing the last added group
-
-    def _has_conflict(self, groups: List[LectureGroup]) -> bool:  # Check for conflicts with the current combination    
-        courses = []
-        for group in groups: # Iterate through the groups to check for conflicts
-            mock_course = Course(
-                course_name=group.course_name,
-                course_code=group.course_code,
-                instructor=group.instructor,
-                lectures=[group.lecture] if group.lecture else [],
-                tirguls=[group.tirguls] if group.tirguls else [],
-                maabadas=[group.maabadas] if group.maabadas else [],
-            )
-            courses.append(mock_course) # Create a mock course for conflict checking
-
-        return self._checker.find_conflicting_courses(courses) # Check for conflicts using the ConflictChecker

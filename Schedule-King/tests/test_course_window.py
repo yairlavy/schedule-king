@@ -1,10 +1,13 @@
+import os
 import pytest
 from unittest.mock import patch
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QListWidget
+from PyQt5.QtWidgets import QMessageBox
 from src.views.course_window import CourseWindow
 from src.models.course import Course
+import src.components.course_selector as course_selector
 
 # ——— RAW_DATA ———————————————————————————————————————————
 RAW_DATA = """
@@ -46,24 +49,30 @@ def courses():
 
 @pytest.fixture
 def loaded_window(qtbot, courses_txt, courses):
-    """Returns a CourseWindow with mocked course loading."""
+    """
+    Fixture for creating a CourseWindow safely, ensuring:
+    - QFileDialog is patched BEFORE CourseWindow is instantiated.
+    - Course loading callback is patched BEFORE any interaction.
+    - Avoids race conditions, crashes and Windows access violations.
+    """
     with patch.object(QFileDialog, "getOpenFileName", return_value=(courses_txt, "")):
-        window = CourseWindow()
+        window = CourseWindow(maximize_on_start=False)  # Disable maximize to avoid access violation during tests
         qtbot.addWidget(window)
-        
-        # Mock the course loading to return courses
-        def mock_load_file(_):
-            window.displayCourses(courses)
-        window.on_courses_loaded = mock_load_file
-        
-        # Simulate clicking the load button
+
+        # Ensure courses are loaded safely
+        window.on_courses_loaded = lambda path: window.displayCourses(courses)
+
+        # Trigger load button AFTER patch and handler are safely set
         qtbot.mouseClick(window.courseSelector.load_button, Qt.LeftButton)
+
         return window
+
+def get_wait_time():
+    return int(os.environ.get("WAIT_TIME", 0))
 
 # ——— Tests ————————————————————————————————————————————
 
 def test_load_courses(loaded_window, courses):
-    #Test course loading populates the list correctly
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
     assert list_widget.count() == len(courses)
     assert list_widget.item(0).text() == "00001 - Calculus 1"
@@ -72,49 +81,41 @@ def test_load_courses(loaded_window, courses):
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 total)"
 
 def test_select_and_clear_courses(loaded_window, qtbot):
-    #Test selection and clearing functionality
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
-    
-    # Select all courses
     for i in range(list_widget.count()):
         item = list_widget.item(i)
         list_widget.scrollToItem(item)
-
-        # Simulate click at item's position
         qtbot.mouseClick(list_widget.viewport(), Qt.LeftButton, pos=list_widget.visualItemRect(item).center())
-    
-        # Pause to observe
-        qtbot.wait(500)  
+        qtbot.wait(get_wait_time())
 
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 selected)"
-    
-    # Clear selection
-    qtbot.mouseClick(list_widget.viewport(), Qt.LeftButton, pos=list_widget.visualItemRect(item).center())
-    qtbot.wait(500)  
+
     qtbot.mouseClick(loaded_window.courseSelector.clear_button, Qt.LeftButton)
     assert not list_widget.selectedItems()
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 total)"
 
 def test_submit_selection(loaded_window, qtbot):
-    #Test course submission with selection
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
     captured_selections = []
-    
-    # Setup capture callback
+
     def capture_selections(selected):
         captured_selections.extend(selected)
-    
+
     loaded_window.on_continue = capture_selections
-    
-    # Select and submit first course
-    list_widget.item(0).setSelected(True)
-    qtbot.mouseClick(loaded_window.courseSelector.submit_button, Qt.LeftButton)
-    
+
+    # Patch the progress bar to prevent GUI issues during test
+    import src.components.course_selector as course_selector_module
+    with patch.object(course_selector_module.CourseSelector, "show_progress_bar", return_value=None):
+        list_widget.item(0).setSelected(True)
+        qtbot.mouseClick(loaded_window.courseSelector.submit_button, Qt.LeftButton)
+
     assert len(captured_selections) == 1
     assert captured_selections[0].course_code == "00001"
-    
-    # Test clear and submit
+
     captured_selections.clear()
     list_widget.clearSelection()
-    qtbot.mouseClick(loaded_window.courseSelector.submit_button, Qt.LeftButton)
-    assert len(captured_selections) == 0
+
+    with patch.object(QMessageBox, "critical") as mock_critical:
+        qtbot.mouseClick(loaded_window.courseSelector.submit_button, Qt.LeftButton)
+        mock_critical.assert_called_once()
+        assert captured_selections == []

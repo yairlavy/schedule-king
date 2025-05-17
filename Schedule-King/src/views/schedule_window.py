@@ -1,14 +1,14 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QLayout, QCheckBox
+    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox, QSpacerItem, QSizePolicy, QHeaderView
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
-from typing import List, Callable
+from typing import List
 import os
 
 class ScheduleWindow(QMainWindow):
@@ -16,7 +16,7 @@ class ScheduleWindow(QMainWindow):
     An improved window for displaying and managing generated schedules.
     Features a modern UI with icons, better layout, and enhanced visual design.
     """
-    def __init__(self, schedules: List[Schedule], controller: ScheduleController):
+    def __init__(self, schedules: List[Schedule], controller: ScheduleController,maximize_on_start=True,show_progress_on_start=True):
         """
         Initializes the ScheduleWindow with enhanced UI.
 
@@ -32,11 +32,31 @@ class ScheduleWindow(QMainWindow):
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
-        self.showMaximized()  # Start maximized for better visibility
         self.controller = controller  # Store controller for operations
         self.schedules = schedules    # Store list of schedules
+        self.course_selector_ref = None # Reference to the course selector window
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+        self.controller.on_schedules_generated = self.on_schedule_generated
+        self.controller.on_progress_updated = self.update_progress
+        self.first_schedule_shown = False
+        self.full_size_window = None  # Store reference to full size window
 
+        # Initialize progress bar
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("schedule_progress")
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(True)
+        self.progress_bar.setFormat("%v / %m schedules")
+        self.progress_bar.setFixedWidth(300)
+        self.progress_bar.setVisible(False)  # Initially hidden
+        
+        # Initialize progress label
+        self.progress_label = QLabel("Generating schedules...")
+        self.progress_label.setObjectName("progress_label")
+        self.progress_label.setAlignment(Qt.AlignCenter)
+        self.progress_label.setVisible(False)  # Initially hidden
+        
         # --- MAIN LAYOUT SETUP ---
         # Create the main container widget and layout with proper spacing
         self.central_widget = QWidget()
@@ -142,30 +162,58 @@ class ScheduleWindow(QMainWindow):
         # Create the navigator component for browsing through schedules
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
-        
-        # Add navigation icons (with fallbacks)
-        next_icon_path = os.path.join(os.path.dirname(__file__), "../assets/next.png")
-        next_icon = QIcon(next_icon_path)
-        prev_icon = QIcon(next_icon_path)
-
-        # Rotate the next icon by 180 degrees for the previous button
-        if not prev_icon.isNull():
-            rotated_pixmap = next_icon.pixmap(32, 32).transformed(QTransform().rotate(180))
-            prev_icon = QIcon(rotated_pixmap)
-            self.navigator.prev_btn.setIcon(prev_icon)
-        else:
-            self.navigator.prev_btn.setText("◀")
-            
-        if not next_icon.isNull():
-            self.navigator.next_btn.setIcon(next_icon)
-        else:
-            self.navigator.next_btn.setText("▶")
-        
-        # Connect navigator's schedule change signal to update the table
         self.navigator.schedule_changed.connect(self.on_schedule_changed)
+
+        # Build the progress box (label above bar)
+        progress_box = QVBoxLayout()
+        progress_box.setSpacing(2)
+        self.progress_label = QLabel("Generating schedules…")
+        self.progress_label.setObjectName("progress_label")
+        self.progress_label.setVisible(False)
+        progress_box.addWidget(self.progress_label)
+
+        self.progress_bar = QProgressBar()
+        self.progress_bar.setObjectName("schedule_progress")
+        self.progress_bar.setRange(0, 100)
+        self.progress_bar.setValue(0)
+        self.progress_bar.setTextVisible(False)
+        self.progress_bar.setFixedWidth(250)
+        self.progress_bar.setVisible(False)
+        progress_box.addWidget(self.progress_bar)
+
+        # Create full size button
+        self.full_size_button = QPushButton()
+        self.full_size_button.setObjectName("nav_button")
+        self.full_size_button.setFixedSize(36, 36)  # Make the button smaller
+        full_size_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/full_size.png"))
+        if not full_size_icon.isNull():
+            self.full_size_button.setIcon(full_size_icon)
+            self.full_size_button.setIconSize(self.full_size_button.size())
+            self.full_size_button.setText("")  # Icon only, no text
+        else:
+            self.full_size_button.setText("⛶")
+            self.full_size_button.setFont(QFont("Arial", 14))
+        self.full_size_button.clicked.connect(self.open_full_size)
+
+        # Build a single HBox that contains [full-size-button][progress][navigator][dummy-spacer]
+        group = QHBoxLayout()
+        group.setSpacing(10)
+        group.addLayout(progress_box)            # progress after button
+        group.addWidget(self.navigator)          # navigator in middle
+        group.addSpacing(10)                     # add space between navigator and full size button
+        group.addWidget(self.full_size_button)   # full size button on the left
         
-        # Add the navigator to the main layout
-        self.main_layout.addWidget(self.navigator)
+        # dummy spacer to balance the progress width on the right
+        dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
+        group.addSpacerItem(dummy)
+
+        # Center that group in the main layout
+        wrapper = QHBoxLayout()
+        wrapper.addStretch(1)
+        wrapper.addLayout(group)
+        wrapper.addStretch(1)
+
+        self.main_layout.addLayout(wrapper)
         
         # --- SCHEDULE TABLE ---
         # Create the main schedule display table
@@ -182,14 +230,75 @@ class ScheduleWindow(QMainWindow):
         # Display the first schedule if available
         if schedules:
             self.on_schedule_changed(0)
+            
+        # Force window to be maximized
+        self.setWindowState(Qt.WindowMaximized)
+        self.setMinimumSize(800, 600)  # Set a minimum size
+        self.resize(1920, 1080)  # Set an initial large size
+        self.show()
+        self.setWindowState(Qt.WindowMaximized)  # Set maximized state again after show
 
-    def on_schedule_changed(self, index: int):
+    def update_progress(self, current: int, estimated: int):
         """
-        Updates the schedule table when the selected schedule changes.
-        This is called when the user navigates to a different schedule.
+        Updates the progress bar with the current and estimated schedule counts.
+        Shows a determinate or indeterminate progress bar based on estimate availability.
         """
-        if 0 <= index < len(self.schedules):
-            self.schedule_table.display_schedule(self.schedules[index])
+        # Make sure progress controls are visible when active generation is happening
+        self.progress_label.setVisible(True)
+        self.progress_bar.setVisible(True)
+        
+        try:
+            if estimated > 0:
+                # We have an estimated total - show determinate progress
+                self.progress_bar.setMaximum(estimated)
+                self.progress_bar.setValue(current)
+    
+                self.progress_label.setText(f"Generating schedules... {estimated} total estimated")
+                # If we're done (current >= estimated), update text accordingly
+                if current >= estimated:
+                    self.progress_label.setText(f"Completed! Generated {current} schedules")
+            else:
+                # No estimate available - show indeterminate progress for ongoing generation
+                # or determinate if we're at the end (setting both current and max to the same value)
+                if self.controller.generation_active:
+                    self.progress_bar.setMaximum(0)  # Indeterminate mode
+                    self.progress_label.setText(f"Generating schedules... ({current} generated)")
+                else:
+                    # Generation complete but no estimate was available, set max to current
+                    self.progress_bar.setMaximum(current)
+                    self.progress_bar.setValue(current)
+                    self.progress_label.setText(f"Completed! Generated {current} schedules")
+                
+            # Force update the UI
+            self.progress_bar.repaint()
+            self.progress_label.repaint()
+        except Exception as e:
+            print(f"Estimate error: {estimated}")  # Log the error
+            print(f"Current error: {current}")  # Log the error
+            print(f"Error updating progress: {str(e)}")
+
+    def on_schedule_generated(self, schedules: List[Schedule]):
+        """
+        Updates the UI when new schedules are generated.
+        This method is called by the controller during schedule generation.
+        """
+        # Always update the navigator to refresh the count display
+        self.navigator.set_schedules(schedules)
+        # Only update schedules and current display if they've actually changed
+        if self.schedules != schedules:
+            self.schedules = schedules
+            # Only update current schedule if we don't have one displayed
+            if schedules and not self.first_schedule_shown:
+                self.navigator.current_index = 0
+                self.on_schedule_changed(0)
+                self.first_schedule_shown = True
+            elif not schedules:
+                self.schedule_table.clearContents()
+                
+        # Hide progress indicators if generation is complete and no schedules were generated
+        if not self.controller.generation_active and not schedules:
+            self.progress_bar.setVisible(False)
+            self.progress_label.setVisible(False)
 
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
@@ -201,7 +310,18 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.clearContents()
 
     def navigateToCourseWindow(self):
-        """Navigates back to the course selection window."""
+        """
+        Navigates back to the course selection window.
+        Stops any ongoing schedule generation first.
+        """
+        # First stop any ongoing generation
+        self.controller.stop_schedules_generation()
+        
+        # Hide progress indicators
+        self.progress_bar.setVisible(False)
+        self.progress_label.setVisible(False)
+        
+        # Return to course selector
         self.on_back()
 
     def export_to_file(self):
@@ -228,17 +348,15 @@ class ScheduleWindow(QMainWindow):
                 if self.export_visible_only.isChecked() and 0 <= current_index < len(self.schedules):
                     # Export only the visible schedule
                     self.controller.export_schedules(file_path, [self.schedules[current_index]])
+                elif len(self.schedules) > 100:
+                    # Export to Excel only the last 100 schedules - import is slow
+                    QMessageBox.warning(
+                        self, "Export Warning",
+                        "Exporting only the last 100 schedules for performance reasons."
+                    )   
+                    self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
                 else:
-                    # Export all schedules
-                    if file_path.endswith('.xlsx') and len(self.schedules) > 100:
-                    # Export to Excel only the last 100 schedules - excel import is slow
-                        QMessageBox.warning(
-                            self, "excel Export Warning",
-                            "Exporting only the last 100 schedules to Excel for performance reasons."
-                        )   
-                        self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
-                    else:
-                        self.controller.export_schedules(file_path)
+                    self.controller.export_schedules(file_path)
                     
                 QMessageBox.information(
                     self, "Export Successful",
@@ -251,3 +369,69 @@ class ScheduleWindow(QMainWindow):
                     self, "Export Failed",
                     f"Failed to export schedules:\n{error_msg}"
                 )
+                
+    def on_schedule_changed(self, index: int):
+        """
+        Updates the schedule table when the selected schedule changes.
+        This is called when the user navigates to a different schedule.
+        """
+        if 0 <= index < len(self.schedules):
+            self.schedule_table.display_schedule(self.schedules[index])
+        self.export_button.setEnabled(True)
+        self.back_button.setEnabled(True)
+
+    def open_full_size(self):
+        """
+        Opens the current schedule in a new full-size window.
+        """
+        if not self.schedules or self.navigator.current_index >= len(self.schedules):
+            QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
+            return
+            
+        # Close existing full size window if it exists
+        if self.full_size_window is not None:
+            self.full_size_window.close()
+            
+        # Create a new window
+        self.full_size_window = QMainWindow()
+        self.full_size_window.setWindowTitle("Schedule King - Full Size View")
+        
+        # Set window icon
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        self.full_size_window.setWindowIcon(QIcon(icon_path))
+        
+        # Create a central widget with layout
+        central_widget = QWidget()
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Add a header with schedule number
+        header = QLabel(f"Schedule #{self.navigator.current_index + 1}")
+        header.setObjectName("headline_label")
+        header.setFont(QFont("Arial", 16, QFont.Bold))
+        header.setAlignment(Qt.AlignCenter)
+        layout.addWidget(header)
+        
+        # Create a new schedule table for the full window
+        full_table = ScheduleTable()
+        full_table.setObjectName("enhanced_table")
+        
+        # Configure table for full size view
+        full_table.horizontalHeader().setStretchLastSection(True)
+        full_table.verticalHeader().setStretchLastSection(True)
+        
+        # Display the current schedule
+        full_table.display_schedule(self.schedules[self.navigator.current_index])
+        
+        # Add the table to the layout
+        layout.addWidget(full_table)
+        
+        # Set the central widget
+        self.full_size_window.setCentralWidget(central_widget)
+        
+        # Set minimum size to ensure the window is large enough
+        self.full_size_window.setMinimumSize(800, 600)
+        
+        # Show the window and set it to maximized state
+        self.full_size_window.show()
+        self.full_size_window.setWindowState(Qt.WindowMaximized)

@@ -5,6 +5,7 @@ from src.models.course import Course
 from src.models.lecture_group import LectureGroup
 from src.models.schedule import Schedule
 from src.models.time_slot import TimeSlot
+from src.services.conflict_checker import ConflictChecker
 
 # ---------- Helpers ----------
 
@@ -61,26 +62,26 @@ def test_init_too_many_courses_raises():
 #STRATEGYALL_VALID_002
 def test_generate_no_courses():
     strategy = AllStrategy([])
-    result = strategy.generate()
+    result = list(strategy.generate())
     assert result == []
 
 #STRATEGYALL_VALID_003
 def test_generate_no_conflict(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
-    schedules = strategy.generate()
+    schedules = list(strategy.generate())
     assert len(schedules) >= 1
     assert all(isinstance(schedule, Schedule) for schedule in schedules)
 
 #STRATEGYALL_VALID_004
 def test_generate_conflict_detected(conflicting_courses):
     strategy = AllStrategy(conflicting_courses)
-    schedules = strategy.generate()
+    schedules = list(strategy.generate())
     assert schedules == []  # All combinations should conflict
 
 #STRATEGYALL_FUNC_001
 def test_generate_all_combinations(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
-    schedules = strategy.generate()
+    schedules = list(strategy.generate())
     assert schedules  # not empty
     assert all(isinstance(schedule, Schedule) for schedule in schedules)
     assert all(isinstance(g, LectureGroup) for s in schedules for g in s.lecture_groups)
@@ -91,9 +92,9 @@ def test__has_conflict_with_real_checker_conflict():
     slot2 = make_timeslot("B", start="13:00", end="15:00")
     group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
     group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
-
-    strategy = AllStrategy([])
-    assert strategy._has_conflict([group1, group2])
+    
+    checker = ConflictChecker()
+    assert checker.has_conflict_groups([group1, group2])
 
 #STRATEGYALL_FUNC_003
 def test__has_conflict_with_real_checker_no_conflict():
@@ -102,5 +103,5 @@ def test__has_conflict_with_real_checker_no_conflict():
     group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
     group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
 
-    strategy = AllStrategy([])
-    assert not strategy._has_conflict([group1, group2])
+    checker = ConflictChecker()
+    assert not checker.has_conflict_groups([group1, group2])

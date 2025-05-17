@@ -11,7 +11,7 @@ import os
 
 
 class CourseWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, maximize_on_start=True):
         super().__init__()
         self.setWindowTitle("Select Courses")  # Set the window title
 
@@ -44,7 +44,10 @@ class CourseWindow(QMainWindow):
         self.setCentralWidget(container)  # Set the container as the central widget
 
         # Set full-screen display
-        self.showMaximized()
+        # Optionally set full-screen display (disabled during tests to prevent access violations on Windows)
+        if maximize_on_start:
+            self.showMaximized()
+
         
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
@@ -66,6 +69,9 @@ class CourseWindow(QMainWindow):
         """
         Handle the event when the user submits their course selection.
         """
+        if hasattr(self.courseSelector, 'close_progress_bar'):
+            self.courseSelector.close_progress_bar()
+
         selected = self.handleSelection()
         if selected:
             # Check if the number of selected courses exceeds the limit
@@ -79,8 +85,12 @@ class CourseWindow(QMainWindow):
         """
         Open a file dialog to allow the user to select a course file.
         """
+        if hasattr(self.courseSelector, 'close_progress_bar'):
+            self.courseSelector.close_progress_bar()
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
         )
         if file_path:
+            self.courseSelector.close_progress_bar()
+            self.courseSelector._handle_clear()
             self.on_courses_loaded(file_path)  # Trigger the courses loaded callback with the file path
