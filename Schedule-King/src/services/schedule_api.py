@@ -13,7 +13,7 @@ class ScheduleAPI:
         Initialize ScheduleAPI with a format/parse handler.
         """
         self.file_handler = FileHandler()
-        self.process_worker = None
+        self._process_worker = None
         # No shared state needed here anymore
 
     def get_courses(self, source: str) -> List[Course]:
@@ -88,17 +88,17 @@ class ScheduleAPI:
         
         # Split the courses among the processes
         # For simplicity, we are using a single process here.
-        if self.process_worker and self.process_worker.is_alive():
+        if self._process_worker and self._process_worker.is_alive():
             self.stop_schedules_generation()
-            self.process_worker = None
+            self._process_worker = None
             
         # Start a new process for schedule generation
-        self.process_worker = mp.Process(target=self._worker_generate, 
+        self._process_worker = mp.Process(target=self._worker_generate, 
                                   args=(selected_courses, queue, stop_event),
                                   daemon=True)
         # Store the stop event with the process
-        self.process_worker.stop_event = stop_event
-        self.process_worker.start()
+        self._process_worker.stop_event = stop_event
+        self._process_worker.start()
 
         return queue
     
@@ -127,8 +127,8 @@ class ScheduleAPI:
         Does not block or join the process.
         """
         # Signal the worker to stop
-        if self.process_worker and hasattr(self.process_worker, 'stop_event'):
-            self.process_worker.stop_event.set()
+        if self._process_worker and hasattr(self._process_worker, 'stop_event'):
+            self._process_worker.stop_event.set()
             
         # Let the process terminate on its own - don't join
         # The daemon=True setting will ensure cleanup when the main app exits
