@@ -6,13 +6,15 @@ from typing import List
 import time
 import sys
 
-def export_worker(queue: Queue, job_id: int, schedules: List[Schedule], file_path: str, api: ScheduleAPI):
+def export_worker(queue: Queue, job_id: int, schedules: List[Schedule], file_path: str):
     """
     Worker function to export schedules in a background process.
     """
     try:
         # Send initial status update
         queue.put((job_id, "running", 0))
+        
+        api = ScheduleAPI()  # Create a new instance of ScheduleAPI
         
         # Export the schedules
         api.export(schedules, file_path)
