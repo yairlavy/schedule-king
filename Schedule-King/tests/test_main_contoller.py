@@ -156,17 +156,16 @@ def test_export_file(controller, tmp_path):
     (7, 10, 10, 10), # large
 ])
 def test_performance(controller, tmp_path, qtbot, num, lec, trg, mab):
-    # Write heavy file
-    #path = os.path.join(r"enter your path", "heavy.txt")
-    path = tmp_path/"heavy.txt" 
-    heavy = write_course_file(str(path), num, lec, trg, mab)
-    assert os.path.exists(heavy)
+    # Write  file
+    path = tmp_path/"medium.txt" 
+    medium = write_course_file(str(path), num, lec, trg, mab)
+    assert os.path.exists(medium)
 
     controller.course_window.show()
     qtbot.addWidget(controller.course_window)
 
     # Load the file
-    controller.on_file_selected(heavy)
+    controller.on_file_selected(medium)
     
     # Select all by clicking on them
     course_list_widget = controller.course_window.findChild(QListWidget)

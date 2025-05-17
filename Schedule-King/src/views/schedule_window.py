@@ -198,7 +198,6 @@ class ScheduleWindow(QMainWindow):
         wrapper.addStretch(1)
 
         self.main_layout.addLayout(wrapper)
-
  
         # --- SCHEDULE TABLE ---
         # Create the main schedule display table
@@ -253,6 +252,8 @@ class ScheduleWindow(QMainWindow):
             self.progress_bar.repaint()
             self.progress_label.repaint()
         except Exception as e:
+            print(f"Estimate error: {estimated}")  # Log the error
+            print(f"Current error: {current}")  # Log the error
             print(f"Error updating progress: {str(e)}")
 
     def on_schedule_generated(self, schedules: List[Schedule]):
@@ -331,7 +332,7 @@ class ScheduleWindow(QMainWindow):
                     # Export to Excel only the last 100 schedules - excel import is slow
                     QMessageBox.warning(
                         self, "excel Export Warning",
-                        "Exporting only the last 100 schedules  for performance reasons."
+                        "Exporting only the last 100 schedules for performance reasons."
                     )   
                     self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
                 else:

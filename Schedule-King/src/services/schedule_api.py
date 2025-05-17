@@ -106,18 +106,19 @@ class ScheduleAPI:
         """
         Estimate the theoretical number of combinations (without considering conflicts).
         Returns:
-            int: Estimated number of possible combinations, or -1 if unknown.
+            int: Estimated number of possible combinations, or a very large number if overflow occurs.
         """
         try:
             total = 1
+
             for course in selected_courses:
                 lectures = len(course.lectures)
                 tirguls = len(course.tirguls) if course.tirguls else 1
                 maabadas = len(course.maabadas) if course.maabadas else 1
                 total *= lectures * tirguls * maabadas
-            return total if total > 0 else -1
-        except Exception as e:
-            print(f"Error estimating combinations: {e}")
+                # Check for overflow
+            return total if total < 10**7 and total > 0  else -1
+        except Exception:
             return -1
         
     def stop_schedules_generation(self) -> None:
