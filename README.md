@@ -1,46 +1,73 @@
-# Software-for-building-a-student-study-schedule
+# Schedule King
 
-This project is a Python-based application designed to help students create and manage their study schedules effectively. By taking input such as available time slots, subjects, and priorities, the software automatically generates a personalized study plan. The goal is to optimize study time and improve productivity, making it easier for students to stay organized and focused.
+A modern, user-friendly application for building student study schedules. Schedule King allows students to select courses, generate conflict-free schedules, and export them in various formats.
+
+## Features
+
+- **Course Selection**: Load course data from a text file and select courses via a modern UI.
+- **Schedule Generation**: Automatically generates all possible conflict-free schedules based on selected courses.
+- **Conflict Checking**: Ensures no time or room conflicts exist in the generated schedules.
+- **Export Options**: Export schedules in both text and Excel formats.
+- **Modern UI**: Built with PyQt5, featuring a responsive and intuitive interface.
+
+## Requirements
+
+- **Python**: Version 3.8 or higher
+  - Download Python from [python.org](https://www.python.org/downloads/)
+  - Make sure to check "Add Python to PATH" during installation
+  - Verify installation by opening a terminal/command prompt and typing:
+    ```bash
+    python --version
+    ```
 
 ## Project Structure
 
-````bash
-/Software-for-building-a-student-study-schedule
-├── src/                # Source code for the application
-├── src/core/           # Core algorithms for course scheduling
-├── src/api/            # API for the schedule functionality
-├── src/data/           # Data classes and utilities for handling course and schedule data
-├── src/tests/          # Unit and integration tests
-├── README.md           # Project README file
-├── requirements.txt    # Python dependencies
-└── main.py             # Entry point for the application
-````
-
-## Running Instructions
-
-Before running the application, ensure you have Python installed on your system. You can download and install Python from the official website: [https://www.python.org/downloads/](https://www.python.org/downloads/).
-
-Follow these steps to run the application:
-
-1. **Clone the Repository**  
-```bash
-    git clone https://github.com/your-username/Software-for-building-a-student-study-schedule.git
-    cd Software-for-building-a-student-study-schedule
+```
+Schedule-King/
+├── src/
+│   ├── assets/           # Static assets (icons images)
+│   ├── components/       # Reusable UI components
+│   ├── controllers/      # Application controllers
+│   ├── interfaces/       # Interface definitions
+│   ├── models/           # Core data models
+│   ├── services/         # Business logic and utilities
+│   ├── styles/           # UI stylesheets
+│   └── views/            # UI views
+├── tests/                # Test files
+├── main.py               # Application entry point
+├── requirements.txt      # Production dependencies
+└── dev-requirements.txt  # Development dependencies
 ```
 
-2. **Install Dependencies**  
-    Make sure you have Python installed. Then, install the required dependencies:
-```bash
-    pip install -r requirements.txt
- ```
+## Installation
 
-3. **Run the Application**  
-    Execute the main script to start the application:
-```bash
-    python main.py
-```
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd Schedule-King
+   ```
 
-4. **Run Tests**  
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Running the Application
+
+1. **Start the Application**:
+   ```bash
+   python main.py
+   ```
+
+2. **Using the Application**:
+   - When the application starts, you'll see the course selection window
+   - Click "Select File" to choose your course data file
+   - Select the courses you want to include in your schedule
+   - Click "Generate Schedules" to create all possible conflict-free schedules
+   - Use the navigation controls to browse through different schedule options
+   - Export your preferred schedule using the "Export" button
+
+## Run Tests
 To ensure everything is working correctly, you can run the tests using `pytest`:
 
 ```bash
@@ -54,150 +81,98 @@ cd tests
 python SuperTester.py
 ```
 
+## Usage
 
-## Features
+1. **Load Course Data**:
+   - Click the "Select File" button in the course selection window
+   - Choose a text file containing your course data
+   - The application will parse and display available courses
 
-- **Automatic Schedule Generation**: The application generates a study schedule based on input data such as available time slots, subjects, and priorities.
-- **Validation**: Ensures that users select between 1 and 7 courses to generate a valid schedule.
-- **Error Handling**: Provides warnings and error messages for invalid inputs, such as incorrect course codes.
+Note : the input file need to be in the write the right format you can use txt files in tests/test_files dir 
 
-### Input
-The application takes the following inputs:
-1. **Course Database File**: A text file containing course details (e.g., course name, course code, and other metadata).
-### Example Input Format
+2. **Select Courses**:
+   - Check the boxes next to the courses you want to include
+   - You can select multiple courses
+   - The application will automatically check for conflicts between selected courses
 
-The application expects input in the following format for each course:
+3. **Generate Schedules**:
+   - Click "Generate Schedules" to create all possible conflict-free combinations
+   - A progress bar will show the generation status
+   - Once complete, you'll be taken to the schedule view window
 
-```bash
-  $$$$
-  <Course Name>
-  <Course Code>
-  <Instructor Name>
-  <Schedule Details>
-  $$$$
+4. **View and Navigate Schedules**:
+   - Use the navigation controls to browse through different schedule options
+   - The current schedule number and total number of schedules are displayed
+   - The schedule is displayed in a table format showing:
+     - Course name and code
+     - Session type (Lecture/Tirgul)
+     - Day and time
+     - Room and building numbers
+
+5. **Export Schedules**:
+   - Click the "Export" button to save your schedule
+   - Choose between text (.txt) or Excel (.xlsx) format
+   - Select whether to export all schedules or just the current one
+   - Choose the save location and filename
+   - The exported file will maintain the same format as the input file
+
+**Note**: If you have more than 100 schedules and choose to export to Excel, only the last 100 schedules will be exported for performance reasons.
+
+## Input/Output Formats
+
+- **Input**: Text file (`.txt`) with course blocks separated by "$$$$".
+- **Output**: 
+  - Text file (`.txt`) with formatted schedule details.
+  - Excel file (`.xlsx`) with styled schedule tables.
+
+## Input File Format
+
+The input file should be a text file (`.txt`) with the following format:
+
+1. Each course is separated by `$$$$`
+2. Each course block contains:
+   - Course Name
+   - Course Code
+   - Instructor Name
+   - Schedule Details (one or more lines)
+
+3. Schedule Details Format:
+   ```
+   <Session Type> <Day> <Start Time>,<End Time>,<Room Number>,<Building Number>
+   ```
+   Where:
+   - **Session Type**: 
+     - `L` for Lecture
+     - `T` for Tutorial
+     - `M` for Meeting
+   - **Day**: 
+     - `S,1` for Sunday
+     - `S,2` for Monday
+     - `S,3` for Tuesday
+     - `S,4` for Wednesday
+     - `S,5` for Thursday
+   - **Time**: 24-hour format (e.g., "09:00")
+   - **Room Number**: The room identifier
+   - **Building Number**: The building identifier
+
+### Example Input File:
+```
+$$$$
+Linear Algebra
+10101
+Dr. Emmy Noether
+L S,1,09:00,11:00,1001,10 
+T S,2,13:00,14:00,1002,30
+T S,4,12:00,13:00,1002,32
+$$$$
+Introduction to Programming
+10102
+Prof. Dennis Ritchie
+L S,2,08:00,10:00,2001,11
+T S,2,10:00,11:00,2002,35
+T S,3,11:00,12:00,2002,36
+M S,1,14:00,15:00,2005,46
+$$$$
 ```
 
-#### Explanation of the Format:
-1. **Course Name**: The name of the course (e.g., "Calculus 1").
-2. **Course Code**: A unique identifier for the course (e.g., "00001").
-3. **Instructor Name**: The name of the instructor teaching the course (e.g., "Prof. O. Some").
-4. **Schedule Details**: A list of sessions for the course, where each session is defined as:
-  ```
-  <Session Type> <Day> <Start Time>,<End Time>,<Room Number>,<Building Number>
-  ```
-  - **Session Type**: The type of session (e.g., "L" for Lecture, "T" for Tirgul, etc.).
-  - **Day**: The day of the week (e.g., "1" for Sunday, "2" for Monday, etc.).
-  - **Start Time**: The starting time of the session in 24-hour format (e.g., "16:00").
-  - **End Time**: The ending time of the session in 24-hour format (e.g., "17:00").
-  - **Room Number**: The room where the session is held (e.g., "1100").
-  - **Building Number**: The building where the session is held (e.g., "22").
-
-#### Example Input:
-```bash
-$$$$
-Calculus 1
-00001
-Prof. O. Some
-L S,2,16:00,17:00,1100,22 S,3,17:00,18:00,1100,42
-T S,2,18:00,19:00,1100,22
-T S,3,19:00,20:00,1100,42
-$$$$
-Software Project
-83533
-Dr. Terry Bell
-L S,5,10:00,16:00,605,061
-T S,5,16:00,17:00,605,061
-$$$$
-Calculus 1 (eng)
-83112
-Dr. Erez Scheiner
-L S,1,14:00,16:00,1401,4 S,2,14:00,16:00,1401,4
-T S,1,16:00,18:00,1104,42
-T S,2,16:00,18:00,605,14
-$$$$
-```
-Note in test folder there are test files to try it out!
-
-2. **User Selection**: Users can select courses interactively or provide a list of course codes as input.
-3. **File Paths**:  
-  - **Course Database File Path**: Provide the full path to the text file containing course details (e.g., `C:\Users\User\Documents\Courses\course_database.txt`).  
-  - **Output File Path**: Specify the desired path for the output file (e.g., `C:\Users\User\Documents\Schedules\output.txt`). If the output file does not exist, the application will create it automatically.
-
-
-### Output
-The application generates a formatted study schedule based on the selected courses. The output is saved to a specified file and may look like this:
-```bash
-1. Calculus 1 (Code: 00001)
-2. Software Project (Code: 83533)
-3. Calculus 1 (eng) (Code: 83112)
-
-Enter course codes (space-separated): 00001 83533 83112
-
-Selected Courses:
-- Calculus 1
-- Software Project
-- Calculus 1 (eng)
-```
-
-The output file can be found in the specified output path, such as:
-```bash
-C:\Desktop\Schedules\output.txt
-```
-and should look like this : 
-````bash
-------------------------------------------------------
-Schedule 1:
-Sunday:
-  [Lecture] Calculus 1 (eng) (83112)
-    14:00 - 16:00 |  Room 1401, Building 4
-  [Tirgul] Calculus 1 (eng) (83112)
-    16:00 - 18:00 |  Room 1104, Building 42
-
-Monday:
-  [Maabada] Calculus 1 (eng) (83112)
-    14:00 - 16:00 |  Room 1300, Building 3
-  [Lecture] Calculus 1 (00001)
-    16:00 - 17:00 |  Room 1100, Building 22
-  [Tirgul] Calculus 1 (00001)
-    18:00 - 19:00 |  Room 1100, Building 22
-
-Tuesday:
-  [Maabada] Software Project (83533)
-    14:00 - 16:00 |  Room 1300, Building 3
-
-Thursday:
-  [Lecture] Software Project (83533)
-    10:00 - 16:00 |  Room 605, Building 061
-  [Maabada] Calculus 1 (00001)
-    14:00 - 16:00 |  Room 1300, Building 3
-  [Tirgul] Software Project (83533)
-    16:00 - 17:00 |  Room 605, Building 061
-------------------------------------------------------
-Schedule 2:
-Sunday:
-  [Lecture] Calculus 1 (eng) (83112)
-    14:00 - 16:00 |  Room 1401, Building 4
-
-Monday:
-  [Maabada] Calculus 1 (eng) (83112)
-    14:00 - 16:00 |  Room 1300, Building 3
-  [Lecture] Calculus 1 (00001)
-    16:00 - 17:00 |  Room 1100, Building 22
-  [Tirgul] Calculus 1 (eng) (83112)
-    17:00 - 18:00 |  Room 605, Building 14
-  [Tirgul] Calculus 1 (00001)
-    18:00 - 19:00 |  Room 1100, Building 22
-
-Tuesday:
-  [Maabada] Software Project (83533)
-    14:00 - 16:00 |  Room 1300, Building 3
-
-Thursday:
-  [Lecture] Software Project (83533)
-    10:00 - 14:00 |  Room 605, Building 061
-  [Maabada] Calculus 1 (00001)
-    14:00 - 16:00 |  Room 1300, Building 3
-  [Tirgul] Software Project (83533)
-    16:00 - 17:00 |  Room 605, Building 061
-------------------------------------------------------
-````
+You can find example input files in the `tests/test_files` directory.

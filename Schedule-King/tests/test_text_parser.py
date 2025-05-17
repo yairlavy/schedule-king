@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import mock_open, patch
-from src.data.parsers.text_parser import TextParser
-from src.data.models.course import Course
-from src.data.models.time_slot import TimeSlot
+from src.services.text_parser import TextParser
+from src.models.course import Course
+from src.models.time_slot import TimeSlot
 
 # Raw data simulating the text file content
 RAW_DATA = """

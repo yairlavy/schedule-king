@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime  
-from src.data.models.time_slot import TimeSlot
+from src.models.time_slot import TimeSlot
 
 def test_timeslot_init():
     #TIMESLOT_INIT_001

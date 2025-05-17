@@ -1,0 +1,7 @@
+pytest
+pytest-qt
+black
+flake8
+mypy
+python-dotenv
+PyQt5

@@ -1,9 +1,9 @@
 import pytest
-from src.core.scheduler import Scheduler
-from src.core.all_strategy import AllStrategy
-from src.core.conflict_checker import ConflictChecker
-from src.data.models.course import Course
-from src.data.models.time_slot import TimeSlot
+from src.services.scheduler import Scheduler
+from src.services.all_strategy import AllStrategy
+from src.services.conflict_checker import ConflictChecker
+from src.models.course import Course
+from src.models.time_slot import TimeSlot
 
 @pytest.fixture
 def sample_courses():
@@ -32,7 +32,7 @@ def test_SCHEDULER_INIT_001(sample_courses, strategy):
 def test_SCHEDULER_FUNC_GEN_001(sample_courses, strategy):
     """Ensure generate() returns a non-empty list of schedules."""
     scheduler = Scheduler(sample_courses, strategy)
-    schedules = scheduler.generate()
+    schedules = list(scheduler.generate())
 
     # Debugging: print the generated schedules
     print(f"Generated {len(schedules)} schedules.")
@@ -53,7 +53,7 @@ def test_SCHEDULER_FUNC_GEN_001(sample_courses, strategy):
 def test_SCHEDULER_INTEG_001(sample_courses, strategy):
     """Ensure Scheduler + ConflictChecker avoid overlapping time slots."""
     scheduler = Scheduler(sample_courses, strategy)
-    schedules = scheduler.generate()
+    schedules = list(scheduler.generate())
 
     for schedule in schedules:
         all_slots = []
@@ -70,7 +70,7 @@ def test_SCHEDULER_INTEG_001(sample_courses, strategy):
 def test_SCHEDULER_VALID_001(sample_courses, strategy):
     """Ensure generate() returns only conflict-free schedules."""
     scheduler = Scheduler(sample_courses, strategy)
-    schedules = scheduler.generate()
+    schedules = list(scheduler.generate())
     checker = ConflictChecker()
 
     for schedule in schedules:

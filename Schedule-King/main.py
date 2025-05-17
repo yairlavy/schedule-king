@@ -1,14 +1,22 @@
-from src.api.schedule_api import ScheduleAPI  # Import the ScheduleAPI class from the schedule_api module
+# main.py
+
+import sys
+import os
+from PyQt5.QtWidgets import QApplication
+
+from src.services.schedule_api import ScheduleAPI
+from src.controllers.MainConroller import MainController 
 
 if __name__ == "__main__":
-    # Define the default source file path for input data
-    DEFAULT_SOURCE = r"C:\Users\kfird\Desktop\A\schedule-king\Schedule-King\tests\test_files\V1.0CourseDB.txt"
-    
-    # Define the default destination file path for output data
-    DEFAULT_DESTINATION = r"C:\Users\kfird\Desktop\A\schedule-king\Schedule-King\tests\test_files\V1.0out.txt"
-    
-    # Create an instance of ScheduleAPI with the default source and destination paths
-    api = ScheduleAPI(DEFAULT_SOURCE, DEFAULT_DESTINATION)
-    
-    # Call the process method to execute the main functionality of the API
-    api.process()
+    # Create the QApplication
+    app = QApplication(sys.argv)
+    # Load and apply the stylesheet
+    with open("src/styles/style.qss", "r") as f:
+        app.setStyleSheet(f.read())
+    # Create the ScheduleAPI instance
+    api = ScheduleAPI()
+    # Create and start the MainController
+    controller = MainController(api)
+    controller.start_application()
+    # Run the event loop
+    sys.exit(app.exec_())

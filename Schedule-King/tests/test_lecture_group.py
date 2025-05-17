@@ -1,6 +1,6 @@
 import pytest
-from src.data.models.lecture_group import LectureGroup
-from src.data.models.time_slot import TimeSlot
+from src.models.lecture_group import LectureGroup
+from src.models.time_slot import TimeSlot
 
 @pytest.fixture
 def time_slots():
