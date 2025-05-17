@@ -277,6 +277,8 @@ class ScheduleWindow(QMainWindow):
         if not self.controller.generation_active and not schedules:
             self.progress_bar.setVisible(False)
             self.progress_label.setVisible(False)
+
+
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
         self.schedules = schedules
@@ -325,17 +327,15 @@ class ScheduleWindow(QMainWindow):
                 if self.export_visible_only.isChecked() and 0 <= current_index < len(self.schedules):
                     # Export only the visible schedule
                     self.controller.export_schedules(file_path, [self.schedules[current_index]])
+                elif len(self.schedules) > 100:
+                    # Export to Excel only the last 100 schedules - excel import is slow
+                    QMessageBox.warning(
+                        self, "excel Export Warning",
+                        "Exporting only the last 100 schedules  for performance reasons."
+                    )   
+                    self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
                 else:
-                    # Export all schedules
-                    if file_path.endswith('.xlsx') and len(self.schedules) > 100:
-                        # Export to Excel only the last 100 schedules - excel import is slow
-                        QMessageBox.warning(
-                            self, "excel Export Warning",
-                            "Exporting only the last 100 schedules to Excel for performance reasons."
-                        )   
-                        self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
-                    else:
-                        self.controller.export_schedules(file_path)
+                    self.controller.export_schedules(file_path)
                     
                 QMessageBox.information(
                     self, "Export Successful",
