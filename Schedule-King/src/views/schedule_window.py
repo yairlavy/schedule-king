@@ -1,17 +1,15 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox, QSpacerItem, QSizePolicy
+    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox, QSpacerItem, QSizePolicy, QHeaderView
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
-from typing import List, Callable
+from typing import List
 import os
-from src.models.course import Course
-from PyQt5.QtWidgets import QProgressDialog
 
 class ScheduleWindow(QMainWindow):
     """
@@ -41,6 +39,7 @@ class ScheduleWindow(QMainWindow):
         self.controller.on_schedules_generated = self.on_schedule_generated
         self.controller.on_progress_updated = self.update_progress
         self.first_schedule_shown = False
+        self.full_size_window = None  # Store reference to full size window
 
         # Initialize progress bar
         self.progress_bar = QProgressBar()
@@ -182,11 +181,28 @@ class ScheduleWindow(QMainWindow):
         self.progress_bar.setVisible(False)
         progress_box.addWidget(self.progress_bar)
 
-        # Build a single HBox that contains [progress][navigator][dummy-spacer]
+        # Create full size button
+        self.full_size_button = QPushButton()
+        self.full_size_button.setObjectName("nav_button")
+        self.full_size_button.setFixedSize(36, 36)  # Make the button smaller
+        full_size_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/full_size.png"))
+        if not full_size_icon.isNull():
+            self.full_size_button.setIcon(full_size_icon)
+            self.full_size_button.setIconSize(self.full_size_button.size())
+            self.full_size_button.setText("")  # Icon only, no text
+        else:
+            self.full_size_button.setText("⛶")
+            self.full_size_button.setFont(QFont("Arial", 14))
+        self.full_size_button.clicked.connect(self.open_full_size)
+
+        # Build a single HBox that contains [full-size-button][progress][navigator][dummy-spacer]
         group = QHBoxLayout()
         group.setSpacing(10)
-        group.addLayout(progress_box)            # progress on left
+        group.addLayout(progress_box)            # progress after button
         group.addWidget(self.navigator)          # navigator in middle
+        group.addSpacing(10)                     # add space between navigator and full size button
+        group.addWidget(self.full_size_button)   # full size button on the left
+        
         # dummy spacer to balance the progress width on the right
         dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
         group.addSpacerItem(dummy)
@@ -198,7 +214,7 @@ class ScheduleWindow(QMainWindow):
         wrapper.addStretch(1)
 
         self.main_layout.addLayout(wrapper)
- 
+        
         # --- SCHEDULE TABLE ---
         # Create the main schedule display table
         self.schedule_table = ScheduleTable()
@@ -214,8 +230,13 @@ class ScheduleWindow(QMainWindow):
         # Display the first schedule if available
         if schedules:
             self.on_schedule_changed(0)
-        self.showMaximized()  # Start maximized for better visibility
-
+            
+        # Force window to be maximized
+        self.setWindowState(Qt.WindowMaximized)
+        self.setMinimumSize(800, 600)  # Set a minimum size
+        self.resize(1920, 1080)  # Set an initial large size
+        self.show()
+        self.setWindowState(Qt.WindowMaximized)  # Set maximized state again after show
 
     def update_progress(self, current: int, estimated: int):
         """
@@ -279,7 +300,6 @@ class ScheduleWindow(QMainWindow):
             self.progress_bar.setVisible(False)
             self.progress_label.setVisible(False)
 
-
     def displaySchedules(self, schedules: List[Schedule]):
         """Updates the navigator and table with new schedules."""
         self.schedules = schedules
@@ -329,9 +349,9 @@ class ScheduleWindow(QMainWindow):
                     # Export only the visible schedule
                     self.controller.export_schedules(file_path, [self.schedules[current_index]])
                 elif len(self.schedules) > 100:
-                    # Export to Excel only the last 100 schedules - excel import is slow
+                    # Export to Excel only the last 100 schedules - import is slow
                     QMessageBox.warning(
-                        self, "excel Export Warning",
+                        self, "Export Warning",
                         "Exporting only the last 100 schedules for performance reasons."
                     )   
                     self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
@@ -359,3 +379,59 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.display_schedule(self.schedules[index])
         self.export_button.setEnabled(True)
         self.back_button.setEnabled(True)
+
+    def open_full_size(self):
+        """
+        Opens the current schedule in a new full-size window.
+        """
+        if not self.schedules or self.navigator.current_index >= len(self.schedules):
+            QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
+            return
+            
+        # Close existing full size window if it exists
+        if self.full_size_window is not None:
+            self.full_size_window.close()
+            
+        # Create a new window
+        self.full_size_window = QMainWindow()
+        self.full_size_window.setWindowTitle("Schedule King - Full Size View")
+        
+        # Set window icon
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        self.full_size_window.setWindowIcon(QIcon(icon_path))
+        
+        # Create a central widget with layout
+        central_widget = QWidget()
+        layout = QVBoxLayout(central_widget)
+        layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Add a header with schedule number
+        header = QLabel(f"Schedule #{self.navigator.current_index + 1}")
+        header.setObjectName("headline_label")
+        header.setFont(QFont("Arial", 16, QFont.Bold))
+        header.setAlignment(Qt.AlignCenter)
+        layout.addWidget(header)
+        
+        # Create a new schedule table for the full window
+        full_table = ScheduleTable()
+        full_table.setObjectName("enhanced_table")
+        
+        # Configure table for full size view
+        full_table.horizontalHeader().setStretchLastSection(True)
+        full_table.verticalHeader().setStretchLastSection(True)
+        
+        # Display the current schedule
+        full_table.display_schedule(self.schedules[self.navigator.current_index])
+        
+        # Add the table to the layout
+        layout.addWidget(full_table)
+        
+        # Set the central widget
+        self.full_size_window.setCentralWidget(central_widget)
+        
+        # Set minimum size to ensure the window is large enough
+        self.full_size_window.setMinimumSize(800, 600)
+        
+        # Show the window and set it to maximized state
+        self.full_size_window.show()
+        self.full_size_window.setWindowState(Qt.WindowMaximized)
