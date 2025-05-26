@@ -5,7 +5,8 @@ from src.views.course_window import CourseWindow
 from src.views.schedule_window import ScheduleWindow
 from src.services.schedule_api import ScheduleAPI
 from src.models.course import Course
-from typing import List
+from typing import List, Optional
+from src.models.time_slot import TimeSlot
 
 class MainController:
     def __init__(self, api: ScheduleAPI, maximize_on_start=True):
@@ -59,7 +60,7 @@ class MainController:
                 f"An error occurred while loading the file: {str(e)}"
             )
 
-    def on_courses_selected(self, selected_courses: List[Course]):
+    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
         if not selected_courses:
             # Show a warning if no courses are selected
@@ -70,12 +71,15 @@ class MainController:
             )
             return
 
-        # Set the selected courses in the course controller
-        self.course_controller.set_selected_courses(selected_courses)
+        # Set the selected courses and forbidden slots (if exist) in the course controller
+        forbidden_slots = forbidden_slots or []
+        self.course_controller.set_selected_courses(selected_courses, forbidden_slots)
+       
         # Make sure any previous schedule generation is stopped if the schedule window exists
         if self.schedule_window:
             self.schedule_controller.stop_schedules_generation()
             self.schedule_controller.next = 1
+        
         # Initialize the schedule window with the generated schedules
         self.schedule_window = ScheduleWindow([],
                                                self.schedule_controller, 
@@ -86,13 +90,14 @@ class MainController:
         # Hide the course window and show the schedule window
         self.course_window.hide()
         self.schedule_window.show()
-        # Generate schedules based on the selected courses
-        self.schedule_controller.generate_schedules(selected_courses)
+        # Generate schedules based on the selected courses and forbidden slots if any
+        self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
 
     def on_generate_schedules(self):
         # Generate schedules for the currently selected courses
         selected_courses = self.course_controller.get_selected_courses()
-        schedules = self.schedule_controller.generate_schedules(selected_courses)
+        forbidden_slots = self.course_controller.get_forbidden_slots()
+        schedules = self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
         if self.schedule_window:
             # Display the generated schedules in the schedule window
             self.schedule_window.displaySchedules(schedules)
