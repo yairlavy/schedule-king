@@ -3,6 +3,7 @@ from src.models.schedule import Schedule
 from src.models.course import Course
 from typing import List, Optional
 from PyQt5.QtCore import QTimer
+from src.models.time_slot import TimeSlot
 
 class ScheduleController:
     def __init__(self, api: ScheduleAPI):
@@ -20,7 +21,7 @@ class ScheduleController:
         self.generation_active = False  # Flag to indicate if generation is active
         self.estimated_total = -1  # Estimated total number of schedules (optional, if known)
 
-    def generate_schedules(self, selected_courses: List[Course]) -> List[Schedule]:
+    def generate_schedules(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None) -> List[Schedule]:
         """
         Generates possible schedules using the API and saves them.
         Starts a timer to periodically check for new schedules and report progress.
@@ -36,7 +37,7 @@ class ScheduleController:
         self.next = 1  # Reset notification threshold
 
         # Start the schedule generation in parallel (returns a queue)
-        self.queue = self.api.generate_schedules_in_parallel(selected_courses)
+        self.queue = self.api.generate_schedules_in_parallel(selected_courses, forbidden_slots)
 
         # Attempt to get estimated schedules count if supported by the API
         self.estimated_total = self.api.get_estimated_schedules_count(selected_courses)
