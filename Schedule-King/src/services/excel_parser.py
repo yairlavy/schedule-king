@@ -82,6 +82,7 @@ class ExcelParser(IParser):
             return None  # Skip if course code format is invalid
 
         course_code = full_code.split('-')[0]  # Extract base course code
+        course_semester = row.get('תקופה','') # Extract semester part
         course_name = row.get('שם', '')  # Course name
         meeting_type = row.get('סוג מפגש', '')  # Meeting type ('הרצאה', 'תרגול', 'מעבדה')
         time_str = row.get('מועד', '')  # Time string (e.g., ג'10:00-12:00)
@@ -95,6 +96,11 @@ class ExcelParser(IParser):
 
         day_hebrew, start_time_str, end_time_str = match.groups()
 
+        # Only process courses in the first semester
+        # If the course semester is not 'סמסטר א', skip this course
+        if 'סמסטר א' not in str(course_semester):
+            return None
+   
         # Convert Hebrew day to number
         if day_hebrew not in day_mapping:
             return None  # Skip if day is not recognized
