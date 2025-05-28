@@ -5,17 +5,17 @@ from src.models.time_slot import TimeSlot
 
 import os
 import pandas as pd
-from datetime import datetime, timedelta
+import re
 
 # Mapping for Hebrew day names to day numbers used in TimeSlot
 day_mapping = {
-    'א': '1', # Sunday
-    'ב': '2', # Monday
-    'ג': '3', # Tuesday
-    'ד': '4', # Wednesday
-    'ה': '5', # Thursday
-    'ו': '6', # Friday
-    'ש': '7'  # Saturday, although unlikely in a schedule, include for completeness
+    'א': '1',  # Sunday
+    'ב': '2',  # Monday
+    'ג': '3',  # Tuesday
+    'ד': '4',  # Wednesday
+    'ה': '5',  # Thursday
+    'ו': '6',  # Friday
+    'ש': '7'   # Saturday
 }
 
 class ExcelParser(IParser):
@@ -38,70 +38,85 @@ class ExcelParser(IParser):
         Reads all sheets in the Excel file and processes each one.
         Only sheets containing a 'מועד' column are considered.
         """
-        df = pd.read_excel(self.path, sheet_name=None)  # Read all sheets into a dict of DataFrames
-        courses_dict = {}  # Dictionary to store courses by course code
+        df = pd.read_excel(self.path, sheet_name=None)  # Load all sheets from the Excel file
+        courses_dict = {}  # Dictionary to store courses indexed by course code
 
-        for sheet_name,sheet_data in df.items():
+        # Iterate over each sheet in the Excel file
+        for sheet_name, sheet_data in df.items():
+            # Skip sheets without the required 'מועד' (time) column
             if 'מועד' not in sheet_data.columns:
-                continue  # Skip sheets without the required column
+                continue
+
+            # Iterate over each row in the sheet
             for index, row in sheet_data.iterrows():
-                parsed = self._parse_row(index, row)  # Parse each row
+                parsed = self._parse_row(index, row)  # Parse each row into course and time data
                 if not parsed:
-                    continue  # Skip rows that couldn't be parsed
+                    continue  # Skip if row could not be parsed
+
                 course_code, course_name, instructor, meeting_type, time_slot = parsed
+
+                # If course not already in dictionary, create a new Course object
                 if course_code not in courses_dict:
-                    # Create a new Course object if not already present
-                    courses_dict[course_code] = Course(course_name=course_name, course_code=course_code, instructor=instructor)
+                    courses_dict[course_code] = Course(
+                        course_name=course_name,
+                        course_code=course_code,
+                        instructor=instructor
+                    )
+
                 course = courses_dict[course_code]
                 # Add the parsed time slot to the course
                 self._add_time_slot_to_course(course, meeting_type, time_slot, row.get('קוד מלא', ''))
-        return list(courses_dict.values())  # Return all parsed courses
+
+        # Return all parsed courses as a list
+        return list(courses_dict.values())
 
     def _parse_row(self, index, row):
         """
-        Parses a single row from the Excel sheet and extracts course and time slot information.
-        Returns a tuple with course details and a TimeSlot object, or None if parsing fails.
+        Parses a single row and returns a tuple containing:
+        course_code, course_name, instructor, meeting_type, and TimeSlot.
+        Returns None if the row is invalid.
         """
-        full_code = str(row['קוד מלא'])  # Full course code (may include section)
+        # Extract the full course code, or empty string if missing
+        full_code = str(row['קוד מלא']) if pd.notna(row['קוד מלא']) else ''
+        if '-' not in full_code:
+            return None  # Skip if course code format is invalid
+
         course_code = full_code.split('-')[0]  # Extract base course code
-        course_name = row['שם']  # Course name
-        meeting_type = row['סוג מפגש']  # Type of meeting (lecture, lab, etc.)
-        time_str = row['מועד']  # Time string (e.g., ג' 10:00-12:00)
-        instructor = row['מרצים']  # Instructor name(s)
-        room_building_str = str(row['חדר'])  # Room and building string
+        course_name = row.get('שם', '')  # Course name
+        meeting_type = row.get('סוג מפגש', '')  # Meeting type ('הרצאה', 'תרגול', 'מעבדה')
+        time_str = row.get('מועד', '')  # Time string (e.g., ג'10:00-12:00)
+        instructor = row.get('מרצים', '')  # Instructor(s)
+        room_building_str = str(row.get('חדר', '')).strip()  # Room and building information
 
-        # Parse time string (e.g., ג' 10:00-12:00)
-        parts = time_str.split(' ')
-        if len(parts) != 2:
-            print(f"Skipping row {index} due to unexpected time format: {time_str}")
-            return None
+        # Use regex to extract day and time range (e.g., ג'10:00-12:00)
+        match = re.match(r"([א-ת])'?(\d{1,2}:\d{2})-(\d{1,2}:\d{2})", time_str)
+        if not match:
+            return None  # Skip if format does not match expected pattern
 
-        day_hebrew = parts[0].replace("'", "")  # Remove apostrophe from day
-        time_range = parts[1]
+        day_hebrew, start_time_str, end_time_str = match.groups()
 
+        # Convert Hebrew day to number
         if day_hebrew not in day_mapping:
-            print(f"Skipping row {index} due to unhandled Hebrew day: {day_hebrew}")
-            return None
+            return None  # Skip if day is not recognized
 
-        day_num = day_mapping[day_hebrew]  # Convert Hebrew day to number
+        day_num = day_mapping[day_hebrew]
 
-        time_parts = time_range.split('-')
-        if len(time_parts) != 2:
-            print(f"Skipping row {index} due to unexpected time range format: {time_range}")
-            return None
-        start_time_str = time_parts[0]  # Start time 
-        end_time_str = time_parts[1]    # End time
-
+        # Parse building and room information
         building, room = self._parse_room_building(index, room_building_str)
         if building is None and room is None:
-            return None
+            return None  # Skip if room/building info is invalid
 
         try:
-            # Create a TimeSlot object with the parsed data
-            time_slot = TimeSlot(day=day_num, start_time=start_time_str, end_time=end_time_str, room=room, building=building)
-        except ValueError as e:
-            print(f"Skipping row {index} due to invalid TimeSlot data: {e}")
-            return None
+            # Create TimeSlot with parsed values
+            time_slot = TimeSlot(
+                day=day_num,
+                start_time=start_time_str,
+                end_time=end_time_str,
+                room=room,
+                building=building
+            )
+        except ValueError:
+            return None  # Skip if TimeSlot data is invalid
 
         return course_code, course_name, instructor, meeting_type, time_slot
 
@@ -110,27 +125,30 @@ class ExcelParser(IParser):
         Parses the room and building information from a string.
         Returns a tuple (building, room), or (None, None) if parsing fails.
         """
-        room_building_parts = room_building_str.split('-')
-        if len(room_building_parts) != 2:
-            # If format is unexpected, treat the whole string as room
-            print(f"Skipping row {index} due to unexpected room/building format: {room_building_str}")
+        # Expect format like 'הנדסה-1104'
+        parts = room_building_str.split('-')
+
+        if len(parts) != 2:
+            # Use entire string as room if no dash is found
             building = ""
             room = room_building_str.strip()
+            # Validate room string
             if not room or not room.replace('-', '').isalnum():
-                print(f"Skipping row {index} as room is invalid: {room}")
                 return None, None
         else:
-            building = room_building_parts[0].strip()
-            room = room_building_parts[1].strip()
+            building = parts[0].strip()
+            room = parts[1].strip()
+            # Validate building and room strings
             if not building.isalnum() or not room.isalnum():
-                print(f"Skipping row {index} as building or room is not alphanumeric: Building='{building}', Room='{room}'")
-                return None, None
+                return None, None  # Skip if values are not alphanumeric
+
         return building, room
 
     def _add_time_slot_to_course(self, course, meeting_type, time_slot, full_code):
         """
         Adds a TimeSlot to the appropriate list in the Course object based on meeting type.
         """
+        # Add time slot to the correct type (lecture, tirgul, or lab)
         if meeting_type == 'הרצאה':
             course.add_lecture(time_slot)
         elif meeting_type == 'תרגול':
@@ -138,4 +156,5 @@ class ExcelParser(IParser):
         elif meeting_type == 'מעבדה':
             course.add_maabada(time_slot)
         else:
-            print(f"Unknown meeting type '{meeting_type}' for course {full_code}. Skipping time slot.")
+            # Unknown meeting type; do not add the time slot
+            pass
