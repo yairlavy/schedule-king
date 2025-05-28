@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QFrame, QVBoxLayout, QLabel, QSizePolicy
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from src.models.schedule import Schedule
@@ -13,6 +13,7 @@ class ScheduleMetrics(QFrame):
         layout = QVBoxLayout()
         layout.setSpacing(2)  
         layout.setContentsMargins(10, 10, 10, 10)
+        self.setFixedHeight(150)
 
         title = QLabel("Schedule Metrics")
         title.setFont(QFont("Arial", 8, QFont.Bold))
@@ -26,7 +27,7 @@ class ScheduleMetrics(QFrame):
         layout.addWidget(self._create_metric_label("Average End Time", self._format_time(self.schedule.avg_end_time)))
 
         self.setLayout(layout)
-        self.setFixedWidth(200) 
+        self.setFixedWidth(250) 
         self.setStyleSheet("""
             ScheduleMetrics {
                 background-color: #007BFF;
