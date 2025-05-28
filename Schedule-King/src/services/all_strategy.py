@@ -18,11 +18,9 @@ class AllStrategy(IScheduleStrategy):
             raise ValueError("Cannot select more than 7 courses.")
         self._selected = selected
         self._checker = MatrixConflictChecker()
-        self._Isfobidden = None # Flag to indicate if there are forbidden slots
 
         # Pre-fill forbidden slots if exists
         if forbidden:
-            self._Isfobidden = True
             for slot in forbidden:
                 self._checker.place(slot)
 
@@ -55,8 +53,6 @@ class AllStrategy(IScheduleStrategy):
         tirguls = course.tirguls or [None]
         maabadas = course.maabadas or [None]
 
-        found_valid_group = False
-
         # Iterate over all possible combinations of lecture, tirgul, and maabada for this course
         for lec, tir, lab in product(course.lectures, tirguls, maabadas):
             slots = [s for s in (lec, tir, lab) if s is not None]
@@ -64,8 +60,6 @@ class AllStrategy(IScheduleStrategy):
             # Skip this group if any slot is forbidden or has a conflict
             if not all(self._checker.can_place(s) for s in slots):
                 continue
-
-            found_valid_group = True
 
             for s in slots:
                 self._checker.place(s)
@@ -85,8 +79,3 @@ class AllStrategy(IScheduleStrategy):
             current.pop()
             for s in slots:
                 self._checker.remove(s)
-            
-        # If no valid groups were found for this course and there is forbidden slots, we still need to recurse
-        if not found_valid_group and self._Isfobidden:
-            # Recurse without adding any group for this course 
-            yield from self._build_valid_combinations(index + 1, current)
