@@ -83,10 +83,10 @@ class ExcelParser(IParser):
 
         course_code = full_code.split('-')[0]  # Extract base course code
         course_semester = row.get('תקופה','') # Extract semester part
-        course_name = row.get('שם', '')  # Course name
-        meeting_type = row.get('סוג מפגש', '')  # Meeting type ('הרצאה', 'תרגול', 'מעבדה')
-        time_str = row.get('מועד', '')  # Time string (e.g., ג'10:00-12:00)
-        instructor = row.get('מרצים', '')  # Instructor(s)
+        course_name = str(row.get('שם', ''))  # Course name
+        meeting_type = str(row.get('סוג מפגש', ''))  # Meeting type ('הרצאה', 'תרגול', 'מעבדה')
+        time_str = str(row.get('מועד', ''))  # Time string (e.g., ג'10:00-12:00)
+        instructor = str(row.get('מרצים', ''))  # Instructor(s)
         room_building_str = str(row.get('חדר', '')).strip()  # Room and building information
 
         # Use regex to extract day and time range (e.g., ג'10:00-12:00)
@@ -162,5 +162,5 @@ class ExcelParser(IParser):
         elif meeting_type == 'מעבדה':
             course.add_maabada(time_slot)
         else:
-            # Unknown meeting type; do not add the time slot
+            # Unknown meeting type like 'הדרכה'; do not add the time slot
             pass
