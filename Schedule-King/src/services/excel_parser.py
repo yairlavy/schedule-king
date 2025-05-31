@@ -39,7 +39,7 @@ class ExcelParser(IParser):
         Only sheets containing a 'מועד' column are considered.
         """
         df = pd.read_excel(self.path, sheet_name=None)  # Load all sheets from the Excel file
-        courses_dict = {}  # Dictionary to store courses indexed by full course code
+        courses_dict = {}  # Dictionary to store courses indexed by course code
 
         # Iterate over each sheet in the Excel file
         for sheet_name, sheet_data in df.items():
@@ -55,19 +55,17 @@ class ExcelParser(IParser):
 
                 course_code, course_name, instructor, meeting_type, time_slot = parsed
 
-                # Use full_code as the key for the dictionary
-                full_code = course_code # Already contains the full code from _parse_row
-                if full_code not in courses_dict:
-                    # Create a new Course object if not already present
-                    courses_dict[full_code] = Course(
+                # If course not already in dictionary, create a new Course object
+                if course_code not in courses_dict:
+                    courses_dict[course_code] = Course(
                         course_name=course_name,
-                        course_code=full_code,  # Use full_code as the course_code for the Course object
+                        course_code=course_code,
                         instructor=instructor
                     )
 
-                course = courses_dict[full_code]
+                course = courses_dict[course_code]
                 # Add the parsed time slot to the course
-                self._add_time_slot_to_course(course, meeting_type, time_slot, full_code)
+                self._add_time_slot_to_course(course, meeting_type, time_slot, row.get('קוד מלא', ''))
 
         # Return all parsed courses as a list
         return list(courses_dict.values())
@@ -86,7 +84,7 @@ class ExcelParser(IParser):
         course_code = full_code.split('-')[0]  # Extract base course code
         course_semester = row.get('תקופה','') # Extract semester part
         course_name = str(row.get('שם', ''))  # Course name
-        meeting_type = str(row.get('סוג מפגש', ''))  # Meeting type ('הרצאה', 'תרגול', 'מעבדה')
+        meeting_type = str(row.get('סוג מפגש', '')).strip()  # Meeting type ('הרצאה', 'תרגול', 'מעבדה')
         time_str = str(row.get('מועד', ''))  # Time string (e.g., ג'10:00-12:00)
         instructor = str(row.get('מרצים', ''))  # Instructor(s)
         room_building_str = str(row.get('חדר', '')).strip()  # Room and building information
@@ -155,7 +153,7 @@ class ExcelParser(IParser):
         # Add time slot to the correct type (lecture, tirgul, or lab)
         if meeting_type == 'הרצאה':
             course.add_lecture(time_slot)
-        elif meeting_type == 'תרגול':
+        elif meeting_type == 'תרגיל' or meeting_type == 'תרגול':
             course.add_tirgul(time_slot)
         elif meeting_type == 'מעבדה':
             course.add_maabada(time_slot)
