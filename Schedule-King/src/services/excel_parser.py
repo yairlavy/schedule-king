@@ -58,6 +58,7 @@ class ExcelParser(IParser):
                 # Use full_code as the key for the dictionary
                 full_code = course_code # Already contains the full code from _parse_row
                 if full_code not in courses_dict:
+                    # Create a new Course object if not already present
                     courses_dict[full_code] = Course(
                         course_name=course_name,
                         course_code=full_code,  # Use full_code as the course_code for the Course object
@@ -139,6 +140,7 @@ class ExcelParser(IParser):
         parts = room_building_str.split('-')
 
         if len(parts) < 2:
+            # If only room is present, return empty building and the room
             return "", room_building_str.strip()
         
         building= '-'.join(parts[:-1]).strip()
@@ -160,3 +162,4 @@ class ExcelParser(IParser):
         else:
             # Unknown meeting type like 'הדרכה'; do not add the time slot
             pass
+
