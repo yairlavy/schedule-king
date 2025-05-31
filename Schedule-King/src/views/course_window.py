@@ -167,7 +167,10 @@ class CourseWindow(QMainWindow):
         if hasattr(self.courseSelector, 'close_progress_bar'):
             self.courseSelector.close_progress_bar()
         file_path, _ = QFileDialog.getOpenFileName(
-            self, "Select Course File", "", "Text Files (*.txt);;All Files (*)"
+            self,
+            "Select Course File",
+            "",
+            "Text Files (*.txt);;Excel Files (*.xlsx);;All Files (*)"
         )
         if file_path:
             self.courseSelector.close_progress_bar()
