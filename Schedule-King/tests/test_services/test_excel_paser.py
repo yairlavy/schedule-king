@@ -9,7 +9,9 @@ from datetime import time
 
 @pytest.fixture
 def test_files_dir():
-    return os.path.join(os.path.dirname(__file__), 'excel_tests_files')
+    # Go up one directory from the current file's directory (test_services)
+    # then join with 'excel_tests_files'
+    return os.path.join(os.path.dirname(os.path.dirname(__file__)), 'excel_tests_files')
 
 @pytest.fixture
 def simple_courses_path(test_files_dir):
