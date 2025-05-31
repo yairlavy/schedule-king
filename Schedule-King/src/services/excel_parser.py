@@ -39,7 +39,7 @@ class ExcelParser(IParser):
         Only sheets containing a 'מועד' column are considered.
         """
         df = pd.read_excel(self.path, sheet_name=None)  # Load all sheets from the Excel file
-        courses_dict = {}  # Dictionary to store courses indexed by course code
+        courses_dict = {}  # Dictionary to store courses indexed by full course code
 
         # Iterate over each sheet in the Excel file
         for sheet_name, sheet_data in df.items():
@@ -55,17 +55,18 @@ class ExcelParser(IParser):
 
                 course_code, course_name, instructor, meeting_type, time_slot = parsed
 
-                # If course not already in dictionary, create a new Course object
-                if course_code not in courses_dict:
-                    courses_dict[course_code] = Course(
+                # Use full_code as the key for the dictionary
+                full_code = course_code # Already contains the full code from _parse_row
+                if full_code not in courses_dict:
+                    courses_dict[full_code] = Course(
                         course_name=course_name,
-                        course_code=course_code,
+                        course_code=full_code,  # Use full_code as the course_code for the Course object
                         instructor=instructor
                     )
 
-                course = courses_dict[course_code]
+                course = courses_dict[full_code]
                 # Add the parsed time slot to the course
-                self._add_time_slot_to_course(course, meeting_type, time_slot, row.get('קוד מלא', ''))
+                self._add_time_slot_to_course(course, meeting_type, time_slot, full_code)
 
         # Return all parsed courses as a list
         return list(courses_dict.values())
@@ -98,7 +99,7 @@ class ExcelParser(IParser):
 
         # Only process courses in the first semester
         # If the course semester is not 'סמסטר א', skip this course
-        if 'סמסטר א' not in str(course_semester):
+        if  'א' not in str(course_semester):
             return None
    
         # Convert Hebrew day to number
@@ -131,22 +132,17 @@ class ExcelParser(IParser):
         Parses the room and building information from a string.
         Returns a tuple (building, room), or (None, None) if parsing fails.
         """
+        if not room_building_str:
+            return None, None
+        
         # Expect format like 'הנדסה-1104'
         parts = room_building_str.split('-')
 
-        if len(parts) != 2:
-            # Use entire string as room if no dash is found
-            building = ""
-            room = room_building_str.strip()
-            # Validate room string
-            if not room or not room.replace('-', '').isalnum():
-                return None, None
-        else:
-            building = parts[0].strip()
-            room = parts[1].strip()
-            # Validate building and room strings
-            if not building.isalnum() or not room.isalnum():
-                return None, None  # Skip if values are not alphanumeric
+        if len(parts) < 2:
+            return "", room_building_str.strip()
+        
+        building= '-'.join(parts[:-1]).strip()
+        room = parts[-1].strip().split()[0]  # Take the first part in case of multiple hyphens  
 
         return building, room
 
