@@ -44,7 +44,9 @@ class AllStrategy(IScheduleStrategy):
         # Base case: if we've selected a group for every course, yield a Schedule
         if index == len(self._selected):
             if current:  # we only yield non-empty schedules
-                yield Schedule(current.copy())
+                schedule = Schedule(current.copy())
+                schedule.generate_metrics()
+                yield schedule
             return
 
         # Get the current course
