@@ -1,7 +1,10 @@
 
 
 class GradeSorter:
-    def __init__(self, upper_bound: float = 100):
+    """
+    This class allows inserting items with grades, retrieving the k-th item in sorted order,
+    O(1) for insertion and O(1) for retrieval of k-th item."""
+    def __init__(self, upper_bound: int = 100):
         """
         Initializes the GradeSorter with upper and lower bounds for grades.
         :param upper_bound: The maximum grade value (default is 100).
