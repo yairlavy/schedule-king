@@ -9,6 +9,7 @@ from src.components.schedule_table import ScheduleTable
 from src.components.schedule_header import ScheduleHeader
 from src.components.schedule_progress import ScheduleProgress
 from src.components.full_size_window import FullSizeWindow
+from src.components.ScheduleMetrics import ScheduleMetrics
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from typing import List, Optional
@@ -57,7 +58,33 @@ class ScheduleWindow(QMainWindow):
         # Create header with export handler
         self.header = ScheduleHeader(self.handle_export)
         self.main_layout.addWidget(self.header)
-        
+        self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
+
+        # Create top bar with back button, metrics and export controls
+        top_bar = QHBoxLayout()
+        top_bar.setContentsMargins(0, 0, 0, 0)
+        top_bar.setSpacing(15)
+
+        # Back button
+        top_bar.addWidget(self.header.back_button)
+
+        # Metrics (centered with stretch)
+        self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
+        top_bar.addStretch(1)
+        top_bar.addWidget(self.metrics_widget)
+        top_bar.addStretch(1)
+
+        # Export controls
+        export_controls_layout = QVBoxLayout()
+        export_controls_layout.addWidget(self.header.export_controls.export_button)
+        export_controls_layout.addWidget(self.header.export_controls.export_visible_only)
+        top_bar.addLayout(export_controls_layout)
+
+        # Wrap everything in a container and add to layout
+        top_bar_container = QWidget()
+        top_bar_container.setLayout(top_bar)
+        self.main_layout.addWidget(top_bar_container)
+
         # Add separator
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
@@ -161,15 +188,18 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.clearContents()
             # Update export controls with empty data
             self.header.export_controls.update_data([], 0)
-        
     def on_schedule_changed(self, index: int):
-        """Handle schedule navigation"""
         if 0 <= index < len(self.schedules):
-            self.schedule_table.display_schedule(self.schedules[index])
-            # Update export controls with current data
+            schedule = self.schedules[index]
+            self.schedule_table.display_schedule(schedule)
             self.header.export_controls.update_data(self.schedules, index)
-        self.header.export_controls.export_button.setEnabled(True)
-        self.header.back_button.setEnabled(True)
+            self.header.export_controls.export_button.setEnabled(True)
+            self.header.back_button.setEnabled(True)
+
+            # Update metrics widget
+            self.metrics_widget.setParent(None)
+            self.metrics_widget = ScheduleMetrics(schedule)
+            self.main_layout.itemAt(0).widget().layout().insertWidget(1, self.metrics_widget)
         
     def on_schedule_generated(self, schedules: List[Schedule]):
         """Handle new schedule generation"""
