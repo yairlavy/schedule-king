@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QFrame
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon, QPixmap
+from PyQt5.QtGui import QIcon, QPixmap, QTransform
 from src.models.Preference import Preference, Metric
 import os
 
@@ -71,16 +71,21 @@ class RankingControls(QWidget):
 
     def update_sort_order_icon(self):
         """Update the sort order button icon"""
-        icon_name = "sort_desc" if self.sort_order_button.isChecked() else "sort_asc"
-        icon_path = os.path.join(os.path.dirname(__file__), f'../assets/icons/{icon_name}.svg')
+        # Use the down-arrow.png for both ascending and descending, flipping for ascending
+        icon_path = os.path.join(os.path.dirname(__file__), '../assets/down-arrow.png')
+        
         if os.path.exists(icon_path):
-            # Load the SVG as a QPixmap first to set a fixed size
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
+                if not self.sort_order_button.isChecked(): # Ascending
+                    # Flip the pixmap vertically for ascending order
+                    transform = QTransform().rotate(180)
+                    pixmap = pixmap.transformed(transform)
+                
                 # Scale the pixmap down to a smaller size
                 self.sort_order_button.setIcon(QIcon(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)))
             else:
-                # Fallback to text if SVG loading fails
+                # Fallback to text if image loading fails
                 self.sort_order_button.setText("↓" if self.sort_order_button.isChecked() else "↑")
         else:
             # Fallback to text if file not found
