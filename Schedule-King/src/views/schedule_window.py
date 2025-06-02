@@ -55,36 +55,36 @@ class ScheduleWindow(QMainWindow):
         self.first_schedule_shown = False
         self.full_size_window = None
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
-        
-        # Create header with export handler
-        self.header = ScheduleHeader(self.controller,self.handle_export)
-        self.main_layout.addWidget(self.header)
+
+        # Create header and metrics components
+        # ScheduleHeader components (back_button, title_container, export_controls) are now public attributes
+        self.header = ScheduleHeader(self.controller, self.handle_export)
         self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
 
-        # Create top bar with back button, metrics and export controls
-        top_bar = QHBoxLayout()
-        top_bar.setContentsMargins(0, 0, 0, 0)
-        top_bar.setSpacing(15)
+        # Create a horizontal layout for the top section (Back, Header Title, Metrics, Export)
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(15)
+        top_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Back button
-        top_bar.addWidget(self.header.back_button)
+        # Add Back button
+        top_layout.addWidget(self.header.back_button)
 
-        # Metrics (centered with stretch)
-        self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
-        top_bar.addStretch(1)
-        top_bar.addWidget(self.metrics_widget)
-        top_bar.addStretch(1)
+        # Add Header Title container and center it with stretches
+        top_layout.addStretch(1)
+        top_layout.addWidget(self.header.title_container)
+        top_layout.addStretch(1)
 
-        # Export controls
-        export_controls_layout = QVBoxLayout()
-        export_controls_layout.addWidget(self.header.export_controls.export_button)
-        export_controls_layout.addWidget(self.header.export_controls.export_visible_only)
-        top_bar.addLayout(export_controls_layout)
+        # Add Metrics widget
+        top_layout.addWidget(self.metrics_widget)
 
-        # Wrap everything in a container and add to layout
-        top_bar_container = QWidget()
-        top_bar_container.setLayout(top_bar)
-        self.main_layout.addWidget(top_bar_container)
+        # Add Export controls
+        top_layout.addWidget(self.header.export_controls)
+
+        # Add the top layout to the main vertical layout (wrap in QWidget for styling if needed)
+        top_widget_container = QWidget()
+        top_widget_container.setObjectName("schedule_top_bar") # Add object name for styling if needed
+        top_widget_container.setLayout(top_layout)
+        self.main_layout.addWidget(top_widget_container)
 
         # Add separator
         line = QFrame()
@@ -92,15 +92,15 @@ class ScheduleWindow(QMainWindow):
         line.setFrameShadow(QFrame.Sunken)
         line.setObjectName("separator_line")
         self.main_layout.addWidget(line)
-        
-        # Create navigation section
+
+        # Create navigation section (Keep existing setup)
         nav_container = QHBoxLayout()
         nav_container.setSpacing(10)
-        
+
         # Add progress component
         self.progress = ScheduleProgress()
         nav_container.addWidget(self.progress)
-        
+
         # Add navigator
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
@@ -110,7 +110,7 @@ class ScheduleWindow(QMainWindow):
         self.ranking_controls = RankingControls()
         self.ranking_controls.setObjectName("ranking_controls")
         nav_container.addWidget(self.ranking_controls)
-        
+
         # Add full size button
         self.full_size_button = QPushButton()
         self.full_size_button.setObjectName("nav_button")
@@ -123,22 +123,22 @@ class ScheduleWindow(QMainWindow):
         else:
             self.full_size_button.setText("⛶")
             self.full_size_button.setFont(QFont("Arial", 14))
-            
+
         nav_container.addSpacing(10)
         nav_container.addWidget(self.full_size_button)
-        
+
         # Add dummy spacer to balance progress width
         dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
         nav_container.addSpacerItem(dummy)
-        
+
         # Center the navigation section
         wrapper = QHBoxLayout()
         wrapper.addStretch(1)
         wrapper.addLayout(nav_container)
         wrapper.addStretch(1)
         self.main_layout.addLayout(wrapper)
-        
-        # Create schedule table
+
+        # Create schedule table (Keep existing setup)
         self.schedule_table = ScheduleTable()
         self.schedule_table.setObjectName("enhanced_table")
         self.main_layout.addWidget(self.schedule_table, 1)
@@ -210,17 +210,29 @@ class ScheduleWindow(QMainWindow):
                 self.header.export_controls.update_data(current_schedules, index)
                 self.header.export_controls.export_button.setEnabled(True)
                 self.header.back_button.setEnabled(True)
-                # Update metrics widget
-                self.metrics_widget.setParent(None)
+
+                # Update the metrics widget with the new schedule data
+                # Find the top layout containing the metrics widget
+                top_widget_container = self.main_layout.itemAt(0).widget()
+                if top_widget_container and isinstance(top_widget_container.layout(), QHBoxLayout):
+                    top_layout = top_widget_container.layout()
+
+                    # Remove the old metrics widget from its parent layout
+                    # Check if the old metrics widget is still in the layout before removing
+                    if top_layout.indexOf(self.metrics_widget) != -1:
+                         top_layout.removeWidget(self.metrics_widget)
+                         # Delete the old widget to free up resources
+                         self.metrics_widget.deleteLater()
+
+                # Create a new metrics widget with the updated schedule
                 self.metrics_widget = ScheduleMetrics(schedule)
-                 # Find the top bar container and update the metrics widget
-                top_bar_widget = self.main_layout.itemAt(1).widget()  # The top bar container
-                top_bar_layout = top_bar_widget.layout()
-                # Replace the metrics widget (it should be at index 2 between the stretches)
-                old_metrics = top_bar_layout.itemAt(2).widget()
-                if old_metrics:
-                    old_metrics.setParent(None)
-                top_bar_layout.insertWidget(2, self.metrics_widget)
+
+                # Add the new metrics widget to the top layout
+                if top_widget_container and isinstance(top_widget_container.layout(), QHBoxLayout):
+                    top_layout = top_widget_container.layout()
+                    # Insert at index 3 (after back_button, title_container_stretch, title_container_widget, title_container_stretch)
+                    top_layout.insertWidget(3, self.metrics_widget) # Insert at index 3
+
             except IndexError:
                 self.schedule_table.clearContents()
                 self.header.export_controls.update_data([], 0)

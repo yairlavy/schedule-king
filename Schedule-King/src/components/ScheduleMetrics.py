@@ -7,6 +7,7 @@ class ScheduleMetrics(QFrame):
     def __init__(self, schedule: Schedule, parent=None):
         super().__init__(parent)
         self.schedule = schedule
+        self.setObjectName("ScheduleMetrics")
         self.init_ui()
 
     def init_ui(self):
@@ -16,32 +17,23 @@ class ScheduleMetrics(QFrame):
         self.setFixedHeight(150)
 
         title = QLabel("Schedule Metrics")
+        title.setObjectName("metrics_title_label")
         title.setFont(QFont("Arial", 8, QFont.Bold))
         title.setAlignment(Qt.AlignCenter)
         layout.addWidget(title)
 
-        layout.addWidget(self._create_metric_label("Active Days", self.schedule.active_days))
-        layout.addWidget(self._create_metric_label("Gap Count", self.schedule.gap_count))
-        layout.addWidget(self._create_metric_label("Total Gap Time (hours)", self.schedule.total_gap_time))
-        layout.addWidget(self._create_metric_label("Average Start Time", self._format_time(self.schedule.avg_start_time)))
-        layout.addWidget(self._create_metric_label("Average End Time", self._format_time(self.schedule.avg_end_time)))
+        layout.addWidget(self._create_metric_label("Active Days", self.schedule.active_days, "active_days_label"))
+        layout.addWidget(self._create_metric_label("Gap Count", self.schedule.gap_count, "gap_count_label"))
+        layout.addWidget(self._create_metric_label("Total Gap Time (hours)", self.schedule.total_gap_time, "total_gap_time_label"))
+        layout.addWidget(self._create_metric_label("Average Start Time", self._format_time(self.schedule.avg_start_time), "avg_start_time_label"))
+        layout.addWidget(self._create_metric_label("Average End Time", self._format_time(self.schedule.avg_end_time), "avg_end_time_label"))
 
         self.setLayout(layout)
         self.setFixedWidth(250) 
-        self.setStyleSheet("""
-            ScheduleMetrics {
-                background-color: #007BFF;
-                color: black;
-                border-radius: 10px;
-            }
-            QLabel {
-                color: black;
-                font-size: 10pt;
-            }
-        """)
 
-    def _create_metric_label(self, name, value):
+    def _create_metric_label(self, name, value, obj_name):
         label = QLabel(f"{name}: {value}")
+        label.setObjectName(obj_name)
         label.setFont(QFont("Arial", 9))
         return label
 
