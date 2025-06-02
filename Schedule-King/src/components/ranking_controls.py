@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QFrame
 )
 from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon, QPixmap
 from src.models.Preference import Preference, Metric
 import os
 
@@ -17,7 +17,6 @@ class RankingControls(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setup_ui()
-        self.load_styles()
         self.current_preference = None
 
     def setup_ui(self):
@@ -36,12 +35,13 @@ class RankingControls(QWidget):
         self.metric_selector.setObjectName("metric_selector")
         self.metric_selector.setMinimumWidth(150)
         
+         # Add "Insertion Order" option
+        self.metric_selector.addItem("Insertion Order", None)
         # Add metrics to selector
         for metric in Metric:
             self.metric_selector.addItem(metric.name.replace('_', ' ').title(), metric)
-        
-        # Add "Insertion Order" option
-        self.metric_selector.addItem("Insertion Order", None)
+        # Set default selection to "Insertion Order"
+        self.metric_selector.setCurrentIndex(0) 
         layout.addWidget(self.metric_selector)
 
         # Create sort order button
@@ -61,20 +61,22 @@ class RankingControls(QWidget):
         self.metric_selector.currentIndexChanged.connect(self.on_preference_changed)
         self.sort_order_button.toggled.connect(self.on_preference_changed)
 
-    def load_styles(self):
-        style_path = os.path.join(os.path.dirname(__file__), '../assets/styles/ranking_controls.qss')
-        try:
-            with open(style_path, 'r') as f:
-                self.setStyleSheet(f.read())
-        except Exception as e:
-            print(f"Error loading ranking controls styles: {e}")
-
     def update_sort_order_icon(self):
         """Update the sort order button icon"""
         icon_name = "sort_desc" if self.sort_order_button.isChecked() else "sort_asc"
-        icon_path = os.path.join(os.path.dirname(__file__), f'../assets/icons/{icon_name}.png')
+        icon_path = os.path.join(os.path.dirname(__file__), f'../assets/icons/{icon_name}.svg')
         if os.path.exists(icon_path):
-            self.sort_order_button.setIcon(QIcon(icon_path))
+            # Load the SVG as a QPixmap first to set a fixed size
+            pixmap = QPixmap(icon_path)
+            if not pixmap.isNull():
+                # Scale the pixmap down to a smaller size, e.g., 16x16
+                self.sort_order_button.setIcon(QIcon(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)))
+            else:
+                 # Fallback to text if SVG loading fails
+                self.sort_order_button.setText("↓" if self.sort_order_button.isChecked() else "↑")
+        else:
+            # Fallback to text if file not found
+            self.sort_order_button.setText("↓" if self.sort_order_button.isChecked() else "↑")
 
     def on_preference_changed(self):
         """Handle metric selection change"""

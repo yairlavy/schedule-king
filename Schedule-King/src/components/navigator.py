@@ -7,7 +7,7 @@ import os
 
 class Navigator(QWidget):
     """
-    An improved navigator component for browsing through schedules.
+    An navigator component for browsing through schedules.
     Features better UI design and functionality.
     
     The navigator provides:

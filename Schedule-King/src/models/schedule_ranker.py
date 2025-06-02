@@ -88,6 +88,7 @@ class ScheduleRanker:
             
             # Insert all items for this metric at once
             self.sorters[metric].insert_chunk(items_grades)
+            
 
     def get_ranked_schedule(self, k: int) -> Schedule:
         """
@@ -141,7 +142,7 @@ class ScheduleRanker:
         for i in range(len(self.schedules)):
             yield self.get_ranked_schedule(i)
     
-    def get_total_count(self) -> int:
+    def size(self) -> int:
         """
         Returns the total number of schedules.
         :return: Total number of schedules.

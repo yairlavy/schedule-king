@@ -10,9 +10,9 @@ from src.components.schedule_header import ScheduleHeader
 from src.components.schedule_progress import ScheduleProgress
 from src.components.full_size_window import FullSizeWindow
 from src.components.ScheduleMetrics import ScheduleMetrics
-from src.components.ranking_controls import RankingControls
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
+from src.components.ranking_controls import RankingControls
 from typing import List, Optional
 import os
 
@@ -59,6 +59,7 @@ class ScheduleWindow(QMainWindow):
         # Create header with export handler
         self.header = ScheduleHeader(self.handle_export)
         self.main_layout.addWidget(self.header)
+        self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
 
         # Create top bar with back button, metrics and export controls
         top_bar = QHBoxLayout()
@@ -104,9 +105,10 @@ class ScheduleWindow(QMainWindow):
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
         nav_container.addWidget(self.navigator)
-        
+
         # Add ranking controls
         self.ranking_controls = RankingControls()
+        self.ranking_controls.setObjectName("ranking_controls")
         nav_container.addWidget(self.ranking_controls)
         
         # Add full size button
@@ -155,17 +157,10 @@ class ScheduleWindow(QMainWindow):
         # Connect controller callbacks
         self.controller.on_schedules_generated = self.on_schedule_generated
         self.controller.on_progress_updated = self.progress.update_progress
-        
-        # Connect ranking controls
+
+        # Connect ranking controls to controller
         self.ranking_controls.preference_changed.connect(self.on_preference_changed)
         
-    def on_preference_changed(self, preference):
-        """Handle preference changes from ranking controls"""
-        self.controller.set_preference(preference)
-        # Update the current schedule display
-        if self.schedules:
-            self.on_schedule_changed(self.navigator.current_index)
-            
     def show_initial_schedule(self, schedules: List[Schedule]):
         """Display the first schedule if available"""
         if schedules:
@@ -202,19 +197,34 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.clearContents()
             # Update export controls with empty data
             self.header.export_controls.update_data([], 0)
-
     def on_schedule_changed(self, index: int):
-        if 0 <= index < len(self.schedules):
-            schedule = self.schedules[index]
-            self.schedule_table.display_schedule(schedule)
-            self.header.export_controls.update_data(self.schedules, index)
-            self.header.export_controls.export_button.setEnabled(True)
-            self.header.back_button.setEnabled(True)
+        """Handle schedule change event from navigator and preference controls"""
 
-            # Update metrics widget
-            self.metrics_widget.setParent(None)
-            self.metrics_widget = ScheduleMetrics(schedule)
-            self.main_layout.itemAt(0).widget().layout().insertWidget(1, self.metrics_widget)
+        if 0 <= index < len(self.schedules):
+            try:
+                #Get the ranked schedule based on current preference
+                schedule = self.controller.get_kth_schedule(index)
+                self.schedule_table.display_schedule(schedule)
+                # Update export controls with current schedules and index
+                current_schedules = self.controller.get_schedules()
+                self.header.export_controls.update_data(current_schedules, index)
+                self.header.export_controls.export_button.setEnabled(True)
+                self.header.back_button.setEnabled(True)
+                # Update metrics widget
+                self.metrics_widget.setParent(None)
+                self.metrics_widget = ScheduleMetrics(schedule)
+                 # Find the top bar container and update the metrics widget
+                top_bar_widget = self.main_layout.itemAt(1).widget()  # The top bar container
+                top_bar_layout = top_bar_widget.layout()
+                # Replace the metrics widget (it should be at index 2 between the stretches)
+                old_metrics = top_bar_layout.itemAt(2).widget()
+                if old_metrics:
+                    old_metrics.setParent(None)
+                top_bar_layout.insertWidget(2, self.metrics_widget)
+            except IndexError:
+                self.schedule_table.clearContents()
+                self.header.export_controls.update_data([], 0)
+                self.header.export_controls.export_button.setEnabled(False)
         
     def on_schedule_generated(self, schedules: List[Schedule]):
         """Handle new schedule generation"""
@@ -232,6 +242,19 @@ class ScheduleWindow(QMainWindow):
                 
         if not self.controller.generation_active and not schedules:
             self.progress.hide_progress()
+
+    def on_preference_changed(self, metric, ascending):
+        """Handle changes in ranking preferences"""
+        if metric is None:
+            # Clear preference
+            self.controller.clear_preference()
+        else:
+            # Set new preference
+            self.controller.set_preference(metric, ascending)
+        
+        # Refresh the schedules display
+        if self.navigator.current_index < len(self.schedules):
+            self.on_schedule_changed(self.navigator.current_index)
             
     def navigateToCourseWindow(self):
         """Navigate back to course selection"""
