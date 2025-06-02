@@ -22,21 +22,25 @@ class RankingControls(QWidget):
 
     def setup_ui(self):
         """Initialize the UI components"""
-        layout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        # Create a container widget with a frame for better visual appearance
+        container = QWidget()
+        container.setObjectName("ranking_container")
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(10, 5, 10, 5)
         layout.setSpacing(10)
 
-        # Add label
+        # Add label with icon
         self.label = QLabel("Sort by:")
         self.label.setObjectName("ranking_label")
         layout.addWidget(self.label)
 
-        # Create metric selector
+        # Create metric selector with enhanced styling
         self.metric_selector = QComboBox()
         self.metric_selector.setObjectName("metric_selector")
-        self.metric_selector.setMinimumWidth(150)
+        self.metric_selector.setMinimumWidth(180)
+        self.metric_selector.setFixedHeight(32)
         
-         # Add "Insertion Order" option
+        # Add "Insertion Order" option
         self.metric_selector.addItem("Insertion Order", None)
         # Add metrics to selector
         for metric in Metric:
@@ -45,7 +49,7 @@ class RankingControls(QWidget):
         self.metric_selector.setCurrentIndex(0) 
         layout.addWidget(self.metric_selector)
 
-        # Create sort order button
+        # Create sort order button with enhanced styling
         self.sort_order_button = QPushButton()
         self.sort_order_button.setObjectName("sort_order_button")
         self.sort_order_button.setFixedSize(32, 32)
@@ -56,7 +60,10 @@ class RankingControls(QWidget):
         # Add stretch to push controls to the left
         layout.addStretch()
 
-        self.setLayout(layout)
+        # Set the container as the main widget
+        main_layout = QHBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(container)
 
         # Connect signals
         self.metric_selector.currentIndexChanged.connect(self.on_preference_changed)
@@ -70,10 +77,10 @@ class RankingControls(QWidget):
             # Load the SVG as a QPixmap first to set a fixed size
             pixmap = QPixmap(icon_path)
             if not pixmap.isNull():
-                # Scale the pixmap down to a smaller size, e.g., 16x16
+                # Scale the pixmap down to a smaller size
                 self.sort_order_button.setIcon(QIcon(pixmap.scaled(16, 16, Qt.KeepAspectRatio, Qt.SmoothTransformation)))
             else:
-                 # Fallback to text if SVG loading fails
+                # Fallback to text if SVG loading fails
                 self.sort_order_button.setText("↓" if self.sort_order_button.isChecked() else "↑")
         else:
             # Fallback to text if file not found
