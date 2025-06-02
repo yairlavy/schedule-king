@@ -1,6 +1,7 @@
-from models.schedule import Schedule
-from models.grade_sorter import GradeSorter
-from models.Preference import Preference, Metric
+from src.models.schedule import Schedule
+from src.models.grade_sorter import GradeSorter
+from src.models.Preference import Preference, Metric
+from typing import List, Optional, Iterator
 
 class ScheduleRanker:
     """
@@ -9,80 +10,159 @@ class ScheduleRanker:
     """
     def __init__(self):
         # List of schedules to be ranked
-        self.schedules : list[Schedule] = []
+        self.schedules: List[Schedule] = []
         # Dictionary mapping each metric to its corresponding GradeSorter
         self.sorters: dict[Metric, GradeSorter] = {
             Metric.ACTIVE_DAYS: GradeSorter(7),        # Upper bound for active days is 7
             Metric.GAP_COUNT: GradeSorter(20),         # Upper bound for gap count is 20
-            Metric.TOTAL_GAP_TIME: GradeSorter(500),   # Upper bound for total gap time
-            Metric.AVG_START_TIME: GradeSorter(1200),  # Upper bound for average start time
-            Metric.AVG_END_TIME: GradeSorter(1200)     # Upper bound for average end time
+            Metric.TOTAL_GAP_TIME: GradeSorter(60),    # Upper bound for total gap time in hours
+            Metric.AVG_START_TIME: GradeSorter(1440),  # Upper bound for average start time in minutes (24*60)
+            Metric.AVG_END_TIME: GradeSorter(1440)     # Upper bound for average end time in minutes (24*60)
         }
-        # Current user preference for sorting - None means all
-        self.current_preference: Preference = None
+        # Current user preference for sorting - None means insertion order
+        self.current_preference: Optional[Preference] = None
 
-    def set_preference(self, preference: Preference):
+    def set_preference(self, preference: Optional[Preference]):
         """
         Sets the current user preference for sorting schedules.
-        :param preference: A Preference object defining the sorting metric and order.
+        :param preference: A Preference object defining the sorting metric and order, or None for insertion order.
         """
-        # Check if the given preference is valid and supported
-        if preference.metric not in self.sorters or not preference:
+        if preference is not None and preference.metric not in self.sorters:
             raise ValueError(f"Unsupported metric: {preference.metric}")
-        # Set the current preference
         self.current_preference = preference
         
     def insert_schedule(self, schedule: Schedule):
         """
-        Inserts a schedule into the appropriate GradeSorter based on the current preference.
+        Inserts a schedule into all GradeSorters.
         :param schedule: The Schedule object to insert.
         """
         # Use the index of the schedule as the item
         item = len(self.schedules)
         # Add the schedule to the list
         self.schedules.append(schedule)
+        
         # Insert the schedule's metrics into all sorters
-        self.sorters[Metric.ACTIVE_DAYS].insert(item, schedule.active_days)
-        self.sorters[Metric.GAP_COUNT].insert(item, schedule.gap_count)
-        self.sorters[Metric.TOTAL_GAP_TIME].insert(item, schedule.total_gap_time)
-        self.sorters[Metric.AVG_START_TIME].insert(item, schedule.avg_start_time)
-        self.sorters[Metric.AVG_END_TIME].insert(item, schedule.avg_end_time)
+        # Each metric is converted to an integer grade for sorting
+        self.sorters[Metric.ACTIVE_DAYS].insert(item, int(schedule.active_days))
+        self.sorters[Metric.GAP_COUNT].insert(item, int(schedule.gap_count))
+        # Total gap time is in hours, store as half-hours for grading
+        self.sorters[Metric.TOTAL_GAP_TIME].insert(item, int(schedule.total_gap_time * 2))
+        # Average times are in 700 format float, convert to minutes for grading
+        self.sorters[Metric.AVG_START_TIME].insert(item, Schedule.time_format_to_minutes(int(schedule.avg_start_time)))
+        self.sorters[Metric.AVG_END_TIME].insert(item, Schedule.time_format_to_minutes(int(schedule.avg_end_time)))
 
-    def add_batch(self, batch: list[Schedule]):
+    def add_batch(self, batch: List[Schedule]):
         """
-        Inserts a batch of schedules into the appropriate GradeSorter based on the current preference.
+        Inserts a batch of schedules into all GradeSorters efficiently.
         :param batch: A list of Schedule objects to insert.
         """
-        # If the batch is empty, do nothing
         if not batch:
             return
-        # Extend the schedules list with the new batch
+            
+        start_index = len(self.schedules)
         self.schedules.extend(batch)
-        # Insert each metric for all schedules in the batch into the corresponding sorter
-        items_grades = [(len(self.schedules) - len(batch) + i, schedule.active_days) for i, schedule in enumerate(batch)]
-        self.sorters[Metric.ACTIVE_DAYS].insert_chunk(items_grades)
-        items_grades = [(len(self.schedules) - len(batch) + i, schedule.gap_count) for i, schedule in enumerate(batch)]
-        self.sorters[Metric.GAP_COUNT].insert_chunk(items_grades)
-        items_grades = [(len(self.schedules) - len(batch) + i, schedule.total_gap_time) for i, schedule in enumerate(batch)]
-        self.sorters[Metric.TOTAL_GAP_TIME].insert_chunk(items_grades)
-        items_grades = [(len(self.schedules) - len(batch) + i, schedule.avg_start_time) for i, schedule in enumerate(batch)]
-        self.sorters[Metric.AVG_START_TIME].insert_chunk(items_grades)
-        # Note: AVG_END_TIME is not inserted in batch mode
+        
+        # Prepare items_grades for each metric
+        for metric in Metric:
+            items_grades = []
+            for i, schedule in enumerate(batch):
+                item_index = start_index + i
+                # Extract the grade for the current metric
+                if metric == Metric.ACTIVE_DAYS:
+                    grade = int(schedule.active_days)
+                elif metric == Metric.GAP_COUNT:
+                    grade = int(schedule.gap_count)
+                elif metric == Metric.TOTAL_GAP_TIME:
+                    # Total gap time is in hours, store as half-hours for grading
+                    grade = int(schedule.total_gap_time * 2)
+                elif metric == Metric.AVG_START_TIME:
+                    # Average times are in 700 format float, convert to minutes for grading
+                    grade = Schedule.time_format_to_minutes(int(schedule.avg_start_time))
+                elif metric == Metric.AVG_END_TIME:
+                    # Average times are in 700 format float, convert to minutes for grading
+                    grade = Schedule.time_format_to_minutes(int(schedule.avg_end_time))
+                else:
+                    continue
+                    
+                items_grades.append((item_index, grade))
+            
+            # Insert all items for this metric at once
+            self.sorters[metric].insert_chunk(items_grades)
 
-    def get_ranked_schedule(self, k: int = 0) -> Schedule:
+    def get_ranked_schedule(self, k: int) -> Schedule:
         """
-        Retrieves the top k schedule based on the current user preference.
-        :param k: The number of top schedules to retrieve (default is 0 for all).
-        :return: A list of Schedule objects sorted according to the current preference.
+        Retrieves the k-th schedule based on the current user preference.
+        :param k: The index of the schedule to retrieve (0-based).
+        :return: The k-th Schedule object according to the current preference.
         """
-        # Ensure k is non-negative
-        if k < 0:
-            raise ValueError("k must be non-negative")
-        # If a preference is set, use the corresponding sorter to get the k-th item
-        if self.current_preference:
-            metric = self.current_preference.metric
-            sorter = self.sorters[metric]
-            return self.schedules[sorter.get_kth_item(k)]
-        else:
-            # If no preference, return the k-th schedule as is
+        if k < 0 or k >= len(self.schedules):
+            raise IndexError(f"k={k} is out of bounds for {len(self.schedules)} schedules")
+            
+        # If no preference is set, return in insertion order
+        if self.current_preference is None:
             return self.schedules[k]
+            
+        # Get the sorter and handle ascending/descending order
+        metric = self.current_preference.metric
+        sorter = self.sorters[metric]
+        
+        if self.current_preference.ascending:
+            # Normal order: k-th smallest
+            schedule_index = sorter.get_kth_item(k)
+        else:
+            # Reverse order: k-th largest = (total-1-k)-th smallest
+            reverse_k = len(self.schedules) - 1 - k
+            schedule_index = sorter.get_kth_item(reverse_k)
+            
+        return self.schedules[schedule_index]
+    
+    def get_ranked_schedules(self, start: int = 0, count: Optional[int] = None) -> List[Schedule]:
+        """
+        Retrieves a range of schedules based on the current preference.
+        :param start: Starting index (0-based).
+        :param count: Number of schedules to retrieve. If None, retrieves all from start.
+        :return: List of Schedule objects in the requested range.
+        """
+        if count is None:
+            count = len(self.schedules) - start
+            
+        if start < 0 or start >= len(self.schedules):
+            raise IndexError(f"start={start} is out of bounds")
+            
+        end = min(start + count, len(self.schedules))
+        # Collect the schedules in ranked order
+        return [self.get_ranked_schedule(i) for i in range(start, end)]
+    
+    def iter_ranked_schedules(self) -> Iterator[Schedule]:
+        """
+        Returns an iterator over all schedules in ranked order.
+        :return: Iterator yielding Schedule objects in ranked order.
+        """
+        for i in range(len(self.schedules)):
+            yield self.get_ranked_schedule(i)
+    
+    def get_total_count(self) -> int:
+        """
+        Returns the total number of schedules.
+        :return: Total number of schedules.
+        """
+        return len(self.schedules)
+    
+    def clear(self):
+        """
+        Clears all schedules and resets the ranker.
+        """
+        self.schedules.clear()
+        # Reset all sorters
+        for metric in Metric:
+            self.sorters[metric] = GradeSorter(self.sorters[metric].upper_bound)
+        
+    def get_schedule_by_original_index(self, original_index: int) -> Schedule:
+        """
+        Retrieves a schedule by its original insertion index.
+        :param original_index: The original index when the schedule was inserted.
+        :return: The Schedule object.
+        """
+        if original_index < 0 or original_index >= len(self.schedules):
+            raise IndexError(f"original_index={original_index} is out of bounds")
+        return self.schedules[original_index]

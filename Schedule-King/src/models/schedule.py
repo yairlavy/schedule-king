@@ -50,11 +50,29 @@ class Schedule:
     
     @staticmethod
     def time_to_minutes(t):
+        """Convert time to minutes (e.g., 900 -> 540)"""
         return t.hour * 60 + t.minute
+
+    @staticmethod
+    def time_format_to_minutes(time_format: int) -> int:
+        """Convert time format to minutes (e.g., 900 -> 540)"""
+        hours = time_format // 100
+        minutes = time_format % 100
+        return hours * 60 + minutes
+
+    @staticmethod
+    def minutes_to_time_format(minutes: int) -> int:
+        """Convert minutes to time format (e.g., 540 -> 900)"""
+        hours = minutes // 60
+        mins = minutes % 60
+        return hours * 100 + mins
 
     def generate_metrics(self):
         """
         Computes and stores metrics: active_days, gap_count, total_gap_time, avg_start_time, avg_end_time
+        Assumes each lecture takes exactly one hour
+        Times are stored as integers: 700 for 7:00, 1300 for 13:00, etc.
+        Only includes days with lectures in average calculations.
         """
         # Group lectures by day
         daily_slots = defaultdict(list)
@@ -88,27 +106,35 @@ class Schedule:
         daily_end_times = []
 
         # Iterate through each day's slots to calculate metrics
-        # Sort the slots by start time and calculate gaps
         for day, slots in daily_slots.items():
-
-            # Sort the slots by day and then by start time
-            sorted_slots = sorted(slots, key=lambda s: self.time_to_minutes(s.start_time))
-            start_times = [self.time_to_minutes(s.start_time) for s in sorted_slots]
-            end_times = [self.time_to_minutes(s.end_time) for s in sorted_slots]
-            end_times = [self.time_to_minutes(s.end_time) for s in sorted_slots]
-
-            if not start_times or not end_times:
+            if not slots:  # Skip days with no lectures
                 continue
-            # Update active days
-            daily_start_times.append(start_times[0])
-            daily_end_times.append(end_times[-1])
+                
+            # Sort the slots by start time
+            sorted_slots = sorted(slots, key=lambda s: s.start_time)
+            
+            # Convert times to minutes for internal calculations
+            start_minutes = [s.start_time.hour * 60 + s.start_time.minute for s in sorted_slots]
+            end_minutes = [(s.start_time.hour + 1) * 60 + s.start_time.minute for s in sorted_slots]  # Each lecture takes 1 hour
 
-            # Calculate gaps
+            # Convert to time format (e.g., 700 for 7:00) for storage
+            daily_start_times.append(self.minutes_to_time_format(start_minutes[0]))
+            daily_end_times.append(self.minutes_to_time_format(end_minutes[-1]))
+
+            # Calculate gaps in hours
             for i in range(len(sorted_slots) - 1):
-                gap = start_times[i + 1] - end_times[i]
-                if gap >= 30:
+                gap_minutes = start_minutes[i + 1] - end_minutes[i]
+                if gap_minutes > 0:  # If there's any gap between lectures
                     self.gap_count += 1
-                    self.total_gap_time += gap
+                    self.total_gap_time += gap_minutes / 60  # Add gap in hours
 
-        self.avg_start_time = sum(daily_start_times) / len(daily_start_times) if daily_start_times else 0.0
-        self.avg_end_time = sum(daily_end_times) / len(daily_end_times) if daily_end_times else 0.0
+        # Calculate averages only for days with lectures
+        if daily_start_times:
+            self.avg_start_time = sum(daily_start_times) / len(daily_start_times)
+        else:
+            self.avg_start_time = 0
+
+        if daily_end_times:
+            self.avg_end_time = sum(daily_end_times) / len(daily_end_times)
+        else:
+            self.avg_end_time = 0

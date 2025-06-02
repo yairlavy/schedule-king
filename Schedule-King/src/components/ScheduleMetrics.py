@@ -22,7 +22,7 @@ class ScheduleMetrics(QFrame):
 
         layout.addWidget(self._create_metric_label("Active Days", self.schedule.active_days))
         layout.addWidget(self._create_metric_label("Gap Count", self.schedule.gap_count))
-        layout.addWidget(self._create_metric_label("Total Gap Time (min)", self.schedule.total_gap_time))
+        layout.addWidget(self._create_metric_label("Total Gap Time (hours)", self.schedule.total_gap_time))
         layout.addWidget(self._create_metric_label("Average Start Time", self._format_time(self.schedule.avg_start_time)))
         layout.addWidget(self._create_metric_label("Average End Time", self._format_time(self.schedule.avg_end_time)))
 
@@ -45,9 +45,15 @@ class ScheduleMetrics(QFrame):
         label.setFont(QFont("Arial", 9))
         return label
 
-    def _format_time(self, minutes: float) -> str:
-        if minutes == 0:
+    def _format_time(self, time_value: float) -> str:
+        """Format time from integer format (e.g., 900) to HH:MM"""
+        if time_value == 0:
             return "N/A"
-        h = int(minutes) // 60
-        m = int(minutes) % 60
+        
+        # Convert the time format (e.g., 900) to total minutes
+        total_minutes = Schedule.time_format_to_minutes(int(time_value))
+
+        # Now format the total minutes
+        h = total_minutes // 60
+        m = total_minutes % 60
         return f"{h:02}:{m:02}"
