@@ -54,7 +54,7 @@ class ScheduleController:
         self.on_schedules_generated([])
         # Notify progress start
         self.on_progress_updated(0, self.estimated_total)
-        return self.schedules
+        return self.ranker.get_schedules()
 
     def check_for_schedules(self) -> None:   
         """
@@ -78,7 +78,7 @@ class ScheduleController:
                     self.generation_active = False
                     # When generation is complete, set current = estimated total
                         # If we didn't have an estimate, use the actual count as both current and total
-                    self.on_progress_updated(len(self.schedules), len(self.schedules))
+                    self.on_progress_updated(len(self.ranker.get_schedules()), len(self.ranker.get_schedules()))
                     break
                 self.ranker.add_batch(schedule)  # Append the batch to the schedules list
                 updated = True

@@ -12,7 +12,8 @@ class RankingControls(QWidget):
     A widget that provides controls for ranking schedules by different metrics.
     Allows users to select a metric and sort order (ascending/descending).
     """
-    preference_changed = pyqtSignal(object)  # Emits Preference object
+    # Emits (metric: object, ascending: bool) when preference changes
+    preference_changed = pyqtSignal(object, bool)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -83,7 +84,8 @@ class RankingControls(QWidget):
         metric = self.metric_selector.currentData()
         ascending = not self.sort_order_button.isChecked()
         self.update_sort_order_icon()
-        self.preference_changed.emit((metric, ascending))
+        # Emit metric and ascending as separate arguments
+        self.preference_changed.emit(metric, ascending)
 
     def set_preference(self, metric, ascending):
         """Set the current preference"""
