@@ -10,6 +10,7 @@ from src.components.schedule_header import ScheduleHeader
 from src.components.schedule_progress import ScheduleProgress
 from src.components.full_size_window import FullSizeWindow
 from src.components.ScheduleMetrics import ScheduleMetrics
+from src.components.ranking_controls import RankingControls
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from typing import List, Optional
@@ -58,7 +59,6 @@ class ScheduleWindow(QMainWindow):
         # Create header with export handler
         self.header = ScheduleHeader(self.handle_export)
         self.main_layout.addWidget(self.header)
-        self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
 
         # Create top bar with back button, metrics and export controls
         top_bar = QHBoxLayout()
@@ -104,6 +104,10 @@ class ScheduleWindow(QMainWindow):
         self.navigator = Navigator(schedules)
         self.navigator.setObjectName("compact_navigator")
         nav_container.addWidget(self.navigator)
+        
+        # Add ranking controls
+        self.ranking_controls = RankingControls()
+        nav_container.addWidget(self.ranking_controls)
         
         # Add full size button
         self.full_size_button = QPushButton()
@@ -152,6 +156,16 @@ class ScheduleWindow(QMainWindow):
         self.controller.on_schedules_generated = self.on_schedule_generated
         self.controller.on_progress_updated = self.progress.update_progress
         
+        # Connect ranking controls
+        self.ranking_controls.preference_changed.connect(self.on_preference_changed)
+        
+    def on_preference_changed(self, preference):
+        """Handle preference changes from ranking controls"""
+        self.controller.set_preference(preference)
+        # Update the current schedule display
+        if self.schedules:
+            self.on_schedule_changed(self.navigator.current_index)
+            
     def show_initial_schedule(self, schedules: List[Schedule]):
         """Display the first schedule if available"""
         if schedules:
@@ -188,6 +202,7 @@ class ScheduleWindow(QMainWindow):
             self.schedule_table.clearContents()
             # Update export controls with empty data
             self.header.export_controls.update_data([], 0)
+
     def on_schedule_changed(self, index: int):
         if 0 <= index < len(self.schedules):
             schedule = self.schedules[index]

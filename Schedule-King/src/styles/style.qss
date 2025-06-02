@@ -352,3 +352,79 @@ QPushButton#cancel_button:hover {
 QPushButton#cancel_button:pressed {
     background-color: #B71C1C;
 }
+
+/* Ranking Controls Styles */
+#ranking_label {
+    color: #666;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#metric_selector {
+    min-width: 150px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 14px;
+}
+
+#metric_selector:hover {
+    border-color: #999;
+}
+
+#metric_selector:focus {
+    border-color: #4a90e2;
+    outline: none;
+}
+
+#sort_order_button {
+    background-color: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+}
+
+#sort_order_button:hover {
+    border-color: #999;
+    background-color: #f5f5f5;
+}
+
+#sort_order_button:checked {
+    background-color: #e8f0fe;
+    border-color: #4a90e2;
+}
+
+/* Dark theme support */
+[theme="dark"] #ranking_label {
+    color: #ccc;
+}
+
+[theme="dark"] #metric_selector {
+    background-color: #2d2d2d;
+    border-color: #444;
+    color: #fff;
+}
+
+[theme="dark"] #metric_selector:hover {
+    border-color: #666;
+}
+
+[theme="dark"] #metric_selector:focus {
+    border-color: #4a90e2;
+}
+
+[theme="dark"] #sort_order_button {
+    background-color: #2d2d2d;
+    border-color: #444;
+}
+
+[theme="dark"] #sort_order_button:hover {
+    border-color: #666;
+    background-color: #3d3d3d;
+}
+
+[theme="dark"] #sort_order_button:checked {
+    background-color: #1a3a5f;
+    border-color: #4a90e2;
+}
