@@ -166,3 +166,10 @@ class ScheduleRanker:
         if original_index < 0 or original_index >= len(self.schedules):
             raise IndexError(f"original_index={original_index} is out of bounds")
         return self.schedules[original_index]
+    
+    def get_schedules(self) -> List[Schedule]:
+        """
+        Returns the list of all schedules.
+        :return: List of Schedule objects.
+        """
+        return self.schedules.copy()
