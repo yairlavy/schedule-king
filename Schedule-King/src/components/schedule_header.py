@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from src.components.export_controls import ExportControls
+from src.controllers.ScheduleController import ScheduleController
 import os
 
 class ScheduleHeader(QWidget):
@@ -13,9 +14,10 @@ class ScheduleHeader(QWidget):
     - Title with crown icon
     - Export controls
     """
-    def __init__(self, export_handler):
+    def __init__(self, controller : ScheduleController ,export_handler):
         super().__init__()
         self.export_handler = export_handler
+        self.controller = controller  # Reference to the controller for handling back navigation
         self.setup_ui()
         
     def setup_ui(self):
@@ -75,7 +77,7 @@ class ScheduleHeader(QWidget):
         title_layout.addLayout(title_row)
         
         # Export controls
-        self.export_controls = ExportControls(self.export_handler)
+        self.export_controls = ExportControls( self.controller , self.export_handler)
         
         # Assemble header
         header_layout.addWidget(self.back_button)

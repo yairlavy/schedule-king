@@ -354,13 +354,13 @@ QPushButton#cancel_button:pressed {
 }
 
 /* Ranking Controls Styles */
-#ranking_label {
+QLabel#ranking_label {
     color: #666;
     font-size: 14px;
     font-weight: bold;
 }
 
-#metric_selector {
+QComboBox#metric_selector {
     min-width: 150px;
     padding: 5px 10px;
     border: 1px solid #ccc;
@@ -369,62 +369,62 @@ QPushButton#cancel_button:pressed {
     font-size: 14px;
 }
 
-#metric_selector:hover {
+QComboBox#metric_selector:hover {
     border-color: #999;
 }
 
-#metric_selector:focus {
+QComboBox#metric_selector:focus {
     border-color: #4a90e2;
     outline: none;
 }
 
-#sort_order_button {
+QPushButton#sort_order_button {
     background-color: white;
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 5px;
 }
 
-#sort_order_button:hover {
+QPushButton#sort_order_button:hover {
     border-color: #999;
     background-color: #f5f5f5;
 }
 
-#sort_order_button:checked {
+QPushButton#sort_order_button:checked {
     background-color: #e8f0fe;
     border-color: #4a90e2;
 }
 
 /* Dark theme support */
-[theme="dark"] #ranking_label {
+[theme="dark"] QLabel#ranking_label {
     color: #ccc;
 }
 
-[theme="dark"] #metric_selector {
+[theme="dark"] QComboBox#metric_selector {
     background-color: #2d2d2d;
     border-color: #444;
     color: #fff;
 }
 
-[theme="dark"] #metric_selector:hover {
+[theme="dark"] QComboBox#metric_selector:hover {
     border-color: #666;
 }
 
-[theme="dark"] #metric_selector:focus {
+[theme="dark"] QComboBox#metric_selector:focus {
     border-color: #4a90e2;
 }
 
-[theme="dark"] #sort_order_button {
+[theme="dark"] QComboBox#sort_order_button {
     background-color: #2d2d2d;
     border-color: #444;
 }
 
-[theme="dark"] #sort_order_button:hover {
+[theme="dark"] QComboBox#sort_order_button:hover {
     border-color: #666;
     background-color: #3d3d3d;
 }
 
-[theme="dark"] #sort_order_button:checked {
+[theme="dark"] QPushButton#sort_order_button:checked {
     background-color: #1a3a5f;
     border-color: #4a90e2;
 }

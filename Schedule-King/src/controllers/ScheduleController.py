@@ -108,8 +108,8 @@ class ScheduleController:
             self.generation_active = False
             
             # If there are schedules, make sure the progress bar shows 100% completion
-            if self.schedules and len(self.schedules) > 0:
-                final_count = len(self.schedules)
+            if self.ranker.get_schedules() and self.ranker.size() > 0:
+                final_count = self.ranker.size()
                 self.on_progress_updated(final_count, final_count)
             
             if self.timer and self.timer.isActive():
@@ -183,6 +183,9 @@ class ScheduleController:
         # Use the ranker to get the k-th schedule based on the current preference
         return self.ranker.get_ranked_schedule(k)
     
+    def get_ranked_schedules(self, count: int, start: int = 0):
+        return self.ranker.get_ranked_schedules(start,count)
+
     def get_schedules(self) -> List[Schedule]:
         """
         Returns the generated schedules.
@@ -204,6 +207,6 @@ class ScheduleController:
         Raises:
             Exception: If the export operation fails.
         """
-        schedules = schedules_to_export if schedules_to_export is not None else self.schedules
+        schedules = schedules_to_export if schedules_to_export is not None else self.ranker.get_ranked_schedules(0,100)
         # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules, file_path)

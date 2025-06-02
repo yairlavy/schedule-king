@@ -57,7 +57,7 @@ class ScheduleWindow(QMainWindow):
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
         
         # Create header with export handler
-        self.header = ScheduleHeader(self.handle_export)
+        self.header = ScheduleHeader(self.controller,self.handle_export)
         self.main_layout.addWidget(self.header)
         self.metrics_widget = ScheduleMetrics(schedules[0] if schedules else Schedule([]))
 
