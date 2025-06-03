@@ -127,6 +127,22 @@ class ScheduleWindow(QMainWindow):
         nav_container.addSpacing(10)
         nav_container.addWidget(self.full_size_button)
 
+        # Add refresh button
+        self.refresh_button = QPushButton()
+        self.refresh_button.setObjectName("nav_button") # Use same object name for styling consistency
+        self.refresh_button.setFixedSize(36, 36)
+        refresh_icon_path = os.path.join(os.path.dirname(__file__), "../assets/refresh.png")
+        refresh_icon = QIcon(refresh_icon_path)
+        if not refresh_icon.isNull():
+            self.refresh_button.setIcon(refresh_icon)
+            self.refresh_button.setIconSize(self.refresh_button.size())
+            self.refresh_button.setText("")
+        else:
+            self.refresh_button.setText("↻") # Fallback text
+            self.refresh_button.setFont(QFont("Arial", 14))
+
+        nav_container.addWidget(self.refresh_button)
+
         # Add dummy spacer to balance progress width
         dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
         nav_container.addSpacerItem(dummy)
@@ -153,6 +169,9 @@ class ScheduleWindow(QMainWindow):
         
         # Connect full size button
         self.full_size_button.clicked.connect(self.open_full_size)
+        
+        # Connect refresh button
+        self.refresh_button.clicked.connect(self.on_refresh_button_clicked)
         
         # Connect controller callbacks
         self.controller.on_schedules_generated = self.on_schedule_generated
@@ -193,10 +212,14 @@ class ScheduleWindow(QMainWindow):
         self.navigator.set_schedules(schedules)
         if schedules:
             self.on_schedule_changed(0)
+            # Enable refresh button if schedules are displayed
+            self.refresh_button.setEnabled(True)
         else:
             self.schedule_table.clearContents()
             # Update export controls with empty data
             self.header.export_controls.update_data([], 0)
+            # Disable refresh button if no schedules are displayed
+            self.refresh_button.setEnabled(False)
     def on_schedule_changed(self, index: int):
         """Handle schedule change event from navigator and preference controls"""
 
@@ -233,10 +256,16 @@ class ScheduleWindow(QMainWindow):
                     # Insert at index 3 (after back_button, title_container_stretch, title_container_widget, title_container_stretch)
                     top_layout.insertWidget(3, self.metrics_widget) # Insert at index 3
 
+                # Enable the refresh button since a schedule is displayed
+                self.refresh_button.setEnabled(True)
+
             except IndexError:
                 self.schedule_table.clearContents()
                 self.header.export_controls.update_data([], 0)
                 self.header.export_controls.export_button.setEnabled(False)
+                self.header.back_button.setEnabled(False)
+                # Disable the refresh button when there's an error or no schedules
+                self.refresh_button.setEnabled(False)
         
     def on_schedule_generated(self, schedules: List[Schedule]):
         """Handle new schedule generation"""
@@ -247,10 +276,14 @@ class ScheduleWindow(QMainWindow):
                 self.navigator.current_index = 0
                 self.on_schedule_changed(0)
                 self.first_schedule_shown = True
+                # Enable refresh button if schedules are generated
+                self.refresh_button.setEnabled(True)
             elif not schedules:
                 self.schedule_table.clearContents()
                 # Update export controls with empty data
                 self.header.export_controls.update_data([], 0)
+                # Disable refresh button if no schedules are generated
+                self.refresh_button.setEnabled(False)
                 
         if not self.controller.generation_active and not schedules:
             self.progress.hide_progress()
@@ -293,6 +326,14 @@ class ScheduleWindow(QMainWindow):
             self.full_size_window.close()
             
         self.full_size_window = FullSizeWindow(
-            self.schedules[self.navigator.current_index],
+            self.controller.get_kth_schedule(self.navigator.current_index),
             self.navigator.current_index
         )
+
+    def on_refresh_button_clicked(self):
+        """Handle refresh button click: reload the current schedule"""
+        current_index = self.navigator.current_index
+        # Only attempt to refresh if there are schedules to display
+        if 0 <= current_index < len(self.schedules):
+            self.on_schedule_changed(current_index)
+        # No else needed, as the button should be disabled if there are no schedules
