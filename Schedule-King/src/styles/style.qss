@@ -530,22 +530,23 @@ QFrame#ScheduleMetrics {
     background-color: #E3F2FD; /* Light blue background */
     border: 1px solid #BBDEFB;
     border-radius: 8px;
-    padding: 10px;
+    padding: 10px; /* Reverted padding slightly */
     margin: 0;
 }
 
 QLabel#metrics_title_label {
     color: #1565C0; /* Blue color */
-    font-size: 16px;
+    font-size: 18px; /* Increased title font size */
     font-weight: bold;
-    margin-bottom: 5px;
+    margin-bottom: 6px; /* Adjusted space below title */
 }
 
 QFrame#ScheduleMetrics QLabel {
-    color: #495057; /* Dark gray color for metric labels */
-    font-size: 14px;
+    color: #212121; /* Darker text color for better contrast */
+    font-size: 15px; /* Adjusted font size for metric labels */
     font-weight: 500;
-    margin-bottom: 2px;
+    margin-bottom: 2px; /* Adjusted space between metric labels */
+    padding: 1px 5px; /* Adjusted padding */
 }
 
 /* Dark theme support */
@@ -559,5 +560,6 @@ QFrame#ScheduleMetrics QLabel {
 }
 
 [theme="dark"] QFrame#ScheduleMetrics QLabel {
-    color: #e0e0e0;
+    color: #E0E0E0; /* Lighter text color for better contrast in dark theme */
+    font-size: 15px; /* Adjusted font size for metric labels */
 }
