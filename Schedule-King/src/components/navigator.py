@@ -7,7 +7,7 @@ import os
 
 class Navigator(QWidget):
     """
-    An improved navigator component for browsing through schedules.
+    An navigator component for browsing through schedules.
     Features better UI design and functionality.
     
     The navigator provides:
@@ -223,8 +223,8 @@ class Navigator(QWidget):
             self.current_index = -1
             
         self.update_display()
-        if self.schedules and self.current_index >= 0:
-            self.schedule_changed.emit(self.current_index)
+        # if self.schedules and self.current_index >= 0:
+        #     self.schedule_changed.emit(self.current_index)
     
     def get_current_schedule(self):
         """

@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from src.components.export_controls import ExportControls
+from src.controllers.ScheduleController import ScheduleController
 import os
 
 class ScheduleHeader(QWidget):
@@ -13,19 +14,20 @@ class ScheduleHeader(QWidget):
     - Title with crown icon
     - Export controls
     """
-    def __init__(self, export_handler):
+    def __init__(self, controller : ScheduleController ,export_handler):
         super().__init__()
         self.export_handler = export_handler
+        self.controller = controller  # Reference to the controller for handling back navigation
         self.setup_ui()
         
     def setup_ui(self):
         """Initialize and setup the header UI components"""
-        # Main layout
+        # Main layout (this will be removed or modified in ScheduleWindow)
         header_layout = QHBoxLayout()
         header_layout.setSpacing(15)
-        self.setLayout(header_layout)
+        self.setLayout(header_layout) # Keep this for now, will be replaced when components are moved out
         
-        # Back button
+        # Back button (make public)
         self.back_button = QPushButton("  Back to Course Selection")
         self.back_button.setObjectName("top_action_button")
         back_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/back.png"))
@@ -35,10 +37,10 @@ class ScheduleHeader(QWidget):
         else:
             self.back_button.setText("← Back to Course Selection")
             
-        # Title container
-        title_container = QWidget()
-        title_container.setObjectName("title_container")
-        title_layout = QVBoxLayout(title_container)
+        # Title container (make public)
+        self.title_container = QWidget()
+        self.title_container.setObjectName("title_container")
+        title_layout = QVBoxLayout(self.title_container)
         title_layout.setContentsMargins(15, 10, 15, 10)
         title_layout.setSpacing(0)
         
@@ -74,12 +76,13 @@ class ScheduleHeader(QWidget):
         title_row.addStretch(1)
         title_layout.addLayout(title_row)
         
-        # Export controls
-        self.export_controls = ExportControls(self.export_handler)
-        
-        # Assemble header
-        header_layout.addWidget(self.back_button)
-        header_layout.addStretch(1)
-        header_layout.addWidget(title_container)
-        header_layout.addStretch(1)
-        header_layout.addWidget(self.export_controls)
+        # Export controls (make public)
+        self.export_controls = ExportControls( self.controller , self.export_handler)
+        self.export_controls.setObjectName("export_controls_widget")
+
+        # Assemble header - This part will be removed in ScheduleWindow's layout setup
+        # header_layout.addWidget(self.back_button)
+        # header_layout.addStretch(1)
+        # header_layout.addWidget(self.title_container)
+        # header_layout.addStretch(1)
+        # header_layout.addWidget(self.export_controls)

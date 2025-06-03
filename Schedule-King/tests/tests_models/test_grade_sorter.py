@@ -1,5 +1,5 @@
 import pytest
-from src.services.grade_sorter import GradeSorter
+from src.models.grade_sorter import GradeSorter
 def test_insert_and_get_kth_item():
     sorter = GradeSorter(upper_bound=10)
     sorter.insert("Alice", 7)

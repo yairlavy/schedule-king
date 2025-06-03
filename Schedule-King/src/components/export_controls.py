@@ -2,6 +2,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QCheckBox, QFileD
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon
 from src.models.schedule import Schedule
+from src.controllers.ScheduleController import ScheduleController
 from typing import List, Callable, Optional
 import os
 
@@ -12,9 +13,10 @@ class ExportControls(QWidget):
     - Export visible only checkbox
     - Export functionality
     """
-    def __init__(self, export_handler: Callable[[str, Optional[List[Schedule]]], None]):
+    def __init__(self, controller: ScheduleController, export_handler: Callable[[str, Optional[List[Schedule]]], None]):
         super().__init__()
         self.export_handler = export_handler
+        self.controller = controller  # Reference to the controller for handling export logic
         self.schedules = []  # Store schedules
         self.current_index = 0  # Store current index
         self.setup_ui()
@@ -77,14 +79,14 @@ class ExportControls(QWidget):
             try:
                 if self.export_visible_only.isChecked() and 0 <= self.current_index < len(self.schedules):
                     # Export only the visible schedule
-                    self.export_handler(file_path, [self.schedules[self.current_index]])
+                    self.export_handler(file_path, [self.controller.get_kth_schedule(self.current_index)])
                 elif len(self.schedules) > 100:
                     # Export to Excel only the last 100 schedules - import is slow
                     QMessageBox.warning(
                         self, "Export Warning",
                         "Exporting only the last 100 schedules for performance reasons."
                     )   
-                    self.export_handler(file_path, self.schedules[self.current_index:self.current_index+100])
+                    self.export_handler(file_path, self.controller.get_ranked_schedules(self.current_index,100))
                 else:
                     # Export all schedules - call with just file path to match original behavior
                     self.export_handler(file_path, None)

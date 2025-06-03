@@ -49,3 +49,10 @@ class GradeSorter:
             if count + self.size[grade] > k:
                 return bucket[k - count]
             count += self.size[grade]
+
+    def get_size(self):
+        """
+        Returns the total number of items in the GradeSorter in O(1) time.
+        :return: Total number of items.
+        """
+        return self.total_items
