@@ -275,7 +275,7 @@ def test_insert_single_schedule():
     ranker = ScheduleRanker()
     ranker.insert_schedule(schedule)
     
-    assert ranker.get_total_count() == 1
+    assert ranker.size() == 1
     retrieved_schedule = ranker.get_schedule_by_original_index(0)
     assert retrieved_schedule == schedule # Checks if the same object is retrieved
 
@@ -294,7 +294,7 @@ def test_insert_batch(sample_schedules):
     
     ranker.add_batch(sample_schedules)
 
-    assert ranker.get_total_count() == len(sample_schedules)
+    assert ranker.size() == len(sample_schedules)
     for i in range(len(sample_schedules)):
         assert ranker.get_schedule_by_original_index(i) == sample_schedules[i]
 
@@ -439,7 +439,7 @@ def test_edge_cases():
     ranker = ScheduleRanker()
     
     # Test empty ranker
-    assert ranker.get_total_count() == 0
+    assert ranker.size() == 0
     with pytest.raises(IndexError):
         ranker.get_ranked_schedule(0)
     
@@ -471,10 +471,10 @@ def test_clear_functionality(sample_schedules):
     """
     ranker = ScheduleRanker()
     ranker.add_batch(sample_schedules)
-    assert ranker.get_total_count() == len(sample_schedules)
+    assert ranker.size() == len(sample_schedules)
     
     ranker.clear()
-    assert ranker.get_total_count() == 0
+    assert ranker.size() == 0
     with pytest.raises(IndexError):
         ranker.get_ranked_schedule(0)
 

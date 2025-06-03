@@ -36,21 +36,26 @@ def api():
 def controller(api):
     return ScheduleController(api)
 
+def wait_for_generation(controller):
+    # Manually poll until generation completes
+    while controller.generation_active:
+        controller.check_for_schedules()
+
 # ——— Tests ————————————————————————————————————————————
 def test_generate_schedules(controller, api, courses_txt):
     # parse courses from file
     courses = api.get_courses(courses_txt)
     assert len(courses) == 2
 
-    # generate schedules synchronously
-    schedules = api.process(courses)
-    controller.schedules = schedules
+    # Generate schedules
+    controller.generate_schedules(courses)
+    wait_for_generation(controller)
+    schedules = controller.get_schedules()
 
     # Assert schedules on controller
-    assert isinstance(controller.get_schedules(), list)
-    assert all(isinstance(s, Schedule) for s in controller.get_schedules())
-    assert len(controller.get_schedules()) == 4
-    assert controller.get_schedules() == schedules
+    assert isinstance(schedules, list)
+    assert all(isinstance(s, Schedule) for s in schedules)
+    assert len(schedules) == 4
 
 def test_generate_schedules_empty_data(controller):
     #Passing empty course list should return empty schedules
@@ -64,10 +69,11 @@ def test_export_schedules_format(controller, api, courses_txt, tmp_path):
     assert len(courses) == 2
     controller.generate_schedules(courses)
 
-    # generate schedules synchronously
-    schedules = api.process(courses)
-    controller.schedules = schedules
-    assert len(controller.get_schedules()) == 4
+    # generate schedules
+    controller.generate_schedules(courses)
+    wait_for_generation(controller)
+    schedules = controller.get_schedules()
+    assert len(schedules) == 4
 
     # export the schedules
     export_path = tmp_path / "exported.txt"

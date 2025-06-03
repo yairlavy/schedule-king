@@ -210,6 +210,7 @@ class Navigator(QWidget):
         
         # Update the validator range when schedule count changes
         if self.available_count > 0:
+            self.schedule_changed.emit(self.current_index)
             self.schedule_num.setValidator(QIntValidator(1, self.available_count))
         
         # Only reset index if we're setting schedules for the first time

@@ -126,7 +126,10 @@ def test_export_file(controller, tmp_path):
     sc = controller.schedule_controller
     # Synchronously generate schedules using the API
     schedules = sc.api.process(loaded_courses)
-    sc.schedules = schedules
+    sc.ranker.clear()
+    sc.ranker.add_batch(schedules)
+    # Ensure we have schedules
+    assert schedules
 
     # Ensure we have schedules
     assert sc.get_schedules()
@@ -192,7 +195,7 @@ def test_performance(controller, tmp_path, qtbot, num, lec, trg, mab):
     qtbot.wait(3000)   
     # Check if the schedules was incrences
     second_schedule_num = controller.schedule_window.schedules
-    assert second_schedule_num > first_schedule_num
+    assert second_schedule_num > first_schedule_num, "If failed, it means there are too many conflicting schedules, so the 3-second wait is not enough"
     print(f"\nGenerated {len(second_schedule_num)} schedules.")
     print(f"performance: {dur:.2f}s")
 

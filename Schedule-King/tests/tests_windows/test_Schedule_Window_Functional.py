@@ -1,5 +1,3 @@
-# test_schedule_window_functional.py
-
 import pytest
 from unittest.mock import MagicMock, call
 from PyQt5.QtWidgets import QApplication, QWidget
@@ -90,8 +88,15 @@ class TestScheduleWindowOnScheduleChanged:
                 super().__init__()
                 self.display_schedule = MagicMock()
 
+        # Create a list of mock schedules
+        schedules = [MagicMock() for _ in range(3)]
+        
+        # Configure the mock controller to return the correct schedule
+        mock_schedule_controller.get_kth_schedule.side_effect = lambda index: schedules[index]
+        mock_schedule_controller.get_schedules.return_value = schedules
+
         monkeypatch.setattr("src.views.schedule_window.ScheduleTable", lambda: DummyScheduleTable())
-        win = ScheduleWindow([MagicMock() for _ in range(3)], mock_schedule_controller)
+        win = ScheduleWindow(schedules, mock_schedule_controller)
         qtbot.addWidget(win)
         return win
 
