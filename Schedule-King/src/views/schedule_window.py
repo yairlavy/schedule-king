@@ -23,10 +23,10 @@ class ScheduleWindow(QMainWindow):
     """
     def __init__(self, schedules: List[Schedule], controller: ScheduleController, maximize_on_start=True, show_progress_on_start=True):
         super().__init__()
-        self.setup_window()
-        self.setup_components(schedules, controller)
-        self.setup_connections()
-        self.show_initial_schedule(schedules)
+        self.setup_window()  # Set up window properties and layout
+        self.setup_components(schedules, controller)  # Set up all UI components
+        self.setup_connections()  # Connect signals and slots
+        self.show_initial_schedule(schedules)  # Show the first schedule if available
         
     def setup_window(self):
         """Initialize window properties and layout"""
@@ -86,14 +86,14 @@ class ScheduleWindow(QMainWindow):
         top_widget_container.setLayout(top_layout)
         self.main_layout.addWidget(top_widget_container)
 
-        # Add separator
+        # Add separator line
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         line.setObjectName("separator_line")
         self.main_layout.addWidget(line)
 
-        # Create navigation section (Keep existing setup)
+        # Create navigation section (progress, navigator, ranking controls, full size, refresh)
         nav_container = QHBoxLayout()
         nav_container.setSpacing(10)
 
@@ -207,7 +207,10 @@ class ScheduleWindow(QMainWindow):
         return self.header.export_controls.export_visible_only
         
     def displaySchedules(self, schedules: List[Schedule]):
-        """Updates the navigator and table with new schedules - for backward compatibility"""
+        """
+        Updates the navigator and table with new schedules.
+        For backward compatibility.
+        """
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
         if schedules:
@@ -220,12 +223,15 @@ class ScheduleWindow(QMainWindow):
             self.header.export_controls.update_data([], 0)
             # Disable refresh button if no schedules are displayed
             self.refresh_button.setEnabled(False)
-    def on_schedule_changed(self, index: int):
-        """Handle schedule change event from navigator and preference controls"""
 
+    def on_schedule_changed(self, index: int):
+        """
+        Handle schedule change event from navigator and preference controls.
+        Updates the table, metrics, and export controls.
+        """
         if 0 <= index < len(self.schedules):
             try:
-                #Get the ranked schedule based on current preference
+                # Get the ranked schedule based on current preference
                 schedule = self.controller.get_kth_schedule(index)
                 self.schedule_table.display_schedule(schedule)
                 # Update export controls with current schedules and index
@@ -268,7 +274,10 @@ class ScheduleWindow(QMainWindow):
                 self.refresh_button.setEnabled(False)
         
     def on_schedule_generated(self, schedules: List[Schedule]):
-        """Handle new schedule generation"""
+        """
+        Handle new schedule generation.
+        Updates the navigator, table, and export controls.
+        """
         self.navigator.set_schedules(schedules)
         if self.schedules != schedules:
             self.schedules = schedules
@@ -289,7 +298,10 @@ class ScheduleWindow(QMainWindow):
             self.progress.hide_progress()
 
     def on_preference_changed(self, metric, ascending):
-        """Handle changes in ranking preferences"""
+        """
+        Handle changes in ranking preferences.
+        Updates the controller and refreshes the schedule display.
+        """
         if metric is None:
             # Clear preference
             self.controller.clear_preference()
@@ -302,13 +314,19 @@ class ScheduleWindow(QMainWindow):
             self.on_schedule_changed(self.navigator.current_index)
             
     def navigateToCourseWindow(self):
-        """Navigate back to course selection"""
+        """
+        Navigate back to course selection.
+        Stops schedule generation and hides progress.
+        """
         self.controller.stop_schedules_generation()
         self.progress.hide_progress()
         self.on_back()
         
     def handle_export(self, file_path: str, schedules_to_export: Optional[List[Schedule]]):
-        """Handle export request from ExportControls"""
+        """
+        Handle export request from ExportControls.
+        Calls the controller's export method.
+        """
         if schedules_to_export is None:
             # Export all schedules - call with just file path
             self.controller.export_schedules(file_path)
@@ -317,7 +335,10 @@ class ScheduleWindow(QMainWindow):
             self.controller.export_schedules(file_path, schedules_to_export)
                 
     def open_full_size(self):
-        """Open current schedule in full-size window"""
+        """
+        Open current schedule in full-size window.
+        Shows a warning if no schedule is selected.
+        """
         if not self.schedules or self.navigator.current_index >= len(self.schedules):
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
@@ -331,7 +352,10 @@ class ScheduleWindow(QMainWindow):
         )
 
     def on_refresh_button_clicked(self):
-        """Handle refresh button click: reload the current schedule"""
+        """
+        Handle refresh button click: reload the current schedule.
+        Only attempts to refresh if there are schedules to display.
+        """
         current_index = self.navigator.current_index
         # Only attempt to refresh if there are schedules to display
         if 0 <= current_index < len(self.schedules):

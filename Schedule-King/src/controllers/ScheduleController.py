@@ -77,7 +77,7 @@ class ScheduleController:
                 if schedule is None:  # None signals generation is complete
                     self.generation_active = False
                     # When generation is complete, set current = estimated total
-                        # If we didn't have an estimate, use the actual count as both current and total
+                    # If we didn't have an estimate, use the actual count as both current and total
                     self.on_progress_updated(len(self.ranker.get_schedules()), len(self.ranker.get_schedules()))
                     break
                 self.ranker.add_batch(schedule)  # Append the batch to the schedules list
@@ -184,6 +184,16 @@ class ScheduleController:
         return self.ranker.get_ranked_schedule(k)
     
     def get_ranked_schedules(self, count: int, start: int = 0):
+        """
+        Returns a slice of ranked schedules.
+
+        Args:
+            count (int): Number of schedules to return.
+            start (int): Starting index.
+
+        Returns:
+            List[Schedule]: The list of ranked schedules.
+        """
         return self.ranker.get_ranked_schedules(start,count)
 
     def get_schedules(self) -> List[Schedule]:

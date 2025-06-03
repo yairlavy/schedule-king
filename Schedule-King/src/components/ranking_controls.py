@@ -40,21 +40,21 @@ class RankingControls(QWidget):
         self.metric_selector.setMinimumWidth(180)
         self.metric_selector.setFixedHeight(32)
         
-        # Add "Insertion Order" option
-        self.metric_selector.addItem("Insertion Order", None)
-        # Add metrics to selector
+        # Add "Random Order" option (no metric selected)
+        self.metric_selector.addItem("Random Order", None)
+        # Add all available metrics to the selector
         for metric in Metric:
             self.metric_selector.addItem(metric.name.replace('_', ' ').title(), metric)
-        # Set default selection to "Insertion Order"
+        # Set default selection to "Random Order"
         self.metric_selector.setCurrentIndex(0) 
         layout.addWidget(self.metric_selector)
 
-        # Create sort order button with enhanced styling
+        # Create sort order button (ascending/descending)
         self.sort_order_button = QPushButton()
         self.sort_order_button.setObjectName("sort_order_button")
         self.sort_order_button.setFixedSize(32, 32)
         self.sort_order_button.setCheckable(True)
-        self.update_sort_order_icon()
+        self.update_sort_order_icon()  # Set initial icon
         layout.addWidget(self.sort_order_button)
 
         # Add stretch to push controls to the left
@@ -65,12 +65,12 @@ class RankingControls(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(container)
 
-        # Connect signals
+        # Connect signals for metric and sort order changes
         self.metric_selector.currentIndexChanged.connect(self.on_preference_changed)
         self.sort_order_button.toggled.connect(self.on_preference_changed)
 
     def update_sort_order_icon(self):
-        """Update the sort order button icon"""
+        """Update the sort order button icon based on current state"""
         # Use the down-arrow.png for both ascending and descending, flipping for ascending
         icon_path = os.path.join(os.path.dirname(__file__), '../assets/down-arrow.png')
         
@@ -92,7 +92,7 @@ class RankingControls(QWidget):
             self.sort_order_button.setText("↓" if self.sort_order_button.isChecked() else "↑")
 
     def on_preference_changed(self):
-        """Handle metric selection change"""
+        """Handle metric selection or sort order change"""
         metric = self.metric_selector.currentData()
         ascending = not self.sort_order_button.isChecked()
         self.update_sort_order_icon()
@@ -100,12 +100,14 @@ class RankingControls(QWidget):
         self.preference_changed.emit(metric, ascending)
 
     def set_preference(self, metric, ascending):
-        """Set the current preference"""
+        """Set the current preference and update UI accordingly"""
         self.current_preference = Preference(metric, ascending)
         if metric is None:
+            # Select "Random Order" and set sort order to default
             self.metric_selector.setCurrentText("Insertion Order")
             self.sort_order_button.setChecked(True)
         else:
+            # Select the given metric and set sort order
             self.metric_selector.setCurrentText(metric.name.replace('_', ' ').title())
             self.sort_order_button.setChecked(not ascending)
             self.update_sort_order_icon() 
