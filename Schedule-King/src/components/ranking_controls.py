@@ -95,7 +95,7 @@ class RankingControls(QWidget):
         """Handle metric selection or sort order change"""
         metric = self.metric_selector.currentData()
         ascending = not self.sort_order_button.isChecked()
-        self.update_sort_order_icon()
+        self.set_preference(metric, ascending)
         # Emit metric and ascending as separate arguments
         self.preference_changed.emit(metric, ascending)
 
@@ -104,10 +104,11 @@ class RankingControls(QWidget):
         self.current_preference = Preference(metric, ascending)
         if metric is None:
             # Select "Random Order" and set sort order to default
-            self.metric_selector.setCurrentText("Insertion Order")
+            self.metric_selector.setCurrentText("Random Order")
             self.sort_order_button.setChecked(True)
         else:
             # Select the given metric and set sort order
             self.metric_selector.setCurrentText(metric.name.replace('_', ' ').title())
             self.sort_order_button.setChecked(not ascending)
-            self.update_sort_order_icon() 
+        
+        self.update_sort_order_icon() 
