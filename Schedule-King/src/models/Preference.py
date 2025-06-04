@@ -1,6 +1,9 @@
 # src/models/preference.py
 
 from enum import Enum, auto
+from typing import List
+from src.models.lecture_group import LectureGroup
+from src.models.schedule import Schedule
 
 class Metric(Enum):
     ACTIVE_DAYS = auto()
@@ -34,3 +37,18 @@ class Preference:
             return lambda s: s.avg_end_time
         else:
             raise ValueError("Unsupported metric selected")
+    def evaluate(self, lecture_groups: List[LectureGroup]) -> float:
+        """
+        Evaluates a list of LectureGroups (a schedule) based on the selected metric.
+
+        :param lecture_groups: List of LectureGroup instances forming a schedule.
+        :return: A numeric score, higher is better (for max-heap use).
+        """
+        schedule = Schedule(lecture_groups)
+        schedule.generate_metrics()
+
+        # Extract the value of the metric
+        value = self.key_function()(schedule)
+
+        # If ascending, lower values are better -> invert
+        return -value if self.ascending else value
