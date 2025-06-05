@@ -81,7 +81,7 @@ class MainController:
             self.schedule_controller.next = 1
         
         # Initialize the schedule window with the generated schedules
-        self.schedule_window = ScheduleWindow([],
+        self.schedule_window = ScheduleWindow(
                                                self.schedule_controller, 
                                               maximize_on_start=self._maximize_on_start, 
                                               show_progress_on_start=False)

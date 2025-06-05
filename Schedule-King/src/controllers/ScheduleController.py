@@ -50,8 +50,8 @@ class ScheduleController:
         self.timer.timeout.connect(self.check_for_schedules)
         self.timer.start(100)
 
-        # Notify immediately with empty list to show generation has started
-        self.on_schedules_generated([])
+        # Notify immediately with no schedule to show generation has started
+        self.on_schedules_generated(0)
         # Notify progress start
         self.on_progress_updated(0, self.estimated_total)
         return self.ranker.get_schedules()
@@ -91,7 +91,7 @@ class ScheduleController:
 
         # Notify UI if new schedules are added or if generation is complete
         if updated or not self.generation_active:
-            self.on_schedules_generated(self.ranker.get_schedules())
+            self.on_schedules_generated(self.ranker.size())
 
         # If generation is complete, stop the timer
         if not self.generation_active:
@@ -135,7 +135,7 @@ class ScheduleController:
         """
         self.ranker.set_preference(None)
         # Notify the UI that the schedules have been updated
-        self.on_schedules_generated(self.ranker.get_schedules())
+        self.on_schedules_generated(self.ranker.size())
 
     def set_preference(self, metric: Metric, ascending: bool) -> None:
         """
@@ -154,7 +154,7 @@ class ScheduleController:
         else:
             self.ranker.set_preference(Preference(metric, ascending))
             # Notify the UI that the schedules have been updated
-            self.on_schedules_generated(self.ranker.get_schedules())
+            self.on_schedules_generated(self.ranker.size())
     
     def get_current_preference(self) -> Optional[Preference]:
         """
