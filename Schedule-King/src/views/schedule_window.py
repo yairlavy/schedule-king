@@ -339,14 +339,19 @@ class ScheduleWindow(QMainWindow):
         if not self.schedules or self.navigator.current_index >= self.schedules:
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
-            
+
+        if self.navigator.current_index >= self.schedules:
+            QMessageBox.warning(self, "Schedule Error", f"Selected schedule index {self.navigator.current_index} exceeds available ({len(self.schedules)})")
+            return
+
         if self.full_size_window is not None:
             self.full_size_window.close()
-            
+
         self.full_size_window = FullSizeWindow(
             self.current_schedule,
             self.navigator.current_index
         )
+
 
     def on_refresh_button_clicked(self):
         """

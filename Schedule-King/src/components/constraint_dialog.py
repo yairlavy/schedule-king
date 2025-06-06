@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton
 from PyQt5.QtCore import Qt
 from src.components.time_constraint_table import TimeConstraintTable
-from src.styles.ui_styles import red_button_style
+from src.styles.ui_styles import red_button_style, green_button_style
 
 class ConstraintDialog(QDialog):
     def __init__(self, parent=None, initial_forbidden=None):
@@ -29,6 +29,8 @@ class ConstraintDialog(QDialog):
         btns.addWidget(self.ok_btn)
         btns.addWidget(self.cancel_btn)
         layout.addLayout(btns)
+        self.ok_btn.setStyleSheet(green_button_style())
+        self.cancel_btn.setStyleSheet(green_button_style())
 
         self.setLayout(layout)
         self.clear_all_btn.clicked.connect(self._clear_all_constraints)
