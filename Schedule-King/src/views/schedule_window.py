@@ -339,17 +339,24 @@ class ScheduleWindow(QMainWindow):
         Open current schedule in full-size window.
         Shows a warning if no schedule is selected.
         """
+        schedule_count = self.controller.get_total_schedules()
+        
         if not self.schedules or self.navigator.current_index >= len(self.schedules):
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
-            
+
+        if self.navigator.current_index >= schedule_count:
+            QMessageBox.warning(self, "Schedule Error", f"Selected schedule index {self.navigator.current_index} exceeds available ({schedule_count})")
+            return
+
         if self.full_size_window is not None:
             self.full_size_window.close()
-            
+
         self.full_size_window = FullSizeWindow(
             self.controller.get_kth_schedule(self.navigator.current_index),
             self.navigator.current_index
         )
+
 
     def on_refresh_button_clicked(self):
         """
