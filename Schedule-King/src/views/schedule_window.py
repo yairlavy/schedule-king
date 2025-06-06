@@ -336,11 +336,11 @@ class ScheduleWindow(QMainWindow):
         Open current schedule in full-size window.
         Shows a warning if no schedule is selected.
         """
-        if not self.schedules or self.navigator.current_index >= len(self.schedules):
+        if not self.schedules or self.navigator.current_index >= self.schedules:
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
 
-        if self.navigator.current_index >= len(self.schedules):
+        if self.navigator.current_index >= self.schedules:
             QMessageBox.warning(self, "Schedule Error", f"Selected schedule index {self.navigator.current_index} exceeds available ({len(self.schedules)})")
             return
 
