@@ -17,7 +17,6 @@ class ExportControls(QWidget):
         super().__init__()
         self.export_handler = export_handler
         self.controller = controller  # Reference to the controller for handling export logic
-        self.schedules = []  # Store schedules
         self.current_index = 0  # Store current index
         self.setup_ui()
         
@@ -48,7 +47,7 @@ class ExportControls(QWidget):
         # Connect button click
         self.export_button.clicked.connect(self.export_to_file)
         
-    def update_data(self, schedules: List[Schedule], current_index: int):
+    def update_data(self, current_index: int):
         """
         Update the stored schedules and current index.
         
@@ -56,12 +55,12 @@ class ExportControls(QWidget):
             schedules (List[Schedule]): List of all schedules
             current_index (int): Index of currently visible schedule
         """
-        self.schedules = schedules
         self.current_index = current_index
         
     def export_to_file(self):
         """Handle export button click"""
-        if not self.schedules:
+        size = self.controller.ranker.size()
+        if self.current_index < 0 or self.current_index >= size :
             QMessageBox.warning(self, "No Schedules", "No schedules available to export.")
             return
             
@@ -77,10 +76,10 @@ class ExportControls(QWidget):
                 file_path += '.xlsx'
             
             try:
-                if self.export_visible_only.isChecked() and 0 <= self.current_index < len(self.schedules):
+                if self.export_visible_only.isChecked() and 0 <= self.current_index < size:
                     # Export only the visible schedule
-                    self.export_handler(file_path, [self.controller.get_kth_schedule(self.current_index)])
-                elif len(self.schedules) > 100:
+                    self.export_handler(file_path,None)
+                elif size > 100:
                     # Export to Excel only the last 100 schedules - import is slow
                     QMessageBox.warning(
                         self, "Export Warning",

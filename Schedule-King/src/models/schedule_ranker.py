@@ -158,16 +158,6 @@ class ScheduleRanker:
         for metric in Metric:
             self.sorters[metric] = GradeSorter(self.sorters[metric].upper_bound)
         
-    def get_schedule_by_original_index(self, original_index: int) -> Schedule:
-        """
-        Retrieves a schedule by its original insertion index.
-        :param original_index: The original index when the schedule was inserted.
-        :return: The Schedule object.
-        """
-        if original_index < 0 or original_index >= len(self.schedules):
-            raise IndexError(f"original_index={original_index} is out of bounds")
-        return self.schedules[original_index]
-    
     def get_schedules(self) -> List[Schedule]:
         """
         Returns the list of all schedules.
