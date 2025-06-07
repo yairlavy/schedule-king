@@ -126,15 +126,16 @@ def test_export_file(controller, tmp_path):
     assert schedules
 
     # Ensure we have schedules
-    assert sc.get_schedules()
+    schedules = sc.get_schedules()
+    assert schedules
 
     # Prepare export path and ensure directory exists
     out = tmp_path / "output" / "courses.txt"
     os.makedirs(out.parent, exist_ok=True)
 
     # Export schedules to the output file
-    controller.schedule_controller.export_schedules(str(out))
-
+    controller.schedule_controller.export_schedules(str(out), schedules)
+    
     # Assert that the file was created
     assert out.exists(), f"Export file not found at {out}"
 

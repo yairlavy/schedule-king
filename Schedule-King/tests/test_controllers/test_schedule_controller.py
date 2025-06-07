@@ -77,7 +77,7 @@ def test_export_schedules_format(controller, api, courses_txt, tmp_path):
 
     # export the schedules
     export_path = tmp_path / "exported.txt"
-    controller.export_schedules(str(export_path))
+    controller.export_schedules(str(export_path), schedules)
     assert export_path.exists()
 
     #Read and exported file
