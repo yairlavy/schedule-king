@@ -2,6 +2,7 @@ import pytest
 from src.controllers.ScheduleController import ScheduleController
 from src.services.schedule_api import ScheduleAPI
 from src.models.schedule import Schedule
+from src.models.Preference import Preference, Metric
 
 # ——— RAW_DATA ————————————————————————————————
 RAW_DATA = """
@@ -94,3 +95,74 @@ def test_export_schedules_format(controller, api, courses_txt, tmp_path):
     # Check that all schedules are printed
     schedule_count = content.count("Schedule ")
     assert schedule_count == len(schedules)
+
+def test_preference_handling(controller, api, courses_txt):
+    # Setup: Generate some schedules
+    courses = api.get_courses(courses_txt)
+    controller.generate_schedules(courses)
+    wait_for_generation(controller)
+    
+    # Test setting preference
+    controller.set_preference(Metric.ACTIVE_DAYS, True)
+    assert controller.get_current_preference() is not None
+    assert controller.get_current_preference().metric == Metric.ACTIVE_DAYS
+    assert controller.get_current_preference().ascending == True
+    
+    # Test clearing preference
+    controller.clear_preference()
+    assert controller.get_current_preference() is None
+
+def test_schedule_retrieval(controller, api, courses_txt):
+    # Setup: Generate some schedules
+    courses = api.get_courses(courses_txt)
+    controller.generate_schedules(courses)
+    wait_for_generation(controller)
+    
+    # Test get_kth_schedule
+    first_schedule = controller.get_kth_schedule(0)
+    assert isinstance(first_schedule, Schedule)
+    
+    # Test get_ranked_schedules
+    ranked_schedules = controller.get_ranked_schedules(2, 0)
+    assert len(ranked_schedules) == 2
+    assert all(isinstance(s, Schedule) for s in ranked_schedules)
+    
+    # Test out of bounds
+    with pytest.raises(IndexError):
+        controller.get_kth_schedule(1000)
+
+def test_export_errors(controller, api, courses_txt):
+    # Setup: Generate some schedules
+    courses = api.get_courses(courses_txt)
+    controller.generate_schedules(courses)
+    wait_for_generation(controller)
+    schedules = controller.get_schedules()
+    
+    # Test empty file path
+    with pytest.raises(ValueError):
+        controller.export_schedules("", schedules)
+    
+    # Test no schedules provided
+    with pytest.raises(ValueError):
+        controller.export_schedules("some_path.txt", [])
+
+def test_progress_tracking(controller, api, courses_txt):
+    progress_updates = []
+    schedule_updates = []
+    
+    # Setup callbacks
+    controller.on_progress_updated = lambda current, total: progress_updates.append((current, total))
+    controller.on_schedules_generated = lambda count: schedule_updates.append(count)
+    
+    # Generate schedules
+    courses = api.get_courses(courses_txt)
+    controller.generate_schedules(courses)
+    wait_for_generation(controller)
+    
+    # Verify progress updates occurred
+    assert len(progress_updates) > 0
+    assert len(schedule_updates) > 0
+    
+    # Verify final progress shows completion
+    final_progress = progress_updates[-1]
+    assert final_progress[0] == final_progress[1]  # current equals total
