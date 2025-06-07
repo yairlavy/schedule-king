@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication, QWidget
 import sys
 
 from src.views.schedule_window import ScheduleWindow
+from src.models.schedule import Schedule
 
 # ---------------------- Fixtures ----------------------
 
@@ -21,7 +22,17 @@ def qapp():
 @pytest.fixture
 def mock_schedule_controller():
     """Returns a mocked ScheduleController."""
-    return MagicMock(name="ScheduleController")
+    ctrl = MagicMock(name="ScheduleController")
+    # Add necessary mock methods and attributes
+    ctrl.on_schedules_generated = None
+    ctrl.on_progress_updated = None
+    ctrl.get_kth_schedule = MagicMock(return_value=Schedule([]))
+    ctrl.set_preference = MagicMock()
+    ctrl.clear_preference = MagicMock()
+    ctrl.ranker = MagicMock()
+    ctrl.ranker.size = MagicMock(return_value=3)
+    ctrl.ranker.get_ranked_schedules = MagicMock(return_value=[Schedule([])])
+    return ctrl
 
 @pytest.fixture
 def mock_schedule():
@@ -35,13 +46,15 @@ def mock_schedule():
 class TestScheduleWindowDisplaySchedules:
 
     @pytest.fixture
-    def window(qapp, qtbot, mock_schedule_controller, mock_schedule):
+    def window(self, qapp, qtbot, mock_schedule_controller):
         """
         Provides a fully initialized ScheduleWindow instance
         for displaySchedules-related tests.
         """
-        win = ScheduleWindow([mock_schedule], mock_schedule_controller)
+        win = ScheduleWindow(mock_schedule_controller)
         qtbot.addWidget(win)
+        # Mock export controls to handle update_data correctly
+        win.header.export_controls.update_data = MagicMock()
         return win
 
     def test_update_with_non_empty_schedules(self, window):
@@ -54,7 +67,7 @@ class TestScheduleWindowDisplaySchedules:
         schedules = [MagicMock()]
         window.displaySchedules(schedules)
 
-        assert window.schedules == schedules
+        assert window.schedules == schedules  # Should be the actual list of schedules
         window.navigator.set_schedules.assert_called_once_with(schedules)
         window.on_schedule_changed.assert_called_once_with(0)
 
@@ -65,20 +78,22 @@ class TestScheduleWindowDisplaySchedules:
         window.navigator.set_schedules = MagicMock()
         window.on_schedule_changed = MagicMock()
         window.schedule_table.clearContents = MagicMock()
+        window.header.export_controls.update_data = MagicMock()
 
         window.displaySchedules([])
 
-        assert window.schedules == []
+        assert window.schedules == []  # Should be an empty list
         window.navigator.set_schedules.assert_called_once_with([])
         window.on_schedule_changed.assert_not_called()
         window.schedule_table.clearContents.assert_called_once()
+        window.header.export_controls.update_data.assert_called_once_with([], 0)
 
 # ---------------------- Tests for on_schedule_changed ----------------------
 
 class TestScheduleWindowOnScheduleChanged:
 
     @pytest.fixture
-    def window_with_table(qapp, qtbot, monkeypatch, mock_schedule_controller):
+    def window_with_table(self, qapp, qtbot, monkeypatch, mock_schedule_controller):
         """
         Provides a ScheduleWindow instance with a patched dummy ScheduleTable.
         This isolates the test from the real GUI rendering.
@@ -88,7 +103,7 @@ class TestScheduleWindowOnScheduleChanged:
                 super().__init__()
                 self.display_schedule = MagicMock()
 
-        # Create a list of mock schedules
+        # Create a list of mock schedules for the controller to return
         schedules = [MagicMock() for _ in range(3)]
         
         # Configure the mock controller to return the correct schedule
@@ -96,8 +111,10 @@ class TestScheduleWindowOnScheduleChanged:
         mock_schedule_controller.get_schedules.return_value = schedules
 
         monkeypatch.setattr("src.views.schedule_window.ScheduleTable", lambda: DummyScheduleTable())
-        win = ScheduleWindow(schedules, mock_schedule_controller)
+        win = ScheduleWindow(mock_schedule_controller)
         qtbot.addWidget(win)
+        # Set up schedules count
+        win.schedules = 3  # Set the count of schedules
         return win
 
     def test_valid_index(self, window_with_table):
@@ -106,28 +123,86 @@ class TestScheduleWindowOnScheduleChanged:
         for the corresponding schedule.
         """
         window_with_table.on_schedule_changed(1)
-        expected = call(window_with_table.schedules[1])
-        assert expected in window_with_table.schedule_table.display_schedule.call_args_list
+        window_with_table.controller.get_kth_schedule.assert_called_once_with(1)
 
     def test_invalid_index(self, window_with_table):
         """
         Ensure that an invalid index (too high) does not trigger a new display call.
         """
-        prev_calls = len(window_with_table.schedule_table.display_schedule.call_args_list)
+        window_with_table.controller.get_kth_schedule.reset_mock()
         window_with_table.on_schedule_changed(10)
-        assert len(window_with_table.schedule_table.display_schedule.call_args_list) == prev_calls
+        window_with_table.controller.get_kth_schedule.assert_not_called()
+
+# ---------------------- Tests for ranking controls ----------------------
+
+class TestScheduleWindowRankingControls:
+
+    @pytest.fixture
+    def window_with_ranking(self, qapp, qtbot, mock_schedule_controller):
+        """
+        Provides a ScheduleWindow instance with ranking controls for testing.
+        """
+        win = ScheduleWindow(mock_schedule_controller)
+        qtbot.addWidget(win)
+        # Set up schedules count
+        win.schedules = 3  # Set the count of schedules
+        return win
+
+    def test_set_preference(self, window_with_ranking):
+        """
+        Test that setting a ranking preference updates the controller.
+        """
+        # Reset mock before test
+        window_with_ranking.controller.set_preference.reset_mock()
+
+        # Set a preference
+        window_with_ranking.on_preference_changed("conflicts", True)
+
+        # Verify controller was called with correct arguments
+        window_with_ranking.controller.set_preference.assert_called_once_with("conflicts", True)
+
+    def test_clear_preference(self, window_with_ranking):
+        """
+        Test that clearing a preference calls the controller's clear_preference method.
+        """
+        # Reset mock before test
+        window_with_ranking.controller.clear_preference.reset_mock()
+
+        # Clear preference
+        window_with_ranking.on_preference_changed(None, False)
+
+        # Verify controller's clear_preference was called
+        window_with_ranking.controller.clear_preference.assert_called_once()
+
+    def test_preference_refreshes_schedule(self, window_with_ranking):
+        """
+        Test that changing preferences refreshes the current schedule display.
+        """
+        # Set up initial state
+        window_with_ranking.navigator.current_index = 0
+        window_with_ranking.schedules = 3  # Set the count of schedules
+        window_with_ranking.controller.get_kth_schedule.reset_mock()
+
+        # Change preference
+        window_with_ranking.on_preference_changed("conflicts", True)
+
+        # Verify that the schedule was refreshed
+        window_with_ranking.controller.get_kth_schedule.assert_called_once_with(0)
 
 # ---------------------- Test for __init__ ----------------------
 
 class TestScheduleWindowInit:
-    def test_init_basic(self, qapp, qtbot, mock_schedule_controller, mock_schedule):
+    def test_init_basic(self, qapp, qtbot, mock_schedule_controller):
         """
         Basic test to verify ScheduleWindow initializes with all expected attributes.
         """
-        win = ScheduleWindow([mock_schedule], mock_schedule_controller)
+        win = ScheduleWindow(mock_schedule_controller)
         qtbot.addWidget(win)
 
         assert win.windowTitle() == "Schedule King"
         assert callable(win.on_back)
         assert hasattr(win, "navigator")
         assert hasattr(win, "schedule_table")
+        assert hasattr(win, "ranking_controls")
+        assert hasattr(win, "header")
+        assert hasattr(win, "metrics_widget")
