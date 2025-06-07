@@ -54,17 +54,26 @@ def test_get_courses_names(controller, courses_txt):
     assert c1.name == "Calculus 1"
     assert c1.course_code == "00001"
     assert c1.instructor == "Prof. O. Some"
+    
+    # Flatten the lectures and tirguls lists
+    lectures = [ts for group in c1.lectures for ts in group]
+    tirguls = [ts for group in c1.tirguls for ts in group]
+    
     # lectures and tirguls counts from RAW_DATA
-    assert len(c1.lectures) == 2
-    assert len(c1.tirguls) == 2
-    assert all(isinstance(ts, TimeSlot) for ts in c1.lectures + c1.tirguls)
+    assert len(lectures) == 2
+    assert len(tirguls) == 2
+    assert all(isinstance(ts, TimeSlot) for ts in lectures + tirguls)
 
     # second course checks
     assert c2.name == "Software Project"
     assert c2.course_code == "83533"
     assert c2.instructor == "Dr. Terry Bell"
-    assert len(c2.lectures) == 1
-    assert len(c2.tirguls) == 1
+    
+    lectures2 = [ts for group in c2.lectures for ts in group]
+    tirguls2 = [ts for group in c2.tirguls for ts in group]
+
+    assert len(lectures2) == 1
+    assert len(tirguls2) == 1
 
 def test_get_courses_names_invalid_file(controller, tmp_path):
     missing = tmp_path / "nope.txt"

@@ -51,27 +51,37 @@ class AllStrategy(IScheduleStrategy):
 
         # Get the current course
         course = self._selected[index]
-        # Use [None] if tirguls or maabadas are empty, to allow for courses without these groups
+        
+        # Default to [None] if no tirguls or maabadas
         tirguls = course.tirguls or [None]
         maabadas = course.maabadas or [None]
 
         # Iterate over all possible combinations of lecture, tirgul, and maabada for this course
-        for lec, tir, lab in product(course.lectures, tirguls, maabadas):
-            slots = [s for s in (lec, tir, lab) if s is not None]
+        for lecture, tirgul, maabada in product(course.lectures, tirguls, maabadas):
+            # Flatten the slots into a single list
+            all_slots = [slot for group in (lecture, tirgul, maabada) if group for slot in group]
 
-            # Skip this group if any slot is forbidden or has a conflict
-            if not all(self._checker.can_place(s) for s in slots):
+            # Check for internal conflicts using a temporary matrix if it have then skip this group
+            temp_checker = MatrixConflictChecker()
+            if not all(temp_checker.can_place(slot) and (temp_checker.place(slot) or True) for slot in all_slots):
                 continue
 
-            for s in slots:
-                self._checker.place(s)
+            # Skip this group if any slot is forbidden or has a conflict
+            if not all(self._checker.can_place(slot) for slot in all_slots):
+                continue
+
+            #  Place the slots in the main matrix
+            for slot in all_slots:
+                self._checker.place(slot)
+
+            # Add the current group to the combination
             current.append(LectureGroup(
                             course_name=course.name,
                             course_code=course.course_code,
                             instructor=course.instructor,
-                            lecture=lec,
-                            tirguls=tir,
-                            maabadas=lab
+                            lecture=lecture,
+                            tirguls=tirgul,
+                            maabadas=maabada
                             ))
 
             # Recursively build combinations for the next course
@@ -79,5 +89,5 @@ class AllStrategy(IScheduleStrategy):
 
             # Backtrack: remove the last group and unmark the slots
             current.pop()
-            for s in slots:
-                self._checker.remove(s)
+            for slot in all_slots:
+                self._checker.remove(slot)

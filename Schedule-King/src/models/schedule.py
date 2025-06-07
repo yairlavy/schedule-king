@@ -38,13 +38,16 @@ class Schedule:
 
         for lg in self.lecture_groups:
             # Add lecture groups
-            day_map[lg.lecture.day].append(("Lecture", lg.course_name, lg.course_code, lg.lecture))
+            for lecture_slot in lg.lecture:
+                day_map[lecture_slot.day].append(("Lecture", lg.course_name, lg.course_code, lecture_slot))
             # Add tirgul
             if lg.tirguls:
-                day_map[lg.tirguls.day].append(("Tirgul", lg.course_name, lg.course_code, lg.tirguls))
+                for tirgul_slot in lg.tirguls:
+                    day_map[tirgul_slot.day].append(("Tirgul", lg.course_name, lg.course_code, tirgul_slot))
             # Add maabada
             if lg.maabadas:
-                day_map[lg.maabadas.day].append(("Maabada", lg.course_name, lg.course_code, lg.maabadas))
+                for maabada_slot in lg.maabadas:
+                    day_map[maabada_slot.day].append(("Maabada", lg.course_name, lg.course_code, maabada_slot))
 
         return day_map
     
@@ -76,27 +79,21 @@ class Schedule:
         """
         # Group lectures by day
         daily_slots = defaultdict(list)
-        day_names = {
-            "1": "Sunday",
-            "2": "Monday",
-            "3": "Tuesday",
-            "4": "Wednesday",
-            "5": "Thursday",
-            "6": "Friday",
-            "7": "Saturday"
-        }
 
         # Iterate through lecture groups and populate daily_slots
         for lg in self.lecture_groups:
             if lg.lecture:
-                day = day_names.get(lg.lecture.day, lg.lecture.day)
-                daily_slots[day].append(lg.lecture)
+                for lecture_slot in lg.lecture:
+                    day = DAY_NAMES.get(lecture_slot.day, lecture_slot.day)
+                    daily_slots[day].append(lecture_slot)
             if lg.tirguls:
-                day = day_names.get(lg.tirguls.day, lg.tirguls.day)
-                daily_slots[day].append(lg.tirguls)
+                for tirgul_slot in lg.tirguls:
+                    day = DAY_NAMES.get(tirgul_slot.day, tirgul_slot.day)
+                    daily_slots[day].append(tirgul_slot)
             if lg.maabadas:
-                day = day_names.get(lg.maabadas.day, lg.maabadas.day)
-                daily_slots[day].append(lg.maabadas)
+                for maabada_slot in lg.maabadas:
+                    day = DAY_NAMES.get(maabada_slot.day, maabada_slot.day)
+                    daily_slots[day].append(maabada_slot)
 
         # Calculate metrics
         self.active_days = len(daily_slots)

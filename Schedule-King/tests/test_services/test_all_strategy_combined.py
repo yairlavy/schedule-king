@@ -17,9 +17,9 @@ def make_course(code, lecture_time, tirgul_time=None, maabada_time=None) -> Cour
         course_name=f"Course{code}",
         course_code=f"C{code}",
         instructor=f"Instructor{code}",
-        lectures=[lecture_time],
-        tirguls=[tirgul_time] if tirgul_time else [],
-        maabadas=[maabada_time] if maabada_time else []
+        lectures=[[lecture_time]],
+        tirguls=[[tirgul_time]] if tirgul_time else [],
+        maabadas=[[maabada_time]] if maabada_time else []
     )
 
 # ---------- Fixtures ----------
