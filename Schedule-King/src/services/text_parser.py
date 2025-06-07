@@ -29,14 +29,14 @@ class TextParser(IParser):
             prefix = line[0]
             time_slots = self._parse_slots(line)
             if prefix == "L":
-                for slot in time_slots:
-                    course.add_lecture(slot)
+                #for slot in time_slots:
+                    course.add_lecture(time_slots)
             elif prefix == "T":
-                for slot in time_slots:
-                    course.add_tirgul(slot)
+                #for slot in time_slots:
+                    course.add_tirgul(time_slots)
             elif prefix == "M":
-                for slot in time_slots:
-                    course.add_maabada(slot)
+                #for slot in time_slots:
+                    course.add_maabada(time_slots)
         # random maabada 
         return course
 

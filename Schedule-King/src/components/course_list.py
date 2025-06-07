@@ -71,27 +71,45 @@ class CourseList(QWidget):
         self.list_widget.blockSignals(True)
         self.list_widget.clear()
         items_to_select = []
+
         for course in course_list:
             item = QListWidgetItem(f"{course.course_code} - {course.name}")
             item.setData(Qt.UserRole, course.course_code)
+
+            # Basic course info
             details = [
                 f"<b>{course.course_code}</b>: {course.name}",
                 f"Instructor: {course.instructor}",
                 f"Lectures: {len(course.lectures)} | Tirguls: {len(course.tirguls)} | Labs: {len(course.maabadas)}",
             ]
-            for slot in course.lectures:
-                details.append(f"<span style='color:#1976D2'>\u25A0 Lecture:</span> {slot}")
-            for slot in course.tirguls:
-                details.append(f"<span style='color:#388E3C'>\u25A0 Tirgul:</span> {slot}")
-            for slot in course.maabadas:
-                details.append(f"<span style='color:#7B1FA2'>\u25A0 Lab:</span> {slot}")
+
+            # Helper function to format slot groups
+            def format_slot_groups(slot_groups, label, color):
+                for group in slot_groups:
+                    if not group:
+                        continue
+                    details.append(f"<span style='color:{color}'>\u25A0 {label}:</span>")
+                    if isinstance(group, list):
+                        for slot in group:
+                            details.append(f"&nbsp;&nbsp;&bull; {slot}")
+                    else:
+                        # if group is a single slot
+                        details.append(f"&nbsp;&nbsp;&bull; {group}")
+
+            format_slot_groups(course.lectures, "Lecture", "#1976D2")
+            format_slot_groups(course.tirguls, "Tirgul", "#388E3C")
+            format_slot_groups(course.maabadas, "Lab", "#7B1FA2")
+
             item.setToolTip("<br>".join(details))
             self.list_widget.addItem(item)
+
             if course.course_code in self.selected_course_codes:
                 items_to_select.append(item)
+
         for item in items_to_select:
             item.setSelected(True)
             self.list_widget.scrollToItem(item)
+
         self.list_widget.blockSignals(False)
 
     def _handle_selection_changed(self):

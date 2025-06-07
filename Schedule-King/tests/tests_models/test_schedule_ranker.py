@@ -40,16 +40,16 @@ def create_lecture_group(
     """
     Creates a LectureGroup with the specified course details and time slots.
     """
-    lecture = create_time_slot(lecture_day, *lecture_start, *lecture_end)
-    
-    tirgul = None
+    lecture = [ create_time_slot(lecture_day, *lecture_start, *lecture_end) ]
+
+    tirgul = []
     if tirgul_day and tirgul_start and tirgul_end:
-        tirgul = create_time_slot(tirgul_day, *tirgul_start, *tirgul_end)
-    
-    maabada = None
+        tirgul = [ create_time_slot(tirgul_day, *tirgul_start, *tirgul_end) ]
+
+    maabada = []
     if maabada_day and maabada_start and maabada_end:
-        maabada = create_time_slot(maabada_day, *maabada_start, *maabada_end)
-    
+        maabada = [ create_time_slot(maabada_day, *maabada_start, *maabada_end) ]
+
     return LectureGroup(course_name, course_code, instructor, lecture, tirgul, maabada)
 
 @pytest.fixture
@@ -276,7 +276,7 @@ def test_insert_single_schedule():
     ranker.insert_schedule(schedule)
     
     assert ranker.size() == 1
-    retrieved_schedule = ranker.get_schedule_by_original_index(0)
+    retrieved_schedule = ranker.get_schedules()[0]
     assert retrieved_schedule == schedule # Checks if the same object is retrieved
 
 def test_insert_batch(sample_schedules):
@@ -296,7 +296,7 @@ def test_insert_batch(sample_schedules):
 
     assert ranker.size() == len(sample_schedules)
     for i in range(len(sample_schedules)):
-        assert ranker.get_schedule_by_original_index(i) == sample_schedules[i]
+        assert ranker.get_schedules()[i] == sample_schedules[i]
 
 def test_ranking_by_active_days(sample_schedules):
     """

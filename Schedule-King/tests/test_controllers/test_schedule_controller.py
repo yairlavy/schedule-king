@@ -55,7 +55,7 @@ def test_generate_schedules(controller, api, courses_txt):
     # Assert schedules on controller
     assert isinstance(schedules, list)
     assert all(isinstance(s, Schedule) for s in schedules)
-    assert len(schedules) == 4
+    assert len(schedules) == 2
 
 def test_generate_schedules_empty_data(controller):
     #Passing empty course list should return empty schedules
@@ -73,11 +73,11 @@ def test_export_schedules_format(controller, api, courses_txt, tmp_path):
     controller.generate_schedules(courses)
     wait_for_generation(controller)
     schedules = controller.get_schedules()
-    assert len(schedules) == 4
+    assert len(schedules) == 2
 
     # export the schedules
     export_path = tmp_path / "exported.txt"
-    controller.export_schedules(str(export_path))
+    controller.export_schedules(str(export_path), schedules)
     assert export_path.exists()
 
     #Read and exported file

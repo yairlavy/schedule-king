@@ -5,7 +5,6 @@ from collections import namedtuple
 from src.models.schedule import Schedule
 from src.models.lecture_group import LectureGroup   
 
-
 Lecture = namedtuple("Lecture", ["day", "start_time"])
 
 class MockLectureGroup:
@@ -23,31 +22,31 @@ def empty_schedule():
 
 @pytest.fixture
 def single_day_schedule():
-    lg1 = MockLectureGroup(lecture=Lecture(day="2", start_time=time(9, 0)))
-    lg2 = MockLectureGroup(tirguls=Lecture(day="2", start_time=time(10, 0)))
-    lg3 = MockLectureGroup(maabadas=Lecture(day="2", start_time=time(11, 0)))
+    lg1 = MockLectureGroup(lecture=[Lecture(day="2", start_time=time(9, 0))])
+    lg2 = MockLectureGroup(tirguls=[Lecture(day="2", start_time=time(10, 0))])
+    lg3 = MockLectureGroup(maabadas=[Lecture(day="2", start_time=time(11, 0))])
     return Schedule(lecture_groups=[lg1, lg2, lg3])
 
 @pytest.fixture
 def multi_day_schedule_with_gaps():
-    lg1 = MockLectureGroup(lecture=Lecture(day="2", start_time=time(9, 0)))
-    lg2 = MockLectureGroup(tirguls=Lecture(day="2", start_time=time(11, 0)))
-    lg3 = MockLectureGroup(lecture=Lecture(day="4", start_time=time(8, 0)))
-    lg4 = MockLectureGroup(tirguls=Lecture(day="4", start_time=time(9, 0)))
-    lg5 = MockLectureGroup(maabadas=Lecture(day="4", start_time=time(13, 0)))
+    lg1 = MockLectureGroup(lecture=[Lecture(day="2", start_time=time(9, 0))])
+    lg2 = MockLectureGroup(tirguls=[Lecture(day="2", start_time=time(11, 0))])
+    lg3 = MockLectureGroup(lecture=[Lecture(day="4", start_time=time(8, 0))])
+    lg4 = MockLectureGroup(tirguls=[Lecture(day="4", start_time=time(9, 0))])
+    lg5 = MockLectureGroup(maabadas=[Lecture(day="4", start_time=time(13, 0))])
     return Schedule(lecture_groups=[lg1, lg2, lg3, lg4, lg5])
 
 @pytest.fixture
 def schedule_with_minimal_gap():
-    lg1 = MockLectureGroup(lecture=Lecture(day="3", start_time=time(9, 0)))
-    lg2 = MockLectureGroup(tirguls=Lecture(day="3", start_time=time(10, 30)))
+    lg1 = MockLectureGroup(lecture=[Lecture(day="3", start_time=time(9, 0))])
+    lg2 = MockLectureGroup(tirguls=[Lecture(day="3", start_time=time(10, 30))])
     return Schedule(lecture_groups=[lg1, lg2])
 
 @pytest.fixture
 def schedule_with_varied_days_and_empty_groups():
     lg1 = MockLectureGroup()
-    lg2 = MockLectureGroup(lecture=Lecture(day="1", start_time=time(8, 0)))
-    lg3 = MockLectureGroup(tirguls=Lecture(day="5", start_time=time(14, 0)))
+    lg2 = MockLectureGroup(lecture=[Lecture(day="1", start_time=time(8, 0))])
+    lg3 = MockLectureGroup(tirguls=[Lecture(day="5", start_time=time(14, 0))])
     return Schedule(lecture_groups=[lg1, lg2, lg3])
 
 class TestScheduleGenerateMetrics:
@@ -94,7 +93,7 @@ class TestScheduleGenerateMetrics:
     def test_lectures_on_all_days(self):
         # This schedule has lectures on all days of the week, with no gaps.
 
-        lgs = [MockLectureGroup(lecture=Lecture(day=str(i), start_time=time(7 + i, 0))) for i in range(1, 8)]
+        lgs = [MockLectureGroup(lecture=[Lecture(day=str(i), start_time=time(7 + i, 0))]) for i in range(1, 8)]
         schedule = Schedule(lecture_groups=lgs)
         schedule.generate_metrics()
         assert schedule.active_days == 7
@@ -106,7 +105,7 @@ class TestScheduleGenerateMetrics:
         assert schedule.avg_end_time == pytest.approx(expected_end)
 
     def test_lectures_with_nonstandard_day_names(self):
-        lg = MockLectureGroup(lecture=Lecture(day="X", start_time=time(10, 0)))
+        lg = MockLectureGroup(lecture=[Lecture(day="X", start_time=time(10, 0))])
         schedule = Schedule(lecture_groups=[lg])
         schedule.generate_metrics()
         assert schedule.active_days == 1
@@ -118,8 +117,8 @@ class TestScheduleGenerateMetrics:
     def test_lectures_with_overlapping_times(self):
         # This schedule has overlapping lecture times on the same day.
         # The first lecture starts at 9:00 and the second at 9:30.
-        lg1 = MockLectureGroup(lecture=Lecture(day="2", start_time=time(9, 0)))
-        lg2 = MockLectureGroup(tirguls=Lecture(day="2", start_time=time(9, 30)))
+        lg1 = MockLectureGroup(lecture=[Lecture(day="2", start_time=time(9, 0))])
+        lg2 = MockLectureGroup(tirguls=[Lecture(day="2", start_time=time(9, 30))])
         schedule = Schedule(lecture_groups=[lg1, lg2])
         schedule.generate_metrics()
         assert schedule.gap_count == 0
