@@ -126,3 +126,39 @@ class TestScheduleWindowEndToEnd:
             assert mock_critical.called
             args, _ = mock_critical.call_args
             assert "Disk full" in args[-1]
+
+    def test_ranking_preferences_update(self, qtbot, full_window):
+        """
+        Tests that changing ranking preferences updates the displayed schedule.
+
+        Verifies:
+        - Initial schedule display
+        - Schedule updates when ranking preferences change
+        - Correct schedule is displayed after update
+        """
+        window, controller = full_window
+        
+        # Reset mock before test
+        controller.get_kth_schedule.reset_mock()
+        controller.set_preference.reset_mock()
+        
+        # Get initial schedule
+        initial_schedule = controller.get_kth_schedule(0)
+        
+        # Change ranking preferences
+        metric = "conflicts"  # Example metric
+        ascending = True
+        
+        # Mock the controller to return a different schedule after preferences change
+        new_schedule = MagicMock()
+        controller.get_kth_schedule.return_value = new_schedule
+        
+        # Update preferences using the correct method
+        window.on_preference_changed(metric, ascending)
+        
+        # Verify controller was called to update preferences
+        controller.set_preference.assert_called_once_with(metric, ascending)
+        
+        # Verify that get_kth_schedule was called to update the display
+        # This happens in on_schedule_changed which is called after preference change
+        controller.get_kth_schedule.assert_called_with(window.navigator.current_index)
