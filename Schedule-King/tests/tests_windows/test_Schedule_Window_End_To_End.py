@@ -11,9 +11,34 @@ Tested class: ScheduleWindow (src.views.schedule_window)
 import pytest
 from unittest.mock import patch, MagicMock
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMessageBox, QApplication
 from src.views.schedule_window import ScheduleWindow
+from PyQt5.QtCore import QTimer
 
 # --- Fixtures ---
+
+@pytest.fixture(autouse=True)
+def auto_accept_messagebox(qtbot):
+    """
+    Automatically clicks 'OK' on any QMessageBox that appears during tests.
+    """
+    def handle_messagebox():
+        for widget in QApplication.topLevelWidgets():
+            if isinstance(widget, QMessageBox):
+                qtbot.addWidget(widget)
+                widget.accept()
+                return True
+        return False
+    
+    # Check for message boxes every 100ms
+    timer = QTimer()
+    timer.timeout.connect(handle_messagebox)
+    timer.start(100)
+    
+    yield
+    
+    # Clean up timer
+    timer.stop()
 
 @pytest.fixture
 def full_window(qtbot):
@@ -146,7 +171,7 @@ class TestScheduleWindowEndToEnd:
         initial_schedule = controller.get_kth_schedule(0)
         
         # Change ranking preferences
-        metric = "conflicts"  # Example metric
+        metric = "Active Days"  # Example metric
         ascending = True
         
         # Mock the controller to return a different schedule after preferences change
