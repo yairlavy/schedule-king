@@ -91,6 +91,8 @@ class ExcelParser(IParser):
         instructor = str(row.get('מרצים', ''))  # Instructor(s)
         room_building_str = str(row.get('חדר', '')).strip()  # Room and building information
 
+        if meeting_type != 'הרצאה' and meeting_type != 'תרגול' and meeting_type!= 'תרגיל' and meeting_type != 'מעבדה':
+            return []
         # Only process courses in the first semester
         # If the course semester is not 'סמסטר א', skip this course
         if  'א' not in str(course_semester):
@@ -157,17 +159,30 @@ class ExcelParser(IParser):
         if not room_building_str:
             return None, None
         
-        # Expect format like 'הנדסה-1104'
-        parts = room_building_str.split('-')
-
-        if len(parts) < 2:
-            # If only room is present, return empty building and the room
-            return "", room_building_str.strip()
+        # Handle cases like "הנדסה-1102 - 2 הנדסה-1102 - 2"
+        # Split by whitespace and newlines first to get individual room entries
+        room_entries = []
+        for part in room_building_str.split():
+            part = part.strip()
+            if part and part != '-':
+                room_entries.append(part)
         
-        building= '-'.join(parts[:-1]).strip()
-        room = parts[-1].strip().split()[0]  # Take the first part in case of multiple hyphens  
-
-        return building, room
+        if not room_entries:
+            return None, None
+        
+        # Take the first meaningful entry (e.g., "הנדסה-1102")
+        first_entry = room_entries[0]
+        
+        # Now parse building-room format
+        if '-' in first_entry:
+            parts = first_entry.split('-')
+            if len(parts) >= 2:
+                building = parts[0].strip()
+                room = parts[1].strip()
+                return building, room
+        
+        # If no hyphen, treat the whole thing as room with empty building
+        return "", first_entry.strip()
 
     def _add_time_slot_to_course(self, course, meeting_type, time_slot_or_list, full_code):
         """
