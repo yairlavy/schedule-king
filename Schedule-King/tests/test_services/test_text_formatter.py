@@ -22,13 +22,13 @@ def time_slots():
 @pytest.fixture
 def lecture_groups(time_slots):
     return [
-        LectureGroup("Calculus 1", "00001", "Prof. O. Some", time_slots[0], [], []),
-        LectureGroup("Software Project", "83533", "Dr. Terry Bell", time_slots[1], [], []),
-        LectureGroup("Calculus 1 (eng)", "83112", "Dr. Erez Scheiner", time_slots[2], time_slots[0], []),
-        LectureGroup("Physics 1", "12345", "Dr. Isaac Newton", time_slots[3], [], []),
-        LectureGroup("Linear Algebra", "67890", "Prof. Alan Turing", time_slots[4], [], []),
-        LectureGroup("Data Structures", "54321", "Dr. Grace Hopper", time_slots[5], [], []),
-        LectureGroup("Algorithms", "98765", "Prof. Donald Knuth", time_slots[6], [], []),
+        LectureGroup("Calculus 1", "00001", "Prof. O. Some", [time_slots[0]], [], []),
+        LectureGroup("Software Project", "83533", "Dr. Terry Bell", [time_slots[1]], [], []),
+        LectureGroup("Calculus 1 (eng)", "83112", "Dr. Erez Scheiner", [time_slots[2]], [time_slots[0]], []),
+        LectureGroup("Physics 1", "12345", "Dr. Isaac Newton", [time_slots[3]], [], []),
+        LectureGroup("Linear Algebra", "67890", "Prof. Alan Turing", [time_slots[4]], [], []),
+        LectureGroup("Data Structures", "54321", "Dr. Grace Hopper", [time_slots[5]], [], []),
+        LectureGroup("Algorithms", "98765", "Prof. Donald Knuth", [time_slots[6]], [], []),
     ]
 
 @pytest.fixture

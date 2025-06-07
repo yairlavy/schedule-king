@@ -53,22 +53,25 @@ def test_parse_creates_valid_timeslots(mock_file):
 
     # Check lectures
     assert isinstance(calc1.lectures, list)
-    print(calc1.lectures)
-    assert len(calc1.lectures) == 2
-    #assert all(isinstance(slot, TimeSlot) for slot in calc1.lectures)
-
-    # Check first lecture slot
-    first_slot = calc1.lectures[0]
+    assert len(calc1.lectures) == 1
+    # The first element is a list of TimeSlot objects
+    first_lecture_list = calc1.lectures[0]
+    assert isinstance(first_lecture_list, list)
+    assert len(first_lecture_list) == 2
+    assert all(isinstance(slot, TimeSlot) for slot in first_lecture_list)
+    
+    # Check first lecture slot details
+    first_slot = first_lecture_list[0]
     assert first_slot.day == "2"
     assert first_slot.start_time.strftime("%H:%M") == "16:00"
     assert first_slot.end_time.strftime("%H:%M") == "17:00"
     assert first_slot.room == "1100"
     assert first_slot.building == "22"
 
-    # Check tutorials
+    # Check tirguls
     assert len(calc1.tirguls) == 2
-    assert calc1.tirguls[0].day == "2"
-    assert calc1.tirguls[1].day == "3"
+    assert calc1.tirguls[0][0].day == "2"
+    assert calc1.tirguls[1][0].day == "3"
 
 #TEXTPARSER_FILE_IO_001
 @patch("builtins.open", new_callable=mock_open, read_data=RAW_DATA)

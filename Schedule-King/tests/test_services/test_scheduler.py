@@ -15,8 +15,8 @@ def sample_courses():
     ts5 = TimeSlot("5", "12:00", "13:00", "102", "A")  
     ts6 = TimeSlot("6", "13:00", "14:00", "102", "A") 
 
-    course1 = Course("Math", "M101", "Prof. A", [ts1], [ts2], [ts3])
-    course2 = Course("CS", "C102", "Prof. B", [ts4], [ts5], [ts6])
+    course1 = Course("Math", "M101", "Prof. A", [[ts1]], [[ts2]], [[ts3]])
+    course2 = Course("CS", "C102", "Prof. B", [[ts4]], [[ts5]], [[ts6]])
 
     return [course1, course2]
 
@@ -41,11 +41,20 @@ def test_SCHEDULER_FUNC_GEN_001(sample_courses, strategy):
             print(f"Schedule {idx + 1}:")
             for group in schedule.lecture_groups:
                 print(f"  Course: {group.course_name}")
-                print(f"    Lecture: {group.lecture.start_time} - {group.lecture.end_time}")
+                # Handle multiple lectures
+                if group.lecture:
+                    for lecture_slot in group.lecture:
+                        print(f"    Lecture: {lecture_slot.start_time} - {lecture_slot.end_time}")
+                
+                # Handle multiple tirguls
                 if group.tirguls:
-                    print(f"    Tirgul: {group.tirguls.start_time} - {group.tirguls.end_time}")
+                    for tirgul_slot in group.tirguls:
+                        print(f"    Tirgul: {tirgul_slot.start_time} - {tirgul_slot.end_time}")
+                
+                # Handle multiple maabadas
                 if group.maabadas:
-                    print(f"    Maabada: {group.maabadas.start_time} - {group.maabadas.end_time}")
+                    for maabada_slot in group.maabadas:
+                        print(f"    Maabada: {maabada_slot.start_time} - {maabada_slot.end_time}")
 
     assert isinstance(schedules, list)
     assert len(schedules) >= 1
@@ -58,7 +67,10 @@ def test_SCHEDULER_INTEG_001(sample_courses, strategy):
     for schedule in schedules:
         all_slots = []
         for group in schedule.lecture_groups:
-            all_slots.extend([group.lecture, group.tirguls, group.maabadas])
+            # Collect all time slots from the generated schedule
+            if group.lecture: all_slots.extend(group.lecture)
+            if group.tirguls: all_slots.extend(group.tirguls)
+            if group.maabadas: all_slots.extend(group.maabadas)
         for i in range(len(all_slots)):
             for j in range(i + 1, len(all_slots)):
                 slot_a = all_slots[i]
@@ -76,7 +88,10 @@ def test_SCHEDULER_VALID_001(sample_courses, strategy):
     for schedule in schedules:
         slots = []
         for group in schedule.lecture_groups:
-            slots += [group.lecture, group.tirguls, group.maabadas]
+            # Collect all time slots
+            if group.lecture: slots.extend(group.lecture)
+            if group.tirguls: slots.extend(group.tirguls)
+            if group.maabadas: slots.extend(group.maabadas)
         for i in range(len(slots)):
             for j in range(i + 1, len(slots)):
                 slot_a = slots[i]

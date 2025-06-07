@@ -79,16 +79,19 @@ class ExportControls(QWidget):
                 if self.export_visible_only.isChecked() and 0 <= self.current_index < size:
                     # Export only the visible schedule
                     self.export_handler(file_path,None)
-                elif size > 100:
-                    # Export to Excel only the last 100 schedules - import is slow
-                    QMessageBox.warning(
-                        self, "Export Warning",
-                        "Exporting only the last 100 schedules for performance reasons."
-                    )   
-                    self.export_handler(file_path, self.controller.get_ranked_schedules(self.current_index,100))
                 else:
-                    # Export all schedules - call with just file path to match original behavior
-                    self.export_handler(file_path, None)
+                    # Calculate how many schedules we can get (up to 100)
+                    remaining_schedules = self.controller.ranker.size() - self.current_index
+                    count = min(100, remaining_schedules)
+                    if count <= 0:
+                        QMessageBox.warning(
+                            self,
+                            "No Schedules to Export",
+                            "There are no more schedules available to export from the current position."
+                        )
+                        return
+                        
+                    self.export_handler(file_path, self.controller.get_ranked_schedules(count, self.current_index))
                     
                 QMessageBox.information(
                     self, "Export Successful",
