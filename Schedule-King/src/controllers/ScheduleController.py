@@ -217,6 +217,6 @@ class ScheduleController:
         Raises:
             Exception: If the export operation fails.
         """
-        schedules = schedules_to_export if schedules_to_export is not None else self.ranker.get_ranked_schedules(0,100)
+        schedules = schedules_to_export if schedules_to_export is None else self.ranker.get_ranked_schedules(0,100)
         # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules, file_path)

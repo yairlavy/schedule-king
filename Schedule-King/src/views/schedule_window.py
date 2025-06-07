@@ -233,8 +233,7 @@ class ScheduleWindow(QMainWindow):
                 self.current_schedule = schedule  # Store current schedule for full size window
                 self.schedule_table.display_schedule(schedule)
                 # Update export controls with current schedules and index
-                current_schedules = self.controller.get_schedules()
-                self.header.export_controls.update_data(current_schedules, index)
+                self.header.export_controls.update_data(index)
                 self.header.export_controls.export_button.setEnabled(True)
                 self.header.back_button.setEnabled(True)
 
@@ -265,7 +264,7 @@ class ScheduleWindow(QMainWindow):
 
             except IndexError:
                 self.schedule_table.clearContents()
-                self.header.export_controls.update_data([], 0)
+                self.header.export_controls.update_data(0)
                 self.header.export_controls.export_button.setEnabled(False)
                 self.header.back_button.setEnabled(False)
                 # Disable the refresh button when there's an error or no schedules
@@ -288,7 +287,7 @@ class ScheduleWindow(QMainWindow):
             elif schedules_num <= 0:
                 self.schedule_table.clearContents()
                 # Update export controls with empty data
-                self.header.export_controls.update_data([], 0)
+                self.header.export_controls.update_data(0)
                 # Disable refresh button if no schedules are generated
                 self.refresh_button.setEnabled(False)
                 
@@ -325,9 +324,13 @@ class ScheduleWindow(QMainWindow):
         Handle export request from ExportControls.
         Calls the controller's export method.
         """
+        if not self.schedules or self.navigator.current_index >= self.schedules:
+            QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
+            return
+            
         if schedules_to_export is None:
-            # Export all schedules - call with just file path
-            self.controller.export_schedules(file_path)
+            # Export only the currently displayed schedule
+            self.controller.export_schedules(file_path, [self.current_schedule])
         else:
             # Export specific schedules
             self.controller.export_schedules(file_path, schedules_to_export)
@@ -345,7 +348,7 @@ class ScheduleWindow(QMainWindow):
             self.full_size_window.close()
             
         self.full_size_window = FullSizeWindow(
-            self.controller.get_kth_schedule(self.navigator.current_index),
+            self.current_schedule,
             self.navigator.current_index
         )
 
