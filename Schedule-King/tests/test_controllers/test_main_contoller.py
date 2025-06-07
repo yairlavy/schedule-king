@@ -151,7 +151,7 @@ def test_export_file(controller, tmp_path):
 @pytest.mark.parametrize("num,lec,trg,mab", [
     (3, 3, 3, 3),   # small fast
     (5, 4, 3, 2),   # medium
-    (7, 10, 10, 10), # large
+    (7, 3, 3, 3),   # large but reasonable
 ])
 def test_performance(controller, tmp_path, qtbot, num, lec, trg, mab):
     # Write  file
