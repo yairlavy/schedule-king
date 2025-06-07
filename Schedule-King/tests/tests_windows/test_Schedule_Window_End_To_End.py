@@ -27,10 +27,27 @@ def full_window(qtbot):
         Tuple[ScheduleWindow, MagicMock]: The window and controller mock
     """
     controller = MagicMock()
+    # Set up mock schedules for the controller to return
     schedules = [MagicMock() for _ in range(3)]
-    window = ScheduleWindow(schedules, controller)
+    controller.get_kth_schedule.side_effect = lambda index: schedules[index]
+    controller.get_schedules.return_value = schedules
+    
+    # Mock the ranker and its size method
+    ranker = MagicMock()
+    ranker.size.return_value = 3
+    controller.ranker = ranker
+    
+    # Mock get_ranked_schedules to return a list of schedules
+    controller.get_ranked_schedules.return_value = schedules
+    
+    # Create window with controller
+    window = ScheduleWindow(controller)
     window.on_back = MagicMock()
     qtbot.addWidget(window)
+    
+    # Set up schedules count
+    window.schedules = 3
+    
     return window, controller
 
 # --- Test Class ---
@@ -68,7 +85,11 @@ class TestScheduleWindowEndToEnd:
             patch("src.views.schedule_window.QMessageBox.information") as mock_info:
             qtbot.mouseClick(window.export_button, Qt.LeftButton)
 
-            controller.export_schedules.assert_called_once_with("/tmp/output.txt")
+            # Get the schedules that were passed to export_schedules
+            call_args = controller.export_schedules.call_args
+            assert call_args is not None
+            assert call_args[0][0] == "/tmp/output.txt"  # First argument is file path
+            assert len(call_args[0][1]) == 3  # Second argument is list of schedules
             assert mock_info.called
 
         # Step 4: Go back to course window
