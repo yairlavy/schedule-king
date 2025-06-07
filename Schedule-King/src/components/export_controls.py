@@ -79,7 +79,7 @@ class ExportControls(QWidget):
                 if self.export_visible_only.isChecked() and 0 <= self.current_index < size:
                     # Export only the visible schedule
                     self.export_handler(file_path,None)
-                elif size > 100:
+                else:
                     # Calculate how many schedules we can get (up to 100)
                     remaining_schedules = self.controller.ranker.size() - self.current_index
                     count = min(100, remaining_schedules)
@@ -92,9 +92,6 @@ class ExportControls(QWidget):
                         return
                         
                     self.export_handler(file_path, self.controller.get_ranked_schedules(count, self.current_index))
-                else:
-                    # Export all schedules - call with just file path to match original behavior
-                    self.export_handler(file_path, None)
                     
                 QMessageBox.information(
                     self, "Export Successful",
