@@ -102,10 +102,10 @@ class TimeConstraintTable(QTableWidget):
         # Return forbidden cells as a list of TimeSlot objects
         slots = []
         for row, col in self.forbidden:
-            day_index = col + 1  # Sunday=1
+            day_index = str(col + 1)  # Sunday=1, Monday=2, etc.
             start_time = f"{8+row:02d}:00"
             end_time = f"{8+row+1:02d}:00"
-            slots.append(TimeSlot(day=str(day_index), start_time=start_time, end_time=end_time, room="", building=""))
+            slots.append(TimeSlot(day=day_index, start_time=start_time, end_time=end_time, room="", building=""))
         return slots
 
     def eventFilter(self, source, event):
