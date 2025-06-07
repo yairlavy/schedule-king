@@ -49,37 +49,39 @@ class ExcelParser(IParser):
 
             # Iterate over each row in the sheet
             for index, row in sheet_data.iterrows():
-                parsed = self._parse_row(index, row)  # Parse each row into course and time data
-                if not parsed:
+                parsed_list = self._parse_row(index, row)  # Parse each row into list of course and time data
+                if not parsed_list:
                     continue  # Skip if row could not be parsed
 
-                course_code, course_name, instructor, meeting_type, time_slot = parsed
+                # Process each parsed time slot from the row
+                for parsed in parsed_list:
+                    course_code, course_name, instructor, meeting_type, time_slot = parsed
 
-                # If course not already in dictionary, create a new Course object
-                if course_code not in courses_dict:
-                    courses_dict[course_code] = Course(
-                        course_name=course_name,
-                        course_code=course_code,
-                        instructor=instructor
-                    )
+                    # If course not already in dictionary, create a new Course object
+                    if course_code not in courses_dict:
+                        courses_dict[course_code] = Course(
+                            course_name=course_name,
+                            course_code=course_code,
+                            instructor=instructor
+                        )
 
-                course = courses_dict[course_code]
-                # Add the parsed time slot to the course
-                self._add_time_slot_to_course(course, meeting_type, time_slot, row.get('קוד מלא', ''))
+                    course = courses_dict[course_code]
+                    # Add the parsed time slot to the course
+                    self._add_time_slot_to_course(course, meeting_type, time_slot, row.get('קוד מלא', ''))
 
         # Return all parsed courses as a list
         return list(courses_dict.values())
 
     def _parse_row(self, index, row):
         """
-        Parses a single row and returns a tuple containing:
+        Parses a single row and returns a list of tuples, each containing:
         course_code, course_name, instructor, meeting_type, and TimeSlot.
-        Returns None if the row is invalid.
+        Returns empty list if the row is invalid.
         """
         # Extract the full course code, or empty string if missing
         full_code = str(row['קוד מלא']) if pd.notna(row['קוד מלא']) else ''
         if '-' not in full_code:
-            return None  # Skip if course code format is invalid
+            return []  # Skip if course code format is invalid
 
         course_code = full_code.split('-')[0]  # Extract base course code
         course_semester = row.get('תקופה','') # Extract semester part
@@ -89,42 +91,63 @@ class ExcelParser(IParser):
         instructor = str(row.get('מרצים', ''))  # Instructor(s)
         room_building_str = str(row.get('חדר', '')).strip()  # Room and building information
 
-        # Use regex to extract day and time range (e.g., ג'10:00-12:00)
-        match = re.match(r"([א-ת])'?(\d{1,2}:\d{2})-(\d{1,2}:\d{2})", time_str)
-        if not match:
-            return None  # Skip if format does not match expected pattern
-
-        day_hebrew, start_time_str, end_time_str = match.groups()
-
         # Only process courses in the first semester
         # If the course semester is not 'סמסטר א', skip this course
         if  'א' not in str(course_semester):
-            return None
-   
-        # Convert Hebrew day to number
-        if day_hebrew not in day_mapping:
-            return None  # Skip if day is not recognized
+            return []
 
-        day_num = day_mapping[day_hebrew]
+        # Split time string by newlines to handle multiple separate meetings
+        time_lines = [line.strip() for line in time_str.split('\n') if line.strip()]
+        room_lines = [line.strip() for line in room_building_str.split('\n') if line.strip()]
+        
+        # If no time slots found, return empty list
+        if not time_lines:
+            return []
 
-        # Parse building and room information
-        building, room = self._parse_room_building(index, room_building_str)
-        if building is None and room is None:
-            return None  # Skip if room/building info is invalid
+        parsed_results = []
+        
+        # Process each time line (each line represents one meeting that might have multiple time slots)
+        for line_idx, time_line in enumerate(time_lines):
+            # Look for multiple day-time patterns in the same line
+            time_patterns = re.findall(r"([א-ת])'?(\d{1,2}:\d{2})-(\d{1,2}:\d{2})", time_line)
+            
+            if not time_patterns:
+                continue  # Skip if no patterns found
+            
+            # Get corresponding room info for this line
+            current_room_str = room_lines[line_idx] if line_idx < len(room_lines) else (room_lines[0] if room_lines else '')
+            
+            # Parse building and room information
+            building, room = self._parse_room_building(index, current_room_str)
+            if building is None and room is None:
+                continue  # Skip if room/building info is invalid
+            
+            # Create TimeSlots for all patterns in this line
+            time_slots_for_this_line = []
+            for day_hebrew, start_time_str, end_time_str in time_patterns:
+                # Convert Hebrew day to number
+                if day_hebrew not in day_mapping:
+                    continue
+                
+                day_num = day_mapping[day_hebrew]
+                
+                try:
+                    time_slot = TimeSlot(
+                        day=day_num,
+                        start_time=start_time_str,
+                        end_time=end_time_str,
+                        room=room,
+                        building=building
+                    )
+                    time_slots_for_this_line.append(time_slot)
+                except ValueError:
+                    continue
+            
+            # Add all time slots from this line as one entry
+            if time_slots_for_this_line:
+                parsed_results.append((course_code, course_name, instructor, meeting_type, time_slots_for_this_line))
 
-        try:
-            # Create TimeSlot with parsed values
-            time_slot = TimeSlot(
-                day=day_num,
-                start_time=start_time_str,
-                end_time=end_time_str,
-                room=room,
-                building=building
-            )
-        except ValueError:
-            return None  # Skip if TimeSlot data is invalid
-
-        return course_code, course_name, instructor, meeting_type, time_slot
+        return parsed_results
 
     def _parse_room_building(self, index, room_building_str):
         """
@@ -146,18 +169,17 @@ class ExcelParser(IParser):
 
         return building, room
 
-    def _add_time_slot_to_course(self, course, meeting_type, time_slot, full_code):
+    def _add_time_slot_to_course(self, course, meeting_type, time_slot_or_list, full_code):
         """
-        Adds a TimeSlot to the appropriate list in the Course object based on meeting type.
+        Adds a TimeSlot or list of TimeSlots to the appropriate list in the Course object based on meeting type.
         """
         # Add time slot to the correct type (lecture, tirgul, or lab)
         if meeting_type == 'הרצאה':
-            course.add_lecture(time_slot)
+            course.add_lecture(time_slot_or_list)
         elif meeting_type == 'תרגיל' or meeting_type == 'תרגול':
-            course.add_tirgul(time_slot)
+            course.add_tirgul(time_slot_or_list)
         elif meeting_type == 'מעבדה':
-            course.add_maabada(time_slot)
+            course.add_maabada(time_slot_or_list)
         else:
             # Unknown meeting type like 'הדרכה'; do not add the time slot
             pass
-
