@@ -298,27 +298,66 @@ def test_insert_batch(sample_schedules):
     for i in range(len(sample_schedules)):
         assert ranker.get_schedules()[i] == sample_schedules[i]
 
+def are_schedules_equal(schedule1, schedule2):
+    """
+    Compares two schedules by their values.
+    Returns True if all attributes match, False otherwise.
+    """
+    return (
+        schedule1.active_days == schedule2.active_days and
+        schedule1.gap_count == schedule2.gap_count and
+        schedule1.total_gap_time == schedule2.total_gap_time and
+        schedule1.avg_start_time == schedule2.avg_start_time and
+        schedule1.avg_end_time == schedule2.avg_end_time and
+        len(schedule1.lecture_groups) == len(schedule2.lecture_groups)
+    )
+
+def find_schedule_index(schedules, target_schedule):
+    """
+    Finds the index of a schedule in the list that matches the target schedule's attributes.
+    """
+    for i, schedule in enumerate(schedules):
+        if are_schedules_equal(schedule, target_schedule):
+            print(f"Found target schedule at index {i}")
+            return i
+    return -1
+
 def test_ranking_by_active_days(sample_schedules):
     """
     Tests ranking schedules by number of active days.
     Verifies both ascending and descending order:
     - Ascending: Should start with minimum active days (1) and end with maximum (7)
     - Descending: Should start with maximum active days (7) and end with minimum (1)
+    Also verifies that get_ranked_schedule returns the correct kth element.
     """
     ranker = ScheduleRanker()
-    ranker.add_batch(sample_schedules)
-
-    # Test ascending order
     ranker.set_preference(Preference(Metric.ACTIVE_DAYS, ascending=True))
+    ranker.add_batch(sample_schedules)
+    # Test ascending order
     ranked = list(ranker.iter_ranked_schedules())
     assert ranked[0].active_days == 1  # Minimum active days
     assert ranked[-1].active_days == 7  # Maximum active days
-
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).active_days == 1  # First element
+    assert ranker.get_ranked_schedule(5).active_days == 4  # Middle element
+    assert ranker.get_ranked_schedule(10).active_days == 7  # Last element
+    # Verify specific schedules
+    assert are_schedules_equal(ranker.get_ranked_schedule(0), sample_schedules[6])  # Schedule with 1 active day
+    assert are_schedules_equal(ranker.get_ranked_schedule(5), sample_schedules[1])  # Schedule with 4 active days
+    assert are_schedules_equal(ranker.get_ranked_schedule(10), sample_schedules[5])  # Schedule with 7 active days
     # Test descending order
     ranker.set_preference(Preference(Metric.ACTIVE_DAYS, ascending=False))
     ranked = list(ranker.iter_ranked_schedules())
     assert ranked[0].active_days == 7  # Maximum active days
     assert ranked[-1].active_days == 1  # Minimum active days
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).active_days == 7  # First element
+    assert ranker.get_ranked_schedule(5).active_days == 4  # Middle element
+    assert ranker.get_ranked_schedule(10).active_days == 1  # Last element
+    # Verify specific schedules
+    assert are_schedules_equal(ranker.get_ranked_schedule(0), sample_schedules[5])  # Schedule with 7 active days
+    assert are_schedules_equal(ranker.get_ranked_schedule(5), sample_schedules[1])  # Schedule with 4 active days
+    assert are_schedules_equal(ranker.get_ranked_schedule(10), sample_schedules[6])  # Schedule with 1 active day
 
 def test_ranking_by_gap_count(sample_schedules):
     """
@@ -326,23 +365,32 @@ def test_ranking_by_gap_count(sample_schedules):
     Verifies both ascending and descending order:
     - Ascending: Should start with minimum gaps (0) and end with maximum (based on calculation)
     - Descending: Should start with maximum gaps (based on calculation) and end with minimum (0)
+    Also verifies that get_ranked_schedule returns the correct kth element.
     """
     ranker = ScheduleRanker()
-    
     ranker.add_batch(sample_schedules)
 
     # Test ascending order
     ranker.set_preference(Preference(Metric.GAP_COUNT, ascending=True))
     ranked = list(ranker.iter_ranked_schedules())
-    # Expected gap counts: 0 (S11), 1 (S?), 2 (S1, S3, S4, S5, S6, S7, S10), 3 (S9), 4 (S2, S8)
     assert ranked[0].gap_count == 0  # Schedule 11 has 0 gaps
     assert ranked[-1].gap_count == 4  # Schedules 2 and 8 have 4 gaps
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).gap_count == 0  # First element
+    assert ranker.get_ranked_schedule(5).gap_count == 2  # Middle element
+    assert ranker.get_ranked_schedule(10).gap_count == 4  # Last element
 
     # Test descending order
     ranker.set_preference(Preference(Metric.GAP_COUNT, ascending=False))
     ranked = list(ranker.iter_ranked_schedules())
     assert ranked[0].gap_count == 4  # Schedules 2 and 8 have 4 gaps
     assert ranked[-1].gap_count == 0  # Schedule 11 has 0 gaps
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).gap_count == 4  # First element
+    assert ranker.get_ranked_schedule(5).gap_count == 2  # Middle element
+    assert ranker.get_ranked_schedule(10).gap_count == 0  # Last element
 
 def test_ranking_by_total_gap_time(sample_schedules):
     """
@@ -350,23 +398,32 @@ def test_ranking_by_total_gap_time(sample_schedules):
     Verifies both ascending and descending order:
     - Ascending: Should start with minimum gap time (0) and end with maximum (based on calculation)
     - Descending: Should start with maximum gap time (based on calculation) and end with minimum (0)
+    Also verifies that get_ranked_schedule returns the correct kth element.
     """
     ranker = ScheduleRanker()
-    
     ranker.add_batch(sample_schedules)
 
     # Test ascending order
     ranker.set_preference(Preference(Metric.TOTAL_GAP_TIME, ascending=True))
     ranked = list(ranker.iter_ranked_schedules())
-    # Expected total gap times (hours): 0.0 (S11), 2.5 (S3, S4, S7, S10, S6), 3.0 (S1), 4.0 (S5), 8.0 (S2, S8), 15.0 (S9)
     assert ranked[0].total_gap_time == pytest.approx(0.0)  # Schedule 11 has 0.0 total gap time
     assert ranked[-1].total_gap_time == pytest.approx(15.0)  # Schedule 9 has 15.0 total gap time
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).total_gap_time == pytest.approx(0.0)  # First element
+    assert ranker.get_ranked_schedule(5).total_gap_time == pytest.approx(3.0)  # Middle element
+    assert ranker.get_ranked_schedule(10).total_gap_time == pytest.approx(15.0)  # Last element
 
     # Test descending order
     ranker.set_preference(Preference(Metric.TOTAL_GAP_TIME, ascending=False))
     ranked = list(ranker.iter_ranked_schedules())
     assert ranked[0].total_gap_time == pytest.approx(15.0)  # Schedule 9 has 15.0 total gap time
     assert ranked[-1].total_gap_time == pytest.approx(0.0)  # Schedule 11 has 0.0 total gap time
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).total_gap_time == pytest.approx(15.0)  # First element
+    assert ranker.get_ranked_schedule(5).total_gap_time == pytest.approx(3.0)  # Middle element
+    assert ranker.get_ranked_schedule(10).total_gap_time == pytest.approx(0.0)  # Last element
 
 def test_ranking_by_avg_start_time(sample_schedules):
     """
@@ -374,29 +431,32 @@ def test_ranking_by_avg_start_time(sample_schedules):
     Verifies both ascending and descending order:
     - Ascending: Should start with earliest time and end with latest time (based on calculation)
     - Descending: Should start with latest time and end with earliest time (based on calculation)
+    Also verifies that get_ranked_schedule returns the correct kth element.
     """
     ranker = ScheduleRanker()
-    
     ranker.add_batch(sample_schedules)
 
     # Test ascending order
     ranker.set_preference(Preference(Metric.AVG_START_TIME, ascending=True))
     ranked = list(ranker.iter_ranked_schedules())
-    
-    # Print actual values for debugging
-    print("Actual avg start times (ascending):")
-    for i, schedule in enumerate(ranked):
-        print(f"  Schedule {i}: {schedule.avg_start_time}")
-    
-    # The actual earliest and latest start times based on correct calculation
     assert ranked[0].avg_start_time == pytest.approx(750.0)  # Schedule with earliest avg start time
     assert ranked[-1].avg_start_time == pytest.approx(1250.0)  # Schedule 5 has avg start time 1250.0
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).avg_start_time == pytest.approx(750.0)  # First element
+    assert ranker.get_ranked_schedule(5).avg_start_time == pytest.approx(900.0)  # Middle element
+    assert ranker.get_ranked_schedule(10).avg_start_time == pytest.approx(1250.0)  # Last element
 
     # Test descending order
     ranker.set_preference(Preference(Metric.AVG_START_TIME, ascending=False))
     ranked = list(ranker.iter_ranked_schedules())
     assert ranked[0].avg_start_time == pytest.approx(1250.0)  # Schedule 5 has avg start time 1250.0
     assert ranked[-1].avg_start_time == pytest.approx(750.0)  # Schedule with earliest avg start time
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).avg_start_time == pytest.approx(1250.0)  # First element
+    assert ranker.get_ranked_schedule(5).avg_start_time == pytest.approx(900.0)  # Middle element
+    assert ranker.get_ranked_schedule(10).avg_start_time == pytest.approx(750.0)  # Last element
 
 def test_ranking_by_avg_end_time(sample_schedules):
     """
@@ -404,29 +464,32 @@ def test_ranking_by_avg_end_time(sample_schedules):
     Verifies both ascending and descending order:
     - Ascending: Should start with earliest time and end with latest time (based on calculation)
     - Descending: Should start with latest time and end with earliest time (based on calculation)
+    Also verifies that get_ranked_schedule returns the correct kth element.
     """
     ranker = ScheduleRanker()
-    
     ranker.add_batch(sample_schedules)
 
     # Test ascending order
     ranker.set_preference(Preference(Metric.AVG_END_TIME, ascending=True))
     ranked = list(ranker.iter_ranked_schedules())
-    
-    # Print actual values for debugging
-    print("Actual avg end times (ascending):")
-    for i, schedule in enumerate(ranked):
-        print(f"  Schedule {i}: {schedule.avg_end_time}")
-    
-    # The actual earliest and latest end times based on correct calculation
     assert ranked[0].avg_end_time == pytest.approx(950.0)  # Schedule with earliest avg end time
     assert ranked[-1].avg_end_time == pytest.approx(1550.0)  # Schedule 5 has avg end time 1550.0
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).avg_end_time == pytest.approx(950.0)  # First element
+    assert ranker.get_ranked_schedule(5).avg_end_time == pytest.approx(1200.0)  # Middle element
+    assert ranker.get_ranked_schedule(10).avg_end_time == pytest.approx(1550.0)  # Last element
 
     # Test descending order
     ranker.set_preference(Preference(Metric.AVG_END_TIME, ascending=False))
     ranked = list(ranker.iter_ranked_schedules())
     assert ranked[0].avg_end_time == pytest.approx(1550.0)  # Schedule 5 has avg end time 1550.0
     assert ranked[-1].avg_end_time == pytest.approx(950.0)  # Schedule with earliest avg end time
+    
+    # Verify kth elements
+    assert ranker.get_ranked_schedule(0).avg_end_time == pytest.approx(1550.0)  # First element
+    assert ranker.get_ranked_schedule(5).avg_end_time == pytest.approx(1200.0)  # Middle element
+    assert ranker.get_ranked_schedule(10).avg_end_time == pytest.approx(950.0)  # Last element
 
 def test_edge_cases():
     """

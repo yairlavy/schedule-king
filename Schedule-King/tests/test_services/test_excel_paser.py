@@ -62,9 +62,13 @@ def test_basic_parsing(simple_courses_path):
     assert all(isinstance(course, Course) for course in courses)
     
     # Find and verify a specific course's details
+    # Find the course with code '80001' (Discrete Mathematics)
     discrete_math = next((c for c in courses if c.course_code == '80001'), None)
+    # Ensure the course exists in the parsed results
     assert discrete_math is not None
+    # Check that the course name matches the expected Hebrew name
     assert discrete_math.name == 'מתמטיקה בדידה'
+    # Check that the instructor matches the expected value
     assert discrete_math.instructor == 'מר יוסי גולד'
 
 # EXCELPARSER_FUNC_003
