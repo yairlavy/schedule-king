@@ -7,12 +7,10 @@ from src.models.time_slot import TimeSlot
 from datetime import time
 
 # Create QApplication instance for testing
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 def app():
-    """Create a QApplication instance that persists for the entire test session."""
-    app = QApplication([])
-    yield app
-    app.quit()
+    """Create a QApplication instance for testing"""
+    return QApplication.instance() or QApplication([])
 
 @pytest.fixture
 def table(app):

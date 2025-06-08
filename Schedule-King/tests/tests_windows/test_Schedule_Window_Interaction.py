@@ -74,12 +74,13 @@ class TestScheduleWindowQtBot:
         window_with_qtbot.header.export_controls.size = 3
         
         with patch("src.views.schedule_window.QFileDialog.getSaveFileName", return_value=("/tmp/test.txt", "")):
-            # Reset mock before test
-            window_with_qtbot.controller.export_schedules.reset_mock()
-            # Click export button
-            qtbot.mouseClick(window_with_qtbot.export_button, Qt.LeftButton)
-            # Verify controller was called
-            window_with_qtbot.controller.export_schedules.assert_called_once()
+            with patch("PyQt5.QtWidgets.QMessageBox.information"):
+                # Reset mock before test
+                window_with_qtbot.controller.export_schedules.reset_mock()
+                # Click export button
+                qtbot.mouseClick(window_with_qtbot.export_button, Qt.LeftButton)
+                # Verify controller was called
+                window_with_qtbot.controller.export_schedules.assert_called_once()
 
     def test_click_back_triggers_callback(self, qtbot, window_with_qtbot):
         """

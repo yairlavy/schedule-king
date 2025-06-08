@@ -4,12 +4,10 @@ from PyQt5.QtCore import Qt
 from src.components.ranking_controls import RankingControls
 from src.models.Preference import Preference, Metric
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 def app():
     """Create a QApplication instance for testing"""
-    app = QApplication([])
-    yield app
-    app.quit()
+    return QApplication.instance() or QApplication([])
 
 @pytest.fixture
 def controls(app):
