@@ -135,3 +135,11 @@ class Schedule:
             self.avg_end_time = sum(daily_end_times) / len(daily_end_times)
         else:
             self.avg_end_time = 0
+        
+        self.metric_tuple = (
+            int(self.active_days),
+            int(self.gap_count),
+            int(self.total_gap_time * 2),  # Convert hours to half-hours
+            Schedule.time_format_to_minutes(int(self.avg_start_time)),  # e.g., 930 → 570
+            Schedule.time_format_to_minutes(int(self.avg_end_time)),
+        )

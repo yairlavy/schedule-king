@@ -15,7 +15,7 @@ class ScheduleRanker:
         self.sorters: dict[Metric, GradeSorter] = {
             Metric.ACTIVE_DAYS: GradeSorter(7),        # Upper bound for active days is 7
             Metric.GAP_COUNT: GradeSorter(20),         # Upper bound for gap count is 20
-            Metric.TOTAL_GAP_TIME: GradeSorter(60),    # Upper bound for total gap time in hours
+            Metric.TOTAL_GAP_TIME: GradeSorter(64),    # Upper bound for total gap time in hours
             Metric.AVG_START_TIME: GradeSorter(1440),  # Upper bound for average start time in minutes (24*60)
             Metric.AVG_END_TIME: GradeSorter(1440)     # Upper bound for average end time in minutes (24*60)
         }
@@ -51,44 +51,22 @@ class ScheduleRanker:
         self.sorters[Metric.AVG_START_TIME].insert(item, Schedule.time_format_to_minutes(int(schedule.avg_start_time)))
         self.sorters[Metric.AVG_END_TIME].insert(item, Schedule.time_format_to_minutes(int(schedule.avg_end_time)))
 
+
     def add_batch(self, batch: List[Schedule]):
-        """
-        Inserts a batch of schedules into all GradeSorters efficiently.
-        :param batch: A list of Schedule objects to insert.
-        """
-        if not batch:
-            return
-            
         start_index = len(self.schedules)
         self.schedules.extend(batch)
-        
-        # Prepare items_grades for each metric
-        for metric in Metric:
-            items_grades = []
-            for i, schedule in enumerate(batch):
-                item_index = start_index + i
-                # Extract the grade for the current metric
-                if metric == Metric.ACTIVE_DAYS:
-                    grade = int(schedule.active_days)
-                elif metric == Metric.GAP_COUNT:
-                    grade = int(schedule.gap_count)
-                elif metric == Metric.TOTAL_GAP_TIME:
-                    # Total gap time is in hours, store as half-hours for grading
-                    grade = int(schedule.total_gap_time * 2)
-                elif metric == Metric.AVG_START_TIME:
-                    # Average times are in 700 format float, convert to minutes for grading
-                    grade = Schedule.time_format_to_minutes(int(schedule.avg_start_time))
-                elif metric == Metric.AVG_END_TIME:
-                    # Average times are in 700 format float, convert to minutes for grading
-                    grade = Schedule.time_format_to_minutes(int(schedule.avg_end_time))
-                else:
-                    continue
-                    
-                items_grades.append((item_index, grade))
-            
-            # Insert all items for this metric at once
-            self.sorters[metric].insert_chunk(items_grades)
-            
+        metric_to_index = {
+            Metric.ACTIVE_DAYS: 0,
+            Metric.GAP_COUNT: 1,
+            Metric.TOTAL_GAP_TIME: 2,
+            Metric.AVG_START_TIME: 3,
+            Metric.AVG_END_TIME: 4,
+        }
+        for metric, idx in metric_to_index.items():
+            self.sorters[metric].insert_chunk(
+                ((start_index + i, schedule.metric_tuple[idx]) for i, schedule in enumerate(batch))
+            )
+
 
     def get_ranked_schedule(self, k: int) -> Schedule:
         """
