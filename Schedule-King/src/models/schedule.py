@@ -135,7 +135,12 @@ class Schedule:
             self.avg_end_time = sum(daily_end_times) / len(daily_end_times)
         else:
             self.avg_end_time = 0
-        
+        # Store metrics as a tuple for easy comparison or sorting
+        # - active_days: number of days with lectures
+        # - gap_count: number of gaps greater than 30 minutes
+        # - total_gap_time: total gap time in half-hours (rounded down)
+        # - avg_start_time: average start time in minutes since midnight
+        # - avg_end_time: average end time in minutes since midnight
         self.metric_tuple = (
             int(self.active_days),
             int(self.gap_count),

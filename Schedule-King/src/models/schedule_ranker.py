@@ -15,7 +15,7 @@ class ScheduleRanker:
         self.sorters: dict[Metric, GradeSorter] = {
             Metric.ACTIVE_DAYS: GradeSorter(7),        # Upper bound for active days is 7
             Metric.GAP_COUNT: GradeSorter(20),         # Upper bound for gap count is 20
-            Metric.TOTAL_GAP_TIME: GradeSorter(64),    # Upper bound for total gap time in hours
+            Metric.TOTAL_GAP_TIME: GradeSorter(64),    # Upper bound for total gap time in helf of hours
             Metric.AVG_START_TIME: GradeSorter(1440),  # Upper bound for average start time in minutes (24*60)
             Metric.AVG_END_TIME: GradeSorter(1440)     # Upper bound for average end time in minutes (24*60)
         }
@@ -53,8 +53,14 @@ class ScheduleRanker:
 
 
     def add_batch(self, batch: List[Schedule]):
+        """
+        Adds a batch of schedules to the ranker and updates all GradeSorters efficiently.
+        :param batch: List of Schedule objects to add.
+        """
         start_index = len(self.schedules)
+        # Extend the schedules list with the new batch
         self.schedules.extend(batch)
+        # Map each metric to its index in the Schedule.metric_tuple
         metric_to_index = {
             Metric.ACTIVE_DAYS: 0,
             Metric.GAP_COUNT: 1,
@@ -62,7 +68,9 @@ class ScheduleRanker:
             Metric.AVG_START_TIME: 3,
             Metric.AVG_END_TIME: 4,
         }
+        # For each metric, insert the corresponding grades for the batch into the sorter
         for metric, idx in metric_to_index.items():
+            # Prepare (item_index, grade) pairs for the batch
             self.sorters[metric].insert_chunk(
                 ((start_index + i, schedule.metric_tuple[idx]) for i, schedule in enumerate(batch))
             )
