@@ -112,7 +112,7 @@ class Schedule:
             
             # Convert times to minutes for internal calculations
             start_minutes = [s.start_time.hour * 60 + s.start_time.minute for s in sorted_slots]
-            end_minutes = [(s.start_time.hour + 1) * 60 + s.start_time.minute for s in sorted_slots]  # Each lecture takes 1 hour
+            end_minutes = [s.end_time.hour * 60 + s.end_time.minute for s in sorted_slots] 
 
             # Convert to time format (e.g., 700 for 7:00) for storage
             daily_start_times.append(self.minutes_to_time_format(start_minutes[0]))
@@ -121,9 +121,11 @@ class Schedule:
             # Count valid gaps between classes
             for i in range(len(start_minutes) - 1):
                 gap = start_minutes[i + 1] - end_minutes[i]
-                if gap > 30:
-                    self.gap_count += 1
-                    self.total_gap_time += gap / 60.0  # convert to hours
+                if gap > 30:# 30 minutes gap
+                    # Check if the gap is valid (not at the start or end of the day)
+                    if end_minutes[i] > start_minutes[0] and start_minutes[i + 1] < end_minutes[-1]:
+                        self.gap_count += 1
+                        self.total_gap_time += gap / 60.0  # convert to hours
 
         # Calculate averages only for days with lectures
         if daily_start_times:
