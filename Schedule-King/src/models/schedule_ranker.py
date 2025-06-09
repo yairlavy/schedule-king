@@ -60,14 +60,8 @@ class ScheduleRanker:
         start_index = len(self.schedules)
         # Extend the schedules list with the new batch
         self.schedules.extend(batch)
-        # Map each metric to its index in the Schedule.metric_tuple
-        metric_to_index = {
-            Metric.ACTIVE_DAYS: 0,
-            Metric.GAP_COUNT: 1,
-            Metric.TOTAL_GAP_TIME: 2,
-            Metric.AVG_START_TIME: 3,
-            Metric.AVG_END_TIME: 4,
-        }
+        # Map each metric to its index in the Schedule.metric_tuple based on enum order
+        metric_to_index = {metric: idx for idx, metric in enumerate(Metric)}
         # For each metric, insert the corresponding grades for the batch into the sorter
         for metric, idx in metric_to_index.items():
             # Prepare (item_index, grade) pairs for the batch
