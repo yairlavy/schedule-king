@@ -1,437 +1,364 @@
 from PyQt5.QtWidgets import (
-    QMainWindow, QVBoxLayout, QWidget, QPushButton, QFileDialog, QMessageBox,
-    QHBoxLayout, QLabel, QFrame, QProgressBar, QCheckBox, QSpacerItem, QSizePolicy, QHeaderView
+    QMainWindow, QVBoxLayout, QWidget, QFileDialog, QMessageBox,
+    QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox
 )
-from PyQt5.QtCore import Qt, QTimer
-from PyQt5.QtGui import QIcon, QPixmap, QFont , QTransform
+from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QIcon, QFont, QPixmap
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
+from src.components.schedule_header import ScheduleHeader
+from src.components.schedule_progress import ScheduleProgress
+from src.components.full_size_window import FullSizeWindow
+from src.components.ScheduleMetrics import ScheduleMetrics
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
-from typing import List
+from src.components.ranking_controls import RankingControls
+from typing import List, Optional
 import os
 
 class ScheduleWindow(QMainWindow):
     """
-    An improved window for displaying and managing generated schedules.
-    Features a modern UI with icons, better layout, and enhanced visual design.
+    Main window for displaying and managing generated schedules.
+    Uses modular components for better maintainability.
     """
-    def __init__(self, schedules: List[Schedule], controller: ScheduleController,maximize_on_start=True,show_progress_on_start=True):
-        """
-        Initializes the ScheduleWindow with enhanced UI.
-
-        Args:
-            schedules (List[Schedule]): List of schedules to display.
-            controller (ScheduleController): Controller for schedule operations.
-        """
+    def __init__(self, controller: ScheduleController, maximize_on_start=True, show_progress_on_start=True):
         super().__init__()
-        # Set the window icon
-        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
-        self.setWindowIcon(QIcon(icon_path))
-        
+        self.setup_window()  # Set up window properties and layout
+        self.setup_components(-1, controller)  # Set up all UI components
+        self.setup_connections()  # Connect signals and slots
+        self.setWindowState(Qt.WindowMaximized)
+        self.show()
+
+    def setup_window(self):
+        """Initialize window properties and layout"""
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
-        self.controller = controller  # Store controller for operations
-        self.schedules = schedules    # Store list of schedules
-        self.course_selector_ref = None # Reference to the course selector window
-        self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
-        self.controller.on_schedules_generated = self.on_schedule_generated
-        self.controller.on_progress_updated = self.update_progress
-        self.first_schedule_shown = False
-        self.full_size_window = None  # Store reference to full size window
-
-        # Initialize progress bar
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setObjectName("schedule_progress")
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(True)
-        self.progress_bar.setFormat("%v / %m schedules")
-        self.progress_bar.setFixedWidth(300)
-        self.progress_bar.setVisible(False)  # Initially hidden
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        self.setWindowIcon(QIcon(icon_path))
         
-        # Initialize progress label
-        self.progress_label = QLabel("Generating schedules...")
-        self.progress_label.setObjectName("progress_label")
-        self.progress_label.setAlignment(Qt.AlignCenter)
-        self.progress_label.setVisible(False)  # Initially hidden
-        
-        # --- MAIN LAYOUT SETUP ---
-        # Create the main container widget and layout with proper spacing
+        # Create main layout
         self.central_widget = QWidget()
         self.main_layout = QVBoxLayout(self.central_widget)
-        self.main_layout.setSpacing(15)  # Space between major sections
-        self.main_layout.setContentsMargins(20, 20, 20, 20)  # Margins around the window
+        self.main_layout.setSpacing(15)
+        self.main_layout.setContentsMargins(20, 20, 20, 20)
+        self.setCentralWidget(self.central_widget)
         
-        # --- HEADER SECTION ---
-        # The header is divided into three sections: back button (left), title (center), export button (right)
-        header_layout = QHBoxLayout()
-        header_layout.setSpacing(15)
+        # Set window size
+        self.setMinimumSize(800, 600)
+        self.resize(1920, 1080)
         
-        # Left section: Back button with icon
-        self.back_button = QPushButton("  Back to Course Selection")
-        self.back_button.setObjectName("top_action_button")
-        back_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/back.png"))
-        if not back_icon.isNull():
-            self.back_button.setIcon(back_icon)
-            self.back_button.setText(" Back to Course Selection")
-        else:
-            self.back_button.setText("← Back to Course Selection")
-        
-        # Center section: Title with crown icon and subtitle
-        title_container = QWidget()
-        title_container.setObjectName("title_container")
-        title_layout = QVBoxLayout(title_container)
-        title_layout.setContentsMargins(15, 10, 15, 10)
-        title_layout.setSpacing(0)
-        
-        # Create crown icon (or emoji fallback) for the title
-        crown_label = QLabel()
-        crown_pixmap = QPixmap(os.path.join(os.path.dirname(__file__), "../assets/king.png"))
-        if not crown_pixmap.isNull():
-            crown_label.setPixmap(crown_pixmap.scaled(50, 50, Qt.KeepAspectRatio, Qt.SmoothTransformation))
-        else:
-            crown_label = QLabel("👑")
-            crown_label.setFont(QFont("Segoe UI Emoji", 36))
-        
-        crown_label.setAlignment(Qt.AlignCenter)
-        crown_label.setMaximumWidth(60)  # Larger crown
-        
-        # Title and subtitle
-        title_text_layout = QVBoxLayout()
-        self.headline = QLabel("Schedule King")
-        self.headline.setObjectName("headline_label")
-        self.headline.setFont(QFont("Arial", 24, QFont.Bold))  # Larger font for headline
-        
-        self.subtitle = QLabel("Plan Your Study Schedule Like a King")
-        self.subtitle.setObjectName("subtitle_label")
-        self.subtitle.setFont(QFont("Arial", 16))  # Larger font for subtitle
-        
-        title_text_layout.addWidget(self.headline)
-        title_text_layout.addWidget(self.subtitle)
-        
-        # Add crown and text to title container
-        title_row = QHBoxLayout()
-        title_row.addWidget(crown_label)
-        title_row.addLayout(title_text_layout)
-        title_row.addStretch(1)
-        title_layout.addLayout(title_row)
-        
-        # Export button (right side)
-        export_container = QWidget()
-        export_layout = QVBoxLayout(export_container)
-        export_layout.setSpacing(5)
-        
-        self.export_button = QPushButton("  Export Schedule")
-        self.export_button.setObjectName("top_action_button")
-        export_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/export.png"))
-        if not export_icon.isNull():
-            self.export_button.setIcon(export_icon)
-        else:
-            # Use text-based icon as fallback
-            self.export_button.setText("Export Schedule")
-            
-        self.export_visible_only = QCheckBox("Export visible schedule only")
-        self.export_visible_only.setObjectName("export_checkbox")
-        
-        export_layout.addWidget(self.export_button)
-        export_layout.addWidget(self.export_visible_only)
-        
-        # Assemble header with proper alignment
-        header_layout.addWidget(self.back_button)  # Left aligned
-        header_layout.addStretch(1)  # Push to left
-        header_layout.addWidget(title_container)  # Center
-        header_layout.addStretch(1)  # Push to right
-        header_layout.addWidget(export_container)  # Right aligned
-        
-        self.main_layout.addLayout(header_layout)
-        
-        # Connect button actions
-        self.export_button.clicked.connect(self.export_to_file)
-        self.back_button.clicked.connect(self.navigateToCourseWindow)
-        
-        # Add a separator line
+    def setup_components(self, schedules: int , controller: ScheduleController):
+        """Initialize and setup all window components"""
+        # Store references
+        self.controller = controller
+        self.schedules = schedules
+        self.first_schedule_shown = False
+        self.full_size_window = None
+        self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+
+        # Create header and metrics components
+        # ScheduleHeader components (back_button, title_container, export_controls) are now public attributes
+        self.header = ScheduleHeader(self.controller, self.handle_export)
+        self.metrics_widget = ScheduleMetrics(Schedule([])) # Initialize with empty schedule
+
+        # Create a horizontal layout for the top section (Back, Header Title, Metrics, Export)
+        top_layout = QHBoxLayout()
+        top_layout.setSpacing(15)
+        top_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Add Back button
+        top_layout.addWidget(self.header.back_button)
+
+        # Add Header Title container and center it with stretches
+        top_layout.addStretch(1)
+        top_layout.addWidget(self.header.title_container)
+        top_layout.addStretch(1)
+
+        # Add Metrics widget
+        top_layout.addWidget(self.metrics_widget)
+
+        # Add Export controls
+        top_layout.addWidget(self.header.export_controls)
+
+        # Add the top layout to the main vertical layout (wrap in QWidget for styling if needed)
+        top_widget_container = QWidget()
+        top_widget_container.setObjectName("schedule_top_bar") # Add object name for styling if needed
+        top_widget_container.setLayout(top_layout)
+        self.main_layout.addWidget(top_widget_container)
+
+        # Add separator line
         line = QFrame()
         line.setFrameShape(QFrame.HLine)
         line.setFrameShadow(QFrame.Sunken)
         line.setObjectName("separator_line")
         self.main_layout.addWidget(line)
-        
-        # --- NAVIGATION SECTION ---
-        # Create the navigator component for browsing through schedules
-        self.navigator = Navigator(schedules)
+
+        # Create navigation section (progress, navigator, ranking controls, full size, refresh)
+        nav_container = QHBoxLayout()
+        nav_container.setSpacing(10)
+
+        # Add progress component
+        self.progress = ScheduleProgress()
+        nav_container.addWidget(self.progress)
+
+        # Add navigator
+        self.navigator = Navigator(-1)
         self.navigator.setObjectName("compact_navigator")
-        self.navigator.schedule_changed.connect(self.on_schedule_changed)
+        nav_container.addWidget(self.navigator)
 
-        # Build the progress box (label above bar)
-        progress_box = QVBoxLayout()
-        progress_box.setSpacing(2)
-        self.progress_label = QLabel("Generating schedules…")
-        self.progress_label.setObjectName("progress_label")
-        self.progress_label.setVisible(False)
-        progress_box.addWidget(self.progress_label)
+        # Add ranking controls
+        self.ranking_controls = RankingControls()
+        self.ranking_controls.setObjectName("ranking_controls")
+        nav_container.addWidget(self.ranking_controls)
 
-        self.progress_bar = QProgressBar()
-        self.progress_bar.setObjectName("schedule_progress")
-        self.progress_bar.setRange(0, 100)
-        self.progress_bar.setValue(0)
-        self.progress_bar.setTextVisible(False)
-        self.progress_bar.setFixedWidth(250)
-        self.progress_bar.setVisible(False)
-        progress_box.addWidget(self.progress_bar)
-
-        # Create full size button
+        # Add full size button
         self.full_size_button = QPushButton()
         self.full_size_button.setObjectName("nav_button")
-        self.full_size_button.setFixedSize(36, 36)  # Make the button smaller
+        self.full_size_button.setFixedSize(36, 36)
         full_size_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/full_size.png"))
         if not full_size_icon.isNull():
             self.full_size_button.setIcon(full_size_icon)
             self.full_size_button.setIconSize(self.full_size_button.size())
-            self.full_size_button.setText("")  # Icon only, no text
+            self.full_size_button.setText("")
         else:
             self.full_size_button.setText("⛶")
             self.full_size_button.setFont(QFont("Arial", 14))
-        self.full_size_button.clicked.connect(self.open_full_size)
 
-        # Build a single HBox that contains [full-size-button][progress][navigator][dummy-spacer]
-        group = QHBoxLayout()
-        group.setSpacing(10)
-        group.addLayout(progress_box)            # progress after button
-        group.addWidget(self.navigator)          # navigator in middle
-        group.addSpacing(10)                     # add space between navigator and full size button
-        group.addWidget(self.full_size_button)   # full size button on the left
-        
-        # dummy spacer to balance the progress width on the right
+        nav_container.addSpacing(10)
+        nav_container.addWidget(self.full_size_button)
+
+        # Add refresh button
+        self.refresh_button = QPushButton()
+        self.refresh_button.setObjectName("nav_button") # Use same object name for styling consistency
+        self.refresh_button.setFixedSize(36, 36)
+        refresh_icon_path = os.path.join(os.path.dirname(__file__), "../assets/refresh.png")
+        refresh_icon = QIcon(refresh_icon_path)
+        if not refresh_icon.isNull():
+            self.refresh_button.setIcon(refresh_icon)
+            self.refresh_button.setIconSize(self.refresh_button.size())
+            self.refresh_button.setText("")
+        else:
+            self.refresh_button.setText("↻") # Fallback text
+            self.refresh_button.setFont(QFont("Arial", 14))
+
+        nav_container.addWidget(self.refresh_button)
+
+        # Add dummy spacer to balance progress width
         dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
-        group.addSpacerItem(dummy)
+        nav_container.addSpacerItem(dummy)
 
-        # Center that group in the main layout
+        # Center the navigation section
         wrapper = QHBoxLayout()
         wrapper.addStretch(1)
-        wrapper.addLayout(group)
+        wrapper.addLayout(nav_container)
         wrapper.addStretch(1)
-
         self.main_layout.addLayout(wrapper)
-        
-        # --- SCHEDULE TABLE ---
-        # Create the main schedule display table
+
+        # Create schedule table (Keep existing setup)
         self.schedule_table = ScheduleTable()
         self.schedule_table.setObjectName("enhanced_table")
-        
-        # Add the schedule table to the main layout with stretch factor 1
-        # This makes it take up most of the available vertical space
         self.main_layout.addWidget(self.schedule_table, 1)
-
-        # Set the central widget of the main window
-        self.setCentralWidget(self.central_widget)
         
-        # Display the first schedule if available
-        if schedules:
-            self.on_schedule_changed(0)
-            
+    def setup_connections(self):
+        """Setup signal connections between components"""
+        # Connect navigator signals
+        self.navigator.schedule_changed.connect(self.on_schedule_changed)
+        
+        # Connect header buttons
+        self.header.back_button.clicked.connect(self.navigateToCourseWindow)
+        
+        # Connect full size button
+        self.full_size_button.clicked.connect(self.open_full_size)
+        
+        # Connect refresh button
+        self.refresh_button.clicked.connect(self.on_refresh_button_clicked)
+        
+        # Connect controller callbacks
+        self.controller.on_schedules_generated = self.on_schedule_generated
+        self.controller.on_progress_updated = self.progress.update_progress
+
+        # Connect ranking controls to controller
+        self.ranking_controls.preference_changed.connect(self.on_preference_changed)
+        
+    def show_initial_schedule(self):
+        """Display the first schedule if available"""
         # Force window to be maximized
+
         self.setWindowState(Qt.WindowMaximized)
-        self.setMinimumSize(800, 600)  # Set a minimum size
-        self.resize(1920, 1080)  # Set an initial large size
-        self.show()
-        self.setWindowState(Qt.WindowMaximized)  # Set maximized state again after show
-
-    def update_progress(self, current: int, estimated: int):
-        """
-        Updates the progress bar with the current and estimated schedule counts.
-        Shows a determinate or indeterminate progress bar based on estimate availability.
-        """
-        # Make sure progress controls are visible when active generation is happening
-        self.progress_label.setVisible(True)
-        self.progress_bar.setVisible(True)
         
-        try:
-            if estimated > 0:
-                # We have an estimated total - show determinate progress
-                self.progress_bar.setMaximum(estimated)
-                self.progress_bar.setValue(current)
-    
-                self.progress_label.setText(f"Generating schedules... {estimated} total estimated")
-                # If we're done (current >= estimated), update text accordingly
-                if current >= estimated:
-                    self.progress_label.setText(f"Completed! Generated {current} schedules")
-            else:
-                # No estimate available - show indeterminate progress for ongoing generation
-                # or determinate if we're at the end (setting both current and max to the same value)
-                if self.controller.generation_active:
-                    self.progress_bar.setMaximum(0)  # Indeterminate mode
-                    self.progress_label.setText(f"Generating schedules... ({current} generated)")
-                else:
-                    # Generation complete but no estimate was available, set max to current
-                    self.progress_bar.setMaximum(current)
-                    self.progress_bar.setValue(current)
-                    self.progress_label.setText(f"Completed! Generated {current} schedules")
-                
-            # Force update the UI
-            self.progress_bar.repaint()
-            self.progress_label.repaint()
-        except Exception as e:
-            print(f"Estimate error: {estimated}")  # Log the error
-            print(f"Current error: {current}")  # Log the error
-            print(f"Error updating progress: {str(e)}")
-
-    def on_schedule_generated(self, schedules: List[Schedule]):
-        """
-        Updates the UI when new schedules are generated.
-        This method is called by the controller during schedule generation.
-        """
-        # Always update the navigator to refresh the count display
-        self.navigator.set_schedules(schedules)
-        # Only update schedules and current display if they've actually changed
-        if self.schedules != schedules:
-            self.schedules = schedules
-            # Only update current schedule if we don't have one displayed
-            if schedules and not self.first_schedule_shown:
-                self.navigator.current_index = 0
-                self.on_schedule_changed(0)
-                self.first_schedule_shown = True
-            elif not schedules:
-                self.schedule_table.clearContents()
-                
-        # Hide progress indicators if generation is complete and no schedules were generated
-        if not self.controller.generation_active and not schedules:
-            self.progress_bar.setVisible(False)
-            self.progress_label.setVisible(False)
-
+    # Properties for backward compatibility with tests
+    @property
+    def export_button(self):
+        """Access to export button for backward compatibility"""
+        return self.header.export_controls.export_button
+        
+    @property
+    def back_button(self):
+        """Access to back button for backward compatibility"""
+        return self.header.back_button
+        
+    @property
+    def export_visible_only(self):
+        """Access to export checkbox for backward compatibility"""
+        return self.header.export_controls.export_visible_only
+        
     def displaySchedules(self, schedules: List[Schedule]):
-        """Updates the navigator and table with new schedules."""
+        """
+        Updates the navigator and table with new schedules.
+        For backward compatibility.
+        """
         self.schedules = schedules
         self.navigator.set_schedules(schedules)
         if schedules:
             self.on_schedule_changed(0)
+            # Enable refresh button if schedules are displayed
+            self.refresh_button.setEnabled(True)
         else:
             self.schedule_table.clearContents()
+            # Update export controls with empty data
+            self.header.export_controls.update_data([], 0)
+            # Disable refresh button if no schedules are displayed
+            self.refresh_button.setEnabled(False)
 
-    def navigateToCourseWindow(self):
-        """
-        Navigates back to the course selection window.
-        Stops any ongoing schedule generation first.
-        """
-        # First stop any ongoing generation
-        self.controller.stop_schedules_generation()
-        
-        # Hide progress indicators
-        self.progress_bar.setVisible(False)
-        self.progress_label.setVisible(False)
-        
-        # Return to course selector
-        self.on_back()
-
-    def export_to_file(self):
-        """
-        Exports schedules to a file in the selected format.
-        Shows success/error messages to the user.
-        """
-        file_path, selected_filter = QFileDialog.getSaveFileName(
-            self, "Save Schedules", "", 
-            "Text Files (*.txt);;Excel Files (*.xlsx);;All Files (*)"
-        )
-        if file_path:
-            # Add extension based on selected filter if not already present
-            if selected_filter == "Text Files (*.txt)" and not file_path.endswith('.txt'):
-                file_path += '.txt'
-            elif selected_filter == "Excel Files (*.xlsx)" and not file_path.endswith('.xlsx'):
-                file_path += '.xlsx'
-            
-            try:
-                # Get current schedule index from navigator
-                current_index = self.navigator.current_index
-                
-                # Use the controller to handle the export
-                if self.export_visible_only.isChecked() and 0 <= current_index < len(self.schedules):
-                    # Export only the visible schedule
-                    self.controller.export_schedules(file_path, [self.schedules[current_index]])
-                elif len(self.schedules) > 100:
-                    # Export to Excel only the last 100 schedules - import is slow
-                    QMessageBox.warning(
-                        self, "Export Warning",
-                        "Exporting only the last 100 schedules for performance reasons."
-                    )   
-                    self.controller.export_schedules(file_path, self.schedules[current_index:current_index+100])
-                else:
-                    self.controller.export_schedules(file_path)
-                    
-                QMessageBox.information(
-                    self, "Export Successful",
-                    f"Schedules were saved successfully to:\n{file_path}"
-                )
-            except Exception as e:
-                error_msg = str(e)
-                print(f"Export error: {error_msg}")  # Log the error
-                QMessageBox.critical(
-                    self, "Export Failed",
-                    f"Failed to export schedules:\n{error_msg}"
-                )
-                
     def on_schedule_changed(self, index: int):
         """
-        Updates the schedule table when the selected schedule changes.
-        This is called when the user navigates to a different schedule.
+        Handle schedule change event from navigator and preference controls.
+        Updates the table, metrics, and export controls.
         """
-        if 0 <= index < len(self.schedules):
-            self.schedule_table.display_schedule(self.schedules[index])
-        self.export_button.setEnabled(True)
-        self.back_button.setEnabled(True)
+        if 0 <= index < self.schedules:
+            try:
+                # Get the ranked schedule based on current preference
+                schedule = self.controller.get_kth_schedule(index)
+                self.current_schedule = schedule  # Store current schedule for full size window
+                self.schedule_table.display_schedule(schedule)
+                # Update export controls with current schedules and index
+                self.header.export_controls.update_data(index)
+                self.header.export_controls.export_button.setEnabled(True)
+                self.header.back_button.setEnabled(True)
 
-    def open_full_size(self):
+                # Update the metrics widget with the new schedule data
+                # Find the top layout containing the metrics widget
+                top_widget_container = self.main_layout.itemAt(0).widget()
+                if top_widget_container and isinstance(top_widget_container.layout(), QHBoxLayout):
+                    top_layout = top_widget_container.layout()
+
+                    # Remove the old metrics widget from its parent layout
+                    # Check if the old metrics widget is still in the layout before removing
+                    if top_layout.indexOf(self.metrics_widget) != -1:
+                         top_layout.removeWidget(self.metrics_widget)
+                         # Delete the old widget to free up resources
+                         self.metrics_widget.deleteLater()
+
+                # Create a new metrics widget with the updated schedule
+                self.metrics_widget = ScheduleMetrics(schedule)
+
+                # Add the new metrics widget to the top layout
+                if top_widget_container and isinstance(top_widget_container.layout(), QHBoxLayout):
+                    top_layout = top_widget_container.layout()
+                    # Insert at index 3 (after back_button, title_container_stretch, title_container_widget, title_container_stretch)
+                    top_layout.insertWidget(3, self.metrics_widget) # Insert at index 3
+
+                # Enable the refresh button since a schedule is displayed
+                self.refresh_button.setEnabled(True)
+
+            except IndexError:
+                self.schedule_table.clearContents()
+                self.header.export_controls.update_data(0)
+                self.header.export_controls.export_button.setEnabled(False)
+                self.header.back_button.setEnabled(False)
+                # Disable the refresh button when there's an error or no schedules
+                self.refresh_button.setEnabled(False)
+        
+    def on_schedule_generated(self, schedules_num: int = 0):
         """
-        Opens the current schedule in a new full-size window.
+        Handle new schedule generation.
+        Updates the navigator, table, and export controls.
         """
-        if not self.schedules or self.navigator.current_index >= len(self.schedules):
+        self.navigator.set_schedules(schedules_num)
+        if self.schedules != schedules_num:
+            self.schedules = schedules_num
+            if schedules_num > 0 and not self.first_schedule_shown:
+                self.navigator.current_index = 0
+                self.on_schedule_changed(0)
+                self.first_schedule_shown = True
+                # Enable refresh button if schedules are generated
+                self.refresh_button.setEnabled(True)
+            elif schedules_num <= 0:
+                self.schedule_table.clearContents()
+                # Update export controls with empty data
+                self.header.export_controls.update_data(0)
+                # Disable refresh button if no schedules are generated
+                self.refresh_button.setEnabled(False)
+                
+        if not self.controller.generation_active and  schedules_num<=0:
+            self.progress.hide_progress()
+
+    def on_preference_changed(self, metric, ascending):
+        """
+        Handle changes in ranking preferences.
+        Updates the controller and refreshes the schedule display.
+        """
+        if metric is None:
+            # Clear preference
+            self.controller.clear_preference()
+        else:
+            # Set new preference
+            self.controller.set_preference(metric, ascending)
+        
+        # Refresh the schedules display
+        if self.navigator.current_index < self.schedules:
+            self.on_schedule_changed(self.navigator.current_index)
+            
+    def navigateToCourseWindow(self):
+        """
+        Navigate back to course selection.
+        Stops schedule generation and hides progress.
+        """
+        self.controller.stop_schedules_generation()
+        self.progress.hide_progress()
+        self.on_back()
+        
+    def handle_export(self, file_path: str, schedules_to_export: Optional[List[Schedule]]):
+        """
+        Handle export request from ExportControls.
+        Calls the controller's export method.
+        """
+        if not self.schedules or self.navigator.current_index >= self.schedules:
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
             
-        # Close existing full size window if it exists
+        if schedules_to_export is None:
+            # Export only the currently displayed schedule
+            self.controller.export_schedules(file_path, [self.current_schedule])
+        else:
+            # Export specific schedules
+            self.controller.export_schedules(file_path, schedules_to_export)
+                
+    def open_full_size(self):
+        """
+        Open current schedule in full-size window.
+        Shows a warning if no schedule is selected.
+        """
+        if not self.schedules or self.navigator.current_index >= self.schedules:
+            QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
+            return
+            
         if self.full_size_window is not None:
             self.full_size_window.close()
             
-        # Create a new window
-        self.full_size_window = QMainWindow()
-        self.full_size_window.setWindowTitle("Schedule King - Full Size View")
-        
-        # Set window icon
-        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
-        self.full_size_window.setWindowIcon(QIcon(icon_path))
-        
-        # Create a central widget with layout
-        central_widget = QWidget()
-        layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Add a header with schedule number
-        header = QLabel(f"Schedule #{self.navigator.current_index + 1}")
-        header.setObjectName("headline_label")
-        header.setFont(QFont("Arial", 16, QFont.Bold))
-        header.setAlignment(Qt.AlignCenter)
-        layout.addWidget(header)
-        
-        # Create a new schedule table for the full window
-        full_table = ScheduleTable()
-        full_table.setObjectName("enhanced_table")
-        
-        # Configure table for full size view
-        full_table.horizontalHeader().setStretchLastSection(True)
-        full_table.verticalHeader().setStretchLastSection(True)
-        
-        # Display the current schedule
-        full_table.display_schedule(self.schedules[self.navigator.current_index])
-        
-        # Add the table to the layout
-        layout.addWidget(full_table)
-        
-        # Set the central widget
-        self.full_size_window.setCentralWidget(central_widget)
-        
-        # Set minimum size to ensure the window is large enough
-        self.full_size_window.setMinimumSize(800, 600)
-        
-        # Show the window and set it to maximized state
-        self.full_size_window.show()
-        self.full_size_window.setWindowState(Qt.WindowMaximized)
+        self.full_size_window = FullSizeWindow(
+            self.current_schedule,
+            self.navigator.current_index
+        )
+
+    def on_refresh_button_clicked(self):
+        """
+        Handle refresh button click: reload the current schedule.
+        Only attempts to refresh if there are schedules to display.
+        """
+        current_index = self.navigator.current_index
+        # Only attempt to refresh if there are schedules to display
+        if 0 <= current_index < self.schedules:
+            self.on_schedule_changed(current_index)
+        # No else needed, as the button should be disabled if there are no schedules

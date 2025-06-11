@@ -5,7 +5,7 @@ from src.models.course import Course
 from src.models.lecture_group import LectureGroup
 from src.models.schedule import Schedule
 from src.models.time_slot import TimeSlot
-from src.services.conflict_checker import ConflictChecker
+from src.services.MatrixConflicChecker import MatrixConflictChecker
 
 # ---------- Helpers ----------
 
@@ -17,9 +17,9 @@ def make_course(code, lecture_time, tirgul_time=None, maabada_time=None) -> Cour
         course_name=f"Course{code}",
         course_code=f"C{code}",
         instructor=f"Instructor{code}",
-        lectures=[lecture_time],
-        tirguls=[tirgul_time] if tirgul_time else [],
-        maabadas=[maabada_time] if maabada_time else []
+        lectures=[[lecture_time]],
+        tirguls=[[tirgul_time]] if tirgul_time else [],
+        maabadas=[[maabada_time]] if maabada_time else []
     )
 
 # ---------- Fixtures ----------
@@ -78,6 +78,21 @@ def test_generate_conflict_detected(conflicting_courses):
     schedules = list(strategy.generate())
     assert schedules == []  # All combinations should conflict
 
+# STRATEGYALL_VALID_005
+def test_generate_with_forbidden_timeslot_excludes_schedules():
+    # Create a time slot that will be forbidden
+    forbidden_slot = make_timeslot("Forbidden", day="1", start="08:00", end="09:00")
+
+    # Create a course that includes this forbidden time
+    course_with_forbidden = make_course("1", forbidden_slot)
+
+    # Initialize strategy with one course and one forbidden time
+    strategy = AllStrategy([course_with_forbidden], forbidden=[forbidden_slot])
+
+    # The generator should yield no schedules since the only available one is forbidden
+    schedules = list(strategy.generate())
+    assert schedules == []
+
 #STRATEGYALL_FUNC_001
 def test_generate_all_combinations(non_conflicting_courses):
     strategy = AllStrategy(non_conflicting_courses)
@@ -85,23 +100,24 @@ def test_generate_all_combinations(non_conflicting_courses):
     assert schedules  # not empty
     assert all(isinstance(schedule, Schedule) for schedule in schedules)
     assert all(isinstance(g, LectureGroup) for s in schedules for g in s.lecture_groups)
+
 #STRATEGYALL_FUNC_002
-def test__has_conflict_with_real_checker_conflict():
+def test_matrix_checker_conflict():
+    checker = MatrixConflictChecker()
     # Overlapping time slots
     slot1 = make_timeslot("A", start="12:00", end="14:00")
     slot2 = make_timeslot("B", start="13:00", end="15:00")
-    group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
-    group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
-    
-    checker = ConflictChecker()
-    assert checker.has_conflict_groups([group1, group2])
+
+    assert checker.can_place(slot1)  # slot1 should fit
+    checker.place(slot1)
+    assert not checker.can_place(slot2)  # slot2 overlaps with slot1
 
 #STRATEGYALL_FUNC_003
-def test__has_conflict_with_real_checker_no_conflict():
+def test_matrix_checker_no_conflict():
+    checker = MatrixConflictChecker()
     slot1 = make_timeslot("A", start="08:00", end="09:00")
     slot2 = make_timeslot("B", start="10:00", end="11:00")
-    group1 = LectureGroup("C1", "001", "Prof A", lecture=slot1, tirguls=None, maabadas=None)
-    group2 = LectureGroup("C2", "002", "Prof B", lecture=slot2, tirguls=None, maabadas=None)
 
-    checker = ConflictChecker()
-    assert not checker.has_conflict_groups([group1, group2])
+    assert checker.can_place(slot1)
+    checker.place(slot1)
+    assert checker.can_place(slot2)

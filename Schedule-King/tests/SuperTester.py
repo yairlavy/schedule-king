@@ -8,17 +8,19 @@ class SuperTester:
         self.test_files = self.find_tests()
 
     def find_tests(self):
-        # Find test_*.py files in the same folder of SuperTester
-        return sorted([
-            f for f in os.listdir(self.folder)
-            if f.startswith("test_") and f.endswith(".py")
-        ])
+        # Recursively find test_*.py files in self.folder and subfolders
+        test_files = []
+        for root, _, files in os.walk(self.folder):
+            for f in files:
+                if f.startswith("test_") and f.endswith(".py"):
+                    test_files.append(os.path.join(root, f))
+        return sorted(test_files)
 
     def display_tests(self):
-        # Print all the tests in a list
+        # Print all the tests in a list (only file names)
         print("Found the following test files:")
         for i, test_file in enumerate(self.test_files, start=1):
-            print(f"{i}. {test_file}")
+            print(f"{i}. {os.path.basename(test_file)}")
         print()
 
     def parse_input(self, input_str):
@@ -89,6 +91,11 @@ class SuperTester:
 
                 # Set the environment variable to hide the window by default
                 env = os.environ.copy()
+                
+                # Add the project root to PYTHONPATH so that pytest can find the modules
+                project_root = os.path.abspath(os.path.join(self.folder, ".."))
+                env["PYTHONPATH"] = project_root + os.pathsep + env.get("PYTHONPATH", "")
+
                 if not show_gui:
                     env["QT_QPA_PLATFORM"] = "offscreen"  # Hide GUI
                 

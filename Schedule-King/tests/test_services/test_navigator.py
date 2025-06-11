@@ -16,6 +16,9 @@ from PyQt5.QtCore import Qt
 # Import the class under test
 from src.components.navigator import Navigator
 
+# --- Resetting Navigator State ---
+Navigator.available_count = 0
+
 # --- Global QApplication Fixture ---
 @pytest.fixture(scope="session", autouse=True)
 def qapp():
@@ -33,28 +36,18 @@ def qapp():
         app = QApplication(sys.argv)
     yield app
 
-# --- Common Fixtures ---
+# --- Fixtures ---
 @pytest.fixture
-def mock_schedule():
-    schedule = MagicMock()
-    schedule.lecture_groups = []
-    return schedule
-
-@pytest.fixture
-def mock_schedule_list():
-    return [MagicMock(name=f"Schedule{i}") for i in range(5)]
-
-@pytest.fixture
-def navigator_with_schedules(mock_schedule_list):
-    return Navigator(mock_schedule_list)
+def navigator_with_schedules():
+    nav = Navigator(5)
+    nav.set_schedules(5)
+    return nav
 
 @pytest.fixture
 def navigator_with_no_schedules():
-    return Navigator([])
-
-@pytest.fixture
-def navigator_with_one_schedule():
-    return Navigator([MagicMock()])
+    nav = Navigator(0)
+    nav.set_schedules(0)
+    return nav
 
 @pytest.fixture
 def navigator_factory():
@@ -69,35 +62,33 @@ def patch_warning(monkeypatch):
     return mock_warning
 
 class TestNavigator:
-    def test_init_with_nonempty_schedule_list(self, mock_schedule_list):
-        nav = Navigator(mock_schedule_list)
-        assert nav.schedules == mock_schedule_list
+    def test_init_with_positive_count(self):
+        count = 5
+        nav = Navigator(count)
+        nav.set_schedules(count)
+        assert nav.available_count == count
         assert nav.current_index == 0
         assert nav.prev_btn.toolTip() == "Previous Schedule"
         assert nav.next_btn.toolTip() == "Next Schedule"
         assert nav.schedule_num.placeholderText() == "Jump to..."
         validator = nav.schedule_num.validator()
         assert validator.bottom() == 1
-        assert validator.top() == 9999999
+        assert validator.top() == count
 
-    def test_init_with_empty_schedule_list(self):
-        nav = Navigator([])
-        assert nav.schedules == []
+    def test_init_with_zero_count(self):
+        nav = Navigator(0)
+        nav.set_schedules(0)
+        assert nav.available_count == 0
         assert nav.current_index == 0
 
-    def test_init_with_none(self):
-        nav = Navigator(None)
-        assert nav.schedules is None
-        assert nav.current_index == 0
-
-    def test_valid_index_returns_schedule(self, navigator_with_schedules, mock_schedule_list):
+    def test_valid_index_returns_index(self, navigator_with_schedules):
         nav = navigator_with_schedules
-        nav.current_index = 2
-        assert nav.get_current_schedule() == mock_schedule_list[2]
+        nav.current_index = 3
+        assert nav.get_current_schedule() == 3
 
     def test_index_out_of_bounds_returns_none(self, navigator_with_schedules):
         nav = navigator_with_schedules
-        nav.current_index = 10
+        nav.current_index = nav.available_count + 1
         assert nav.get_current_schedule() is None
 
     def test_negative_index_returns_none(self, navigator_with_schedules):
@@ -111,8 +102,9 @@ class TestNavigator:
         with pytest.raises(TypeError):
             nav.get_current_schedule()
 
-    def test_increment_index_and_emit(self, navigator_with_schedules):
-        nav = navigator_with_schedules
+    def test_increment_index_and_emit(self):
+        nav = Navigator(3)
+        nav.set_schedules(3)
         nav.current_index = 0
         nav.update_display = MagicMock()
         emitted = []
@@ -124,8 +116,8 @@ class TestNavigator:
 
     def test_no_op_at_end(self, navigator_with_schedules):
         nav = navigator_with_schedules
-        nav.current_index = len(nav.schedules) - 1
         nav.update_display = MagicMock()
+        nav.current_index = nav.available_count - 1
         emitted = []
         nav.schedule_changed.connect(lambda i: emitted.append(i))
         nav.go_to_next()
@@ -144,25 +136,26 @@ class TestNavigator:
         nav = navigator_with_schedules
         nav.current_index = 0
         nav.update_display = MagicMock()
-        with qtbot.assertNotEmitted(nav.schedule_changed):
-            nav.go_to_previous()
+        spy = QSignalSpy(nav.schedule_changed)
+        nav.go_to_previous()
+        assert not spy
         nav.update_display.assert_not_called()
 
     def test_valid_input_emits(self, navigator_with_schedules, patch_warning):
         nav = navigator_with_schedules
         nav.update_display = MagicMock()
-        nav.schedule_num.setText("3")
+        nav.schedule_num.setText("2")
         spy = MagicMock()
         nav.schedule_changed.connect(spy)
         nav.on_schedule_num_entered()
-        assert nav.current_index == 2
-        spy.assert_called_once_with(2)
+        assert nav.current_index == 1
+        spy.assert_called_once_with(1)
         nav.update_display.assert_called_once()
         patch_warning.assert_not_called()
 
     def test_out_of_range_input_warns(self, navigator_with_schedules, patch_warning):
         nav = navigator_with_schedules
-        nav.schedule_num.setText("100")
+        nav.schedule_num.setText(str(nav.available_count + 1))
         nav.current_index = 1
         nav.on_schedule_num_entered()
         patch_warning.assert_called_once()
@@ -176,38 +169,37 @@ class TestNavigator:
         patch_warning.assert_called_once()
         assert nav.schedule_num.text() == "2"
 
-    def test_set_new_list_emits_signal(self, navigator_factory, mock_schedule_list):
-        nav = navigator_factory([])
+    def test_set_new_count_emits_signal(self, navigator_factory):
+        nav = navigator_factory(0)
         nav.update_display = MagicMock()
         spy = QSignalSpy(nav.schedule_changed)
-        nav.set_schedules(mock_schedule_list)
-        assert nav.schedules == mock_schedule_list
+        nav.set_schedules(4)
+        assert nav.available_count == 4
         assert nav.current_index == 0
-        assert len(spy) == 1
-        assert spy[0][0] == 0
+        assert len(spy) == 0
 
-    def test_set_empty_list(self, navigator_factory):
-        nav = navigator_factory([MagicMock()])
+    def test_set_zero_count(self, navigator_factory):
+        nav = navigator_factory(2)
         nav.update_display = MagicMock()
         spy = QSignalSpy(nav.schedule_changed)
-        nav.set_schedules([])
-        assert nav.schedules == []
-        assert nav.current_index == -1
+        nav.set_schedules(0)
+        assert nav.available_count == 0
+        assert nav.current_index == 0
         assert len(spy) == 0
 
     def test_first_schedule_ui(self, navigator_with_schedules):
         nav = navigator_with_schedules
         nav.current_index = 0
         nav.update_display()
-        assert nav.info_label.text() == "Schedule 1 of 5"
+        assert nav.info_label.text() == f"Schedule 1 of {nav.available_count}"
         assert not nav.prev_btn.isEnabled()
         assert nav.next_btn.isEnabled()
 
     def test_last_schedule_ui(self, navigator_with_schedules):
         nav = navigator_with_schedules
-        nav.current_index = 4
+        nav.current_index = nav.available_count - 1
         nav.update_display()
-        assert nav.info_label.text() == "Schedule 5 of 5"
+        assert nav.info_label.text() == f"Schedule {nav.available_count} of {nav.available_count}"
         assert nav.prev_btn.isEnabled()
         assert not nav.next_btn.isEnabled()
 

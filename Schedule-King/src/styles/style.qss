@@ -141,7 +141,8 @@ QLabel#subtitle_label {
 
 /* Action buttons with icons */
 QPushButton#top_action_button {
-    background-color: #2196F3;  /* Material blue */
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
     color: white;
     border: none;
     border-radius: 6px;
@@ -156,22 +157,26 @@ QPushButton#top_action_button {
 }
 
 QPushButton#top_action_button:hover {
-    background-color: #1976D2;  /* Darker blue on hover */
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1E88E5, stop:1 #1565C0);  /* Darker blue gradient */
 }
 
 QPushButton#top_action_button:pressed {
-    background-color: #0D47A1;  /* Even darker blue when pressed */
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);  /* Darkest blue gradient */
     padding-top: 9px;
     padding-bottom: 7px;
 }
 
 QPushButton#top_action_button[text="  Export to TXT File"] {
-    background-color: #2196F3;  /* Material blue */
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
     border-bottom: 3px solid #1565C0;
 }
 
 QPushButton#top_action_button[text="  Back to Course Selection"] {
-    background-color: #78909C;  /* Blue-gray */
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #78909C, stop:1 #546E7A);  /* Gray gradient */
     border-bottom: 3px solid #546E7A;
 }
 
@@ -186,7 +191,7 @@ Navigator#compact_navigator {
 
 QPushButton#nav_button {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #42A5F5, stop:1 #1E88E5);
+                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
     color: white;
     border: none;
     border-radius: 20px;
@@ -201,12 +206,12 @@ QPushButton#nav_button {
 
 QPushButton#nav_button:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1E88E5, stop:1 #1565C0);
+                              stop:0 #1E88E5, stop:1 #1565C0);  /* Darker blue gradient */
 }
 
 QPushButton#nav_button:pressed {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #1565C0, stop:1 #0D47A1);
+                              stop:0 #1565C0, stop:1 #0D47A1);  /* Darkest blue gradient */
     padding-top: 2px;
 }
 
@@ -242,7 +247,7 @@ QLabel#info_label {
 
 /* Separator line */
 QFrame#separator_line {
-    background-color: #BBDEFB;
+    background-color: #BBDEFB;  /* Light blue */
     max-height: 2px; /* Slightly thicker line */
     margin: 10px 0;
 }
@@ -306,13 +311,13 @@ QVBoxLayout, QHBoxLayout {
 /* Title container */
 QWidget#title_container {
     max-height: 90px; /* Taller to accommodate larger font */
-    background-color: rgba(255, 255, 255, 0.6);
+    background-color: rgba(255, 255, 255, 0.6);  /* Semi-transparent white */
     border-radius: 10px;
 }
 
 /* Progress bar styles */
 QProgressBar#schedule_progress {
-    background-color: #E3F2FD;
+    background-color: #E3F2FD;  /* Light blue */
     border: 1px solid #BBDEFB;
     border-radius: 3px;
     text-align: center;
@@ -321,13 +326,13 @@ QProgressBar#schedule_progress {
 }
 
 QProgressBar#schedule_progress::chunk {
-    background-color: #2196F3;
+    background-color: #2196F3;  /* Blue */
     border-radius: 2px;
     margin: 0.5px;
 }
 
 QLabel#progress_label {
-    color: #1565C0;
+    color: #1565C0;  /* Blue */
     font-size: 12px;
     font-weight: bold;
     margin: 0;
@@ -351,4 +356,210 @@ QPushButton#cancel_button:hover {
 
 QPushButton#cancel_button:pressed {
     background-color: #B71C1C;
+}
+
+/* Ranking Controls Styles */
+QWidget#ranking_container {
+    background-color: #FFFFFF;  /* White background */
+    border: 1px solid #BBDEFB;  /* Light blue border */
+    border-radius: 8px;
+    padding: 5px;
+}
+
+QLabel#ranking_label {
+    color: #1565C0;  /* Blue color */
+    font-size: 14px;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+QComboBox#metric_selector {
+    min-width: 180px;
+    padding: 5px 10px;
+    border: 1px solid #BBDEFB;  /* Light blue border */
+    border-radius: 6px;
+    background-color: white;
+    font-size: 16px;  /* Increased font size */
+    color: #1565C0;  /* Blue color */
+}
+
+QComboBox#metric_selector:hover {
+    border-color: #90CAF9;  /* Lighter blue */
+    background-color: #E3F2FD;  /* Very light blue */
+}
+
+QComboBox#metric_selector:focus {
+    border-color: #42A5F5;  /* Blue */
+    outline: none;
+    background-color: white;
+}
+
+QComboBox#metric_selector::drop-down {
+    border: none;
+    width: 20px;
+}
+
+QComboBox#metric_selector::down-arrow {
+    image: url(../assets/icons/down-arrow.png);
+    width: 12px;
+    height: 12px;
+}
+
+QPushButton#sort_order_button {
+    background-color: white;
+    border: 1px solid #BBDEFB;  /* Light blue border */
+    border-radius: 6px;
+    padding: 5px;
+    min-width: 32px;
+    min-height: 32px;
+}
+
+QPushButton#sort_order_button:hover {
+    border-color: #90CAF9;  /* Lighter blue */
+    background-color: #E3F2FD;  /* Very light blue */
+}
+
+QPushButton#sort_order_button:checked {
+    background-color: #BBDEFB;  /* Light blue */
+    border-color: #42A5F5;  /* Blue */
+}
+
+/* Dark theme support for ranking controls */
+[theme="dark"] QWidget#ranking_container {
+    background-color: #1a1a1a;
+    border-color: #2d2d2d;
+}
+
+[theme="dark"] QLabel#ranking_label {
+    color: #90CAF9;
+}
+
+[theme="dark"] QComboBox#metric_selector {
+    background-color: #2d2d2d;
+    border-color: #404040;
+    color: #90CAF9;
+    font-size: 16px;  /* Increased font size */
+}
+
+[theme="dark"] QComboBox#metric_selector:hover {
+    border-color: #64B5F6;
+    background-color: #1a1a1a;
+}
+
+[theme="dark"] QComboBox#metric_selector:focus {
+    border-color: #42A5F5;
+    background-color: #2d2d2d;
+}
+
+[theme="dark"] QPushButton#sort_order_button {
+    background-color: #2d2d2d;
+    border-color: #404040;
+    color: #90CAF9;
+}
+
+[theme="dark"] QPushButton#sort_order_button:hover {
+    border-color: #64B5F6;
+    background-color: #1a1a1a;
+}
+
+[theme="dark"] QPushButton#sort_order_button:checked {
+    background-color: #1565C0;
+    border-color: #42A5F5;
+}
+
+[theme="dark"] QMainWindow#ScheduleWindow {
+    background-color: #1a1a1a;
+}
+
+[theme="dark"] QWidget#title_container {
+    background-color: rgba(45, 45, 45, 0.6);
+    border-color: #404040;
+}
+
+[theme="dark"] QLabel#headline_label {
+    color: #90CAF9;
+}
+
+[theme="dark"] QFrame#separator_line {
+    background-color: #404040;
+}
+
+[theme="dark"] QWidget#compact_navigator {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+[theme="dark"] QPushButton#nav_button {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);
+    border-color: #404040;
+    color: #90CAF9;
+}
+
+[theme="dark"] QPushButton#nav_button:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #0D47A1, stop:1 #0D47A1);
+}
+
+[theme="dark"] QProgressBar#schedule_progress {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+[theme="dark"] QProgressBar#schedule_progress::chunk {
+    background-color: #42A5F5;
+}
+
+[theme="dark"] QLabel#progress_label {
+    color: #90CAF9;
+}
+
+[theme="dark"] QComboBox#metric_selector::drop-down {
+    border: none;
+    width: 20px;
+}
+
+[theme="dark"] QComboBox#metric_selector::down-arrow {
+    image: url(../assets/icons/down-arrow.png);
+    width: 12px;
+    height: 12px;
+}
+
+/* Improved Schedule Metrics Styles */
+QFrame#ScheduleMetrics {
+    background-color: #E3F2FD; /* Light blue background */
+    border: 1px solid #BBDEFB;
+    border-radius: 8px;
+    padding: 10px; /* Reverted padding slightly */
+    margin: 0;
+}
+
+QLabel#metrics_title_label {
+    color: #1565C0; /* Blue color */
+    font-size: 18px; /* Increased title font size */
+    font-weight: bold;
+    margin-bottom: 6px; /* Adjusted space below title */
+}
+
+QFrame#ScheduleMetrics QLabel {
+    color: #212121; /* Darker text color for better contrast */
+    font-size: 15px; /* Adjusted font size for metric labels */
+    font-weight: 500;
+    margin-bottom: 2px; /* Adjusted space between metric labels */
+    padding: 1px 5px; /* Adjusted padding */
+}
+
+/* Dark theme support */
+[theme="dark"] QFrame#ScheduleMetrics {
+    background-color: #2d2d2d;
+    border-color: #404040;
+}
+
+[theme="dark"] QLabel#metrics_title_label {
+    color: #90CAF9;
+}
+
+[theme="dark"] QFrame#ScheduleMetrics QLabel {
+    color: #E0E0E0; /* Lighter text color for better contrast in dark theme */
+    font-size: 15px; /* Adjusted font size for metric labels */
 }

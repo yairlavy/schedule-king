@@ -7,7 +7,7 @@ import os
 
 class Navigator(QWidget):
     """
-    An improved navigator component for browsing through schedules.
+    An navigator component for browsing through schedules.
     Features better UI design and functionality.
     
     The navigator provides:
@@ -20,18 +20,16 @@ class Navigator(QWidget):
     # This allows other components to react to navigation changes
     schedule_changed = pyqtSignal(int)
     
-    def __init__(self, schedules: List[Schedule]):
+    def __init__(self, schedules: int):
         """
         Initialize the enhanced Navigator widget.
 
         Args:
-            schedules (List[Schedule]): List of schedules to navigate.
         """
         super().__init__()
-        self.schedules = schedules  # Store the list of schedules
         self.current_index = 0      # Track current position in the schedule list
-        if schedules is not None:
-            self.available_count = len(schedules) # Number of currect available schedules
+        if schedules <=0 :
+            self.available_count = 0 # Number of currect available schedules
 
         # --- LAYOUT SETUP ---
         # Main layout is horizontal with proper spacing and margins
@@ -132,7 +130,7 @@ class Navigator(QWidget):
         - Setting the input field value
         - Enabling/disabling navigation buttons
         """
-        if self.schedules:
+        if self.available_count > 0:
             # Update position display
             self.info_label.setText(f"Schedule {self.current_index + 1} of {self.available_count}")
             
@@ -155,7 +153,7 @@ class Navigator(QWidget):
         Navigate to the next schedule if available.
         Updates the display and emits the schedule_changed signal.
         """
-        if self.current_index + 1 < len(self.schedules):
+        if self.current_index + 1 < self.available_count:
             self.current_index += 1
             self.update_display()
             self.schedule_changed.emit(self.current_index)
@@ -200,22 +198,22 @@ class Navigator(QWidget):
             )
             self.schedule_num.setText(str(self.current_index + 1))
 
-    def set_schedules(self, schedules: List[Schedule]):
+    def set_schedules(self, schedules: int):
         """
         Update the list of schedules and reset navigation.
         This is called when new schedules are loaded.
         """
-        self.schedules = schedules
-        self.available_count = len(schedules)  # Update available_count
+        self.available_count = schedules  # Update available_count
         
         # Update the validator range when schedule count changes
         if self.available_count > 0:
+          #  self.schedule_changed.emit(self.current_index)
             self.schedule_num.setValidator(QIntValidator(1, self.available_count))
         
         # Only reset index if we're setting schedules for the first time
         # or if schedules were previously empty
         if self.available_count == 0 or self.current_index < 0:
-            self.current_index = 0 if schedules else -1
+            self.current_index = 0 if schedules <=0 else -1
         elif self.available_count > 0:
             # Keep current index if possible, otherwise set to last available
             self.current_index = min(self.current_index, self.available_count - 1)
@@ -223,14 +221,14 @@ class Navigator(QWidget):
             self.current_index = -1
             
         self.update_display()
-        if self.schedules and self.current_index >= 0:
-            self.schedule_changed.emit(self.current_index)
+        # if self.schedules and self.current_index >= 0:
+        #     self.schedule_changed.emit(self.current_index)
     
     def get_current_schedule(self):
         """
         Get the currently selected schedule.
         Returns None if no valid schedule is selected.
         """
-        if 0 <= self.current_index < len(self.schedules):
-            return self.schedules[self.current_index]
+        if 0 <= self.current_index < self.available_count:
+            return self.current_index
         return None

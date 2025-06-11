@@ -1,11 +1,12 @@
 import os
-from typing import List
+from typing import List, Optional
 from .file_handler import FileHandler
 from .scheduler import Scheduler
 from .all_strategy import AllStrategy
 from src.models.course import Course
 from src.models.schedule import Schedule
 import multiprocessing as mp
+from src.models.time_slot import TimeSlot
 
 class ScheduleAPI:
     def __init__(self):
@@ -46,39 +47,41 @@ class ScheduleAPI:
             print(f"Error exporting schedules: {e}.")
 
     @staticmethod
-    def _worker_generate(selected_courses: List[Course], queue: mp.Queue, stop_event: mp.Event) -> None:
+    def _worker_generate(selected_courses: List[Course], queue: mp.Queue, stop_event: mp.Event, forbidden: Optional[List[TimeSlot]] = None) -> None:
         """
-        Worker function to process courses in a separate process, sending schedules in batches.
+        Worker function to process courses in a separate process, sending schedules in variable batch sizes.
         Checks stop_event to gracefully terminate when requested.
         """
-        scheduler = Scheduler(selected_courses, AllStrategy(selected_courses))
+        scheduler = Scheduler(selected_courses, AllStrategy(selected_courses, forbidden))
         
-        batch = [] # Temporary list to hold schedules
-        batch_size = 1000  # Number of schedules per batch
-       
+        batch_sizes = [1, 9, 90, 900]
+        batch_index = 0
+        current_batch_size = batch_sizes[batch_index] if batch_index < len(batch_sizes) else 1000
+        batch = []
+        total_sent = 0
+
         for schedule in scheduler.generate():
-            # Check if stop is requested
             if stop_event.is_set():
                 break
-                
+
             batch.append(schedule)
-            if len(batch) >= batch_size:
-                queue.put(batch)  # Send the batch to the queue
-                batch = []  # Reset the batch
-                
-                # Check again after batch send
+            if len(batch) >= current_batch_size:
+                queue.put(batch)
+                total_sent += len(batch)
+                batch = []
+                batch_index += 1
+                current_batch_size = batch_sizes[batch_index] if batch_index < len(batch_sizes) else 1000
+
                 if stop_event.is_set():
                     break
-                    
-        # Only send remaining schedules if not terminated
+
         if batch and not stop_event.is_set():
             queue.put(batch)
-            
-        # Signal completion only if not terminated
-        if not stop_event.is_set():
-            queue.put(None)  # Signal that this worker is done
 
-    def generate_schedules_in_parallel(self, selected_courses: List[Course]) -> List[Schedule]:
+        if not stop_event.is_set():
+            queue.put(None)
+
+    def generate_schedules_in_parallel(self, selected_courses: List[Course], forbidden: Optional[List[TimeSlot]] = None) -> List[Schedule]:
         """
         Generate schedules in parallel using multiple processes.
         """
@@ -94,7 +97,7 @@ class ScheduleAPI:
             
         # Start a new process for schedule generation
         self._process_worker = mp.Process(target=self._worker_generate, 
-                                  args=(selected_courses, queue, stop_event),
+                                  args=(selected_courses, queue, stop_event, forbidden),
                                   daemon=True)
         # Store the stop event with the process
         self._process_worker.stop_event = stop_event

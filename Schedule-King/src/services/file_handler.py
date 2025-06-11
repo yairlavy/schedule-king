@@ -7,6 +7,7 @@ from src.models.schedule import Schedule
 from .text_parser import TextParser
 from .text_formatter import TextFormatter
 from .excel_formatter import ExcelFormatter
+from .excel_parser import ExcelParser
 class FileHandler:
     """
     FileHandler delegates parsing and formatting based on file extensions.
@@ -15,6 +16,7 @@ class FileHandler:
     # Dictionary mapping file extensions to their respective parser classes
     _parsers = {
         '.txt': TextParser,
+        '.xlsx': ExcelParser
         
     }
     # Dictionary mapping file extensions to their respective formatter classes

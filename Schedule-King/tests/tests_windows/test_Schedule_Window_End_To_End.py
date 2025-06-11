@@ -11,9 +11,34 @@ Tested class: ScheduleWindow (src.views.schedule_window)
 import pytest
 from unittest.mock import patch, MagicMock
 from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QMessageBox, QApplication
 from src.views.schedule_window import ScheduleWindow
+from PyQt5.QtCore import QTimer
 
 # --- Fixtures ---
+
+@pytest.fixture(autouse=True)
+def auto_accept_messagebox(qtbot):
+    """
+    Automatically clicks 'OK' on any QMessageBox that appears during tests.
+    """
+    def handle_messagebox():
+        for widget in QApplication.topLevelWidgets():
+            if isinstance(widget, QMessageBox):
+                qtbot.addWidget(widget)
+                widget.accept()
+                return True
+        return False
+    
+    # Check for message boxes every 100ms
+    timer = QTimer()
+    timer.timeout.connect(handle_messagebox)
+    timer.start(100)
+    
+    yield
+    
+    # Clean up timer
+    timer.stop()
 
 @pytest.fixture
 def full_window(qtbot):
@@ -27,10 +52,27 @@ def full_window(qtbot):
         Tuple[ScheduleWindow, MagicMock]: The window and controller mock
     """
     controller = MagicMock()
+    # Set up mock schedules for the controller to return
     schedules = [MagicMock() for _ in range(3)]
-    window = ScheduleWindow(schedules, controller)
+    controller.get_kth_schedule.side_effect = lambda index: schedules[index]
+    controller.get_schedules.return_value = schedules
+    
+    # Mock the ranker and its size method
+    ranker = MagicMock()
+    ranker.size.return_value = 3
+    controller.ranker = ranker
+    
+    # Mock get_ranked_schedules to return a list of schedules
+    controller.get_ranked_schedules.return_value = schedules
+    
+    # Create window with controller
+    window = ScheduleWindow(controller)
     window.on_back = MagicMock()
     qtbot.addWidget(window)
+    
+    # Set up schedules count
+    window.schedules = 3
+    
     return window, controller
 
 # --- Test Class ---
@@ -68,7 +110,11 @@ class TestScheduleWindowEndToEnd:
             patch("src.views.schedule_window.QMessageBox.information") as mock_info:
             qtbot.mouseClick(window.export_button, Qt.LeftButton)
 
-            controller.export_schedules.assert_called_once_with("/tmp/output.txt")
+            # Get the schedules that were passed to export_schedules
+            call_args = controller.export_schedules.call_args
+            assert call_args is not None
+            assert call_args[0][0] == "/tmp/output.txt"  # First argument is file path
+            assert len(call_args[0][1]) == 3  # Second argument is list of schedules
             assert mock_info.called
 
         # Step 4: Go back to course window
@@ -105,3 +151,39 @@ class TestScheduleWindowEndToEnd:
             assert mock_critical.called
             args, _ = mock_critical.call_args
             assert "Disk full" in args[-1]
+
+    def test_ranking_preferences_update(self, qtbot, full_window):
+        """
+        Tests that changing ranking preferences updates the displayed schedule.
+
+        Verifies:
+        - Initial schedule display
+        - Schedule updates when ranking preferences change
+        - Correct schedule is displayed after update
+        """
+        window, controller = full_window
+        
+        # Reset mock before test
+        controller.get_kth_schedule.reset_mock()
+        controller.set_preference.reset_mock()
+        
+        # Get initial schedule
+        initial_schedule = controller.get_kth_schedule(0)
+        
+        # Change ranking preferences
+        metric = "Active Days"  # Example metric
+        ascending = True
+        
+        # Mock the controller to return a different schedule after preferences change
+        new_schedule = MagicMock()
+        controller.get_kth_schedule.return_value = new_schedule
+        
+        # Update preferences using the correct method
+        window.on_preference_changed(metric, ascending)
+        
+        # Verify controller was called to update preferences
+        controller.set_preference.assert_called_once_with(metric, ascending)
+        
+        # Verify that get_kth_schedule was called to update the display
+        # This happens in on_schedule_changed which is called after preference change
+        controller.get_kth_schedule.assert_called_with(window.navigator.current_index)

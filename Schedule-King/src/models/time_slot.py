@@ -18,6 +18,11 @@ class TimeSlot:
     def conflicts_with(self, other):
         return (self.day == other.day and self.start_time < other.end_time and self.end_time > other.start_time)
         
+    def conflicts_with_room(self, other):
+        if self.room == other.room and self.building == other.building:
+            return self.conflicts_with(other) 
+        return False
+
     # Method to return a string representation of the time slot.
     def __str__(self):
         # Enum to map day numbers to names.

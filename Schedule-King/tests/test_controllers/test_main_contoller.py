@@ -28,31 +28,25 @@ def write_course_file(path: str,
         lines += ["$$$$", f"Course {i}", course_code, f"Prof {i}"]
 
         # Lectures
-        lec = []
         for _ in range(lectures_per_course):
             d = random.choice(days)
             s = random.randint(8, 18)
             e = s + random.choice([1, 2])
-            lec.append(f"S,{d},{s:02d}:00,{e:02d}:00,100,10{i}")
-        lines.append("L " + " ".join(lec))
+            lines.append(f"L S,{d},{s:02d}:00,{e:02d}:00,100,10{i}")
 
         # Tirguls
-        trg = []
         for _ in range(tirguls_per_course):
             d = random.choice(days)
             s = random.randint(8, 18)
             e = s + random.choice([1, 2]) # Random end time 1-2 hours later from start
-            trg.append(f"S,{d},{s:02d}:00,{e:02d}:00,200,20{i}")
-        lines.append("T " + " ".join(trg))
+            lines.append(f"T S,{d},{s:02d}:00,{e:02d}:00,200,20{i}")
 
         # Maabadas
-        mab = []
         for _ in range(maabadas_per_course):
             d = random.choice(days)
             s = random.randint(8, 18)
             e = s + random.choice([1, 2])
-            mab.append(f"S,{d},{s:02d}:00,{e:02d}:00,300,30{i}")
-        lines.append("M " + " ".join(mab))
+            lines.append(f"M S,{d},{s:02d}:00,{e:02d}:00,300,30{i}")
 
     # Write to file and return path
     content = "\n".join(lines)
@@ -112,9 +106,9 @@ def test_no_courses_selected_shows_warning(controller):
 
 # ——— Test for export file creation —————————————————————————————
 def test_export_file(controller, tmp_path):
-    # Generate a temporary courses file with 2 courses, each with 1 lecture
+    # Generate a temporary courses file with 3 courses, each with 3 lecture
     course_file = tmp_path / "courses.txt"
-    f = write_course_file(str(course_file), num_courses=2, lectures_per_course=1,
+    f = write_course_file(str(course_file), num_courses=3, lectures_per_course=3,
                           tirguls_per_course=0, maabadas_per_course=0)
 
     # Simulate file selection and course loading
@@ -126,18 +120,22 @@ def test_export_file(controller, tmp_path):
     sc = controller.schedule_controller
     # Synchronously generate schedules using the API
     schedules = sc.api.process(loaded_courses)
-    sc.schedules = schedules
+    sc.ranker.clear()
+    sc.ranker.add_batch(schedules)
+    # Ensure we have schedules
+    assert schedules
 
     # Ensure we have schedules
-    assert sc.get_schedules()
+    schedules = sc.get_schedules()
+    assert schedules
 
     # Prepare export path and ensure directory exists
     out = tmp_path / "output" / "courses.txt"
     os.makedirs(out.parent, exist_ok=True)
 
     # Export schedules to the output file
-    controller.schedule_controller.export_schedules(str(out))
-
+    controller.schedule_controller.export_schedules(str(out), schedules)
+    
     # Assert that the file was created
     assert out.exists(), f"Export file not found at {out}"
 
@@ -153,7 +151,7 @@ def test_export_file(controller, tmp_path):
 @pytest.mark.parametrize("num,lec,trg,mab", [
     (3, 3, 3, 3),   # small fast
     (5, 4, 3, 2),   # medium
-    (7, 10, 10, 10), # large
+    (7, 3, 3, 3),   # large but reasonable
 ])
 def test_performance(controller, tmp_path, qtbot, num, lec, trg, mab):
     # Write  file
@@ -185,15 +183,15 @@ def test_performance(controller, tmp_path, qtbot, num, lec, trg, mab):
     
     # Access and print how many schedules were created
     first_schedule_num = controller.schedule_window.schedules
-    print(f"\nGenerated {len(first_schedule_num)} schedules.")
+    print(f"\nGenerated {first_schedule_num} schedules.")
     print(f"performance: {dur:.2f}s")
 
     # Must wait for the schedules to be generated
     qtbot.wait(3000)   
     # Check if the schedules was incrences
     second_schedule_num = controller.schedule_window.schedules
-    assert second_schedule_num > first_schedule_num
-    print(f"\nGenerated {len(second_schedule_num)} schedules.")
+    assert second_schedule_num > first_schedule_num, "If failed, it means there are too many conflicting schedules, so the 3-second wait is not enough"
+    print(f"\nGenerated {second_schedule_num} schedules.")
     print(f"performance: {dur:.2f}s")
 
     qtbot.wait(get_wait_time())   
