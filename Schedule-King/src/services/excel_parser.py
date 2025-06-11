@@ -182,7 +182,7 @@ class ExcelParser(IParser):
         """
         Parses the room and building information from a string.
         Handles different formats:
-        - "הנדסה-1104-4" -> building: "הנדסה-1104", room: "4"
+        - "הנדסה-1104-4" -> building: "הנדסה", room: "1104-4"
         - "וואהל-11" -> building: "וואהל", room: "11"
         - "בניין - חדר" -> building: "בניין", room: "חדר"
         Returns a tuple (building, room), or (None, None) if parsing fails.
@@ -207,6 +207,19 @@ class ExcelParser(IParser):
                     return building, room
                 else:
                     return room_building_str, None  # Invalid format, return as is
+
+            # Try the format with dashes: "הנדסה-1104-4" or "וואהל-11"
+            if "-" in room_building_str:
+                parts = room_building_str.split("-")
+                if len(parts) == 2:
+                    # Simple format: "וואהל-11"
+                    return parts[0], parts[1]
+                elif len(parts) > 2:
+                    # Complex format: "הנדסה-1104-4"
+                    building = parts[0]  # First part is building
+                    room = "-".join(parts[1:])  # Rest is room
+                    return building, room
+
             # If only one part is present, assume it's the room with unknown building
             if room_building_str:
                 return None, room_building_str
