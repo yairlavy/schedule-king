@@ -16,7 +16,14 @@ class TimeSlot:
         
     # Method to check if this time slot conflicts with another time slot.
     def conflicts_with(self, other):
-        return (self.day == other.day and self.start_time < other.end_time and self.end_time > other.start_time)
+        # Conflict if same day, overlapping times, and same room and building
+        return (
+            self.day == other.day and
+            self.start_time < other.end_time and
+            self.end_time > other.start_time and
+            (self.room == other.room and
+            self.building == other.building)
+        )
         
     # Method to return a string representation of the time slot.
     def __str__(self):
