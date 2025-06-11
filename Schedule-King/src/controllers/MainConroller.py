@@ -7,6 +7,7 @@ from src.services.schedule_api import ScheduleAPI
 from src.models.course import Course
 from typing import List, Optional
 from src.models.time_slot import TimeSlot
+from src.services.logger import Logger
 
 class MainController:
     def __init__(self, api: ScheduleAPI, maximize_on_start=True):
@@ -35,6 +36,15 @@ class MainController:
         try:
             # Get course names from the selected file
             courses = self.course_controller.get_courses_names(file_path)
+            if Logger.inner_conflict:
+                # Show an error message if there are inner conflicts
+                QMessageBox.warning(
+                    self.course_window,
+                    "Inner Conflict Detected",
+                    f"Inner conflict detected in the selected file: {Logger.inner_conflict}"
+                )
+                Logger.inner_conflict = ""  # Reset inner conflict message after handling it
+
             if not courses:
                 # Show an error message if the file format is invalid
                 QMessageBox.critical(

@@ -19,11 +19,9 @@ class TimeSlot:
         return (self.day == other.day and self.start_time < other.end_time and self.end_time > other.start_time)
         
     def conflicts_with_room(self, other):
-        return (self.day == other.day and
-                self.start_time < other.end_time and 
-                self.end_time > other.start_time            
-                (self.room == other.room and
-                 self.building == other.building))
+        if self.room == other.room and self.building == other.building:
+            return self.conflicts_with(other) 
+        return False
 
     # Method to return a string representation of the time slot.
     def __str__(self):
