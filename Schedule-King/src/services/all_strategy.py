@@ -53,8 +53,8 @@ class AllStrategy(IScheduleStrategy):
         course = self._selected[index]
         
         # Default to [None] if no tirguls or maabadas
-        tirguls = course.tirguls or [None]
-        maabadas = course.maabadas or [None]
+        tirguls  = [t for t in course.tirguls  if t] or [None]
+        maabadas = [m for m in course.maabadas if m] or [None]
 
         # Iterate over all possible combinations of lecture, tirgul, and maabada for this course
         for lecture, tirgul, maabada in product(course.lectures, tirguls, maabadas):
