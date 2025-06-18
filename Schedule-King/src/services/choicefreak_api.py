@@ -36,8 +36,7 @@ class ChoiceFreakApi:
         courses = ast.literal_eval(data_str)
         courses_by_category = defaultdict(list)
         for course in courses:
-            # Note: 'catergory' is likely a typo in the data source
-            course_category = course['catergory']
+            course_category = course['category']
             courses_by_category[course_category].append(course)
         return courses_by_category
 

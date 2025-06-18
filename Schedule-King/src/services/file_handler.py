@@ -8,6 +8,7 @@ from .text_parser import TextParser
 from .text_formatter import TextFormatter
 from .excel_formatter import ExcelFormatter
 from .excel_parser import ExcelParser
+from .choicefreak_parser import ChoiceFreakParser
 class FileHandler:
     """
     FileHandler delegates parsing and formatting based on file extensions.
@@ -16,8 +17,9 @@ class FileHandler:
     # Dictionary mapping file extensions to their respective parser classes
     _parsers = {
         '.txt': TextParser,
-        '.xlsx': ExcelParser
-        
+        '.xlsx': ExcelParser,
+        '.json': ChoiceFreakParser,
+        '.category': ChoiceFreakParser
     }
     # Dictionary mapping file extensions to their respective formatter classes
     _formatters = {
