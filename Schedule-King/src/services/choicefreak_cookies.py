@@ -51,6 +51,11 @@ class ChoiceFreakSessionManager:
         view = QWebEngineView()
         view.setPage(SilentWebEnginePage(view))
         profile = QWebEngineProfile.defaultProfile()
+        
+        # Clear persistent cookies
+        profile.cookieStore().deleteAllCookies()
+        # Clear cache
+        profile.clearHttpCache()
         cookie_store = profile.cookieStore()
 
         cookie_data = {}
