@@ -224,3 +224,14 @@ class ScheduleController:
             raise ValueError("No schedules provided for export. Please specify schedules to export.")
         # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules_to_export, file_path)
+
+    def export_to_calendar(self, schedule: Schedule) -> None:
+        """
+        Exports a schedule to calendar format.
+        Currently just prints a debug message.
+
+        Args:
+            schedule (Schedule): The schedule to export to calendar format.
+        """
+        print("Exported!")  # Debug message
+        # TODO: Implement actual calendar export functionality

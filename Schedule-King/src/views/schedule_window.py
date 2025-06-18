@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QFileDialog, QMessageBox,
     QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
@@ -144,6 +144,35 @@ class ScheduleWindow(QMainWindow):
 
         nav_container.addWidget(self.refresh_button)
 
+        # Add Export to Calendar button
+        self.export_calendar_button = QPushButton()
+        self.export_calendar_button.setObjectName("export_calendar_button")
+        self.export_calendar_button.setFixedSize(36, 36)
+        calendar_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/calendar.png"))
+        if not calendar_icon.isNull():
+            self.export_calendar_button.setIcon(calendar_icon)
+            self.export_calendar_button.setIconSize(QSize(22, 22))
+            self.export_calendar_button.setText("")
+            self.export_calendar_button.setStyleSheet("""
+                QPushButton#export_calendar_button {
+                    background: transparent;
+                    border: none;
+                }
+                QPushButton#export_calendar_button:hover {
+                    background: rgba(66, 165, 245, 0.1);
+                    border-radius: 18px;
+                }
+                QPushButton#export_calendar_button:pressed {
+                    background: rgba(66, 165, 245, 0.2);
+                    border-radius: 18px;
+                }
+            """)
+        else:
+            self.export_calendar_button.setText("Export Calendar")
+            self.export_calendar_button.setFont(QFont("Arial", 14))
+
+        nav_container.addWidget(self.export_calendar_button)
+
         # Add dummy spacer to balance progress width
         dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
         nav_container.addSpacerItem(dummy)
@@ -173,6 +202,9 @@ class ScheduleWindow(QMainWindow):
         
         # Connect refresh button
         self.refresh_button.clicked.connect(self.on_refresh_button_clicked)
+        
+        # Connect export calendar button
+        self.export_calendar_button.clicked.connect(self.on_export_calendar_clicked)
         
         # Connect controller callbacks
         self.controller.on_schedules_generated = self.on_schedule_generated
@@ -362,3 +394,15 @@ class ScheduleWindow(QMainWindow):
         if 0 <= current_index < self.schedules:
             self.on_schedule_changed(current_index)
         # No else needed, as the button should be disabled if there are no schedules
+
+    def on_export_calendar_clicked(self):
+        """
+        Handle export to calendar button click.
+        Calls the controller's export to calendar method.
+        """
+        if not self.schedules or self.navigator.current_index >= self.schedules:
+            QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
+            return
+            
+        # Export only the currently displayed schedule
+        self.controller.export_to_calendar(self.current_schedule)
