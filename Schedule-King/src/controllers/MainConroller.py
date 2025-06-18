@@ -26,13 +26,21 @@ class MainController:
         # Set up event handlers for the course window
         self.course_window.on_courses_loaded = self.on_file_selected
         self.course_window.on_continue = self.on_courses_selected
+        # Connect the new signal for course additions/updates
+        self.course_window.on_course_added_or_updated = self.on_course_added_or_updated
+
+        # Connect the CourseController's courses_updated signal to CourseWindow's display_courses method
+        self.course_controller.courses_updated.connect(self.course_window.displayCourses)
 
     def start_application(self):
         # Show the course window to start the application
         self.course_window.show()
 
     def on_file_selected(self, file_path: str):
-        # Handle the event when a file is selected
+        """
+        Handle the event when a file is selected.
+        Loads courses from the file, checks for conflicts, and displays them.
+        """
         try:
             # Get course names from the selected file
             courses = self.course_controller.get_courses_names(file_path)
@@ -71,7 +79,10 @@ class MainController:
             )
 
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None):
-        # Handle the event when courses are selected
+        """
+        Handle the event when courses are selected.
+        Sets selected courses, initializes the schedule window, and generates schedules.
+        """
         if not selected_courses:
             # Show a warning if no courses are selected
             QMessageBox.warning(
@@ -96,6 +107,7 @@ class MainController:
                                               maximize_on_start=self._maximize_on_start, 
                                               show_progress_on_start=False)
 
+        # Set up event handler for navigating back
         self.schedule_window.on_back = self.on_navigate_back_to_courses
         # Hide the course window and show the schedule window
         self.course_window.hide()
@@ -104,7 +116,9 @@ class MainController:
         self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
 
     def on_generate_schedules(self):
-        # Generate schedules for the currently selected courses
+        """
+        Generate schedules for the currently selected courses and display them.
+        """
         selected_courses = self.course_controller.get_selected_courses()
         forbidden_slots = self.course_controller.get_forbidden_slots()
         schedules = self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
@@ -113,10 +127,20 @@ class MainController:
             self.schedule_window.displaySchedules(schedules)
 
     def on_navigate_back_to_courses(self):
-        # Handle navigation back to the course selection window
+        """
+        Handle navigation back to the course selection window.
+        Hides the schedule window and shows the course window.
+        """
         if self.schedule_window:
             # Hide the schedule window and reset it
             self.schedule_window.hide()
             self.schedule_window = None  
         # Show the course window again
         self.course_window.show()
+
+    def on_course_added_or_updated(self, course: Course):
+        """
+        Handles the event when a course is added or updated from the CourseEditorDialog.
+        This method will call the CourseController to update its internal list.
+        """
+        self.course_controller.add_or_update_course(course)
