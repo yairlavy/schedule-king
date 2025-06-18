@@ -44,7 +44,8 @@ class CourseSelector(QWidget):
         self.progress_bar = None
         
         # Initialize submit button state
-        self._update_submit_button_state([])
+        # The _update_submit_button_state expects a list of selected courses
+        self._update_submit_button_state(self.get_selected_courses()) 
         
     def _setup_header(self):
         """Setup header components including title and instruction labels."""
@@ -151,14 +152,23 @@ class CourseSelector(QWidget):
             self.progress_bar.close()
             self.progress_bar = None
     
-    def populate_courses(self, courses: List[Course]):
+    def set_available_courses(self, courses: List[Course]):
         """Populate the course list with available courses."""
         self.course_list.populate_courses(courses)
         self.title_label.setText(f"Available Courses ({len(courses)} total)")
 
+    def get_all_courses(self) -> List[Course]:
+        """
+        Returns the current list of all available courses.
+        This is needed by CourseWindow for the CourseEditorDialog.
+        """
+        # Assuming course_list stores all available courses after population
+        return self.course_list.courses 
+
     def _handle_search(self, text: str):
         """Filter courses based on search text."""
         self.course_list.filter_courses(text)
+        # Update title to show number of selected courses after filtering
         self.title_label.setText(f"Available Courses ({len(self.course_list.get_selected_courses())} selected)")
 
     def _handle_selection_changed(self, selected_courses: List[Course]):
@@ -179,15 +189,19 @@ class CourseSelector(QWidget):
     def _handle_submit(self):
         """Emit the selected courses when submitting."""
         selected = self.course_list.get_selected_courses()
+        # Check if courses are loaded
         if len(self.course_list.courses) == 0:
             QMessageBox.critical(self, "Error", "No courses loaded. Please load courses first.")
             return
+        # Check if any courses are selected
         if len(selected) == 0:
             QMessageBox.critical(self, "Error", "No courses selected. Please select courses first.")
             return
+        # Check if selection exceeds max allowed
         if len(selected) > self.MAX_COURSES:
             QMessageBox.warning(self, "Course Limit", f"You cannot select more than {self.MAX_COURSES} courses.")
             return
+        # Show progress bar and emit signal
         self.show_progress_bar()
         self.coursesSubmitted.emit(selected)
 
@@ -198,6 +212,15 @@ class CourseSelector(QWidget):
         self.selected_panel.clear()
         self.search_bar.clear()
         self.title_label.setText(f"Available Courses ({len(self.course_list.courses)} total)")
+
+    def _clear_all_selections(self):
+        """
+        New method to clear all selections, including search and progress bar.
+        This is called by CourseWindow.
+        """
+        self._handle_clear() # Re-use existing clear logic
+        # If there were any other internal states to clear specific to filters/search, add here
+        # self.search_bar.clear() is already called by _handle_clear
 
     def _handle_load(self):
         """Emit signal to load courses."""
