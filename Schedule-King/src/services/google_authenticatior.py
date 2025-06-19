@@ -1,11 +1,11 @@
 import os
 import pickle
 from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.requests import Request
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 
 # Define scopes for Google Calendar API
-SCOPES = ['https://www.googleapis.com/auth/calendar.EVENTS']
+SCOPES = ['https://www.googleapis.com/auth/calendar.events']
 
 @staticmethod
 def authenticate_google_account():

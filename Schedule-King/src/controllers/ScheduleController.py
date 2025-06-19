@@ -6,6 +6,8 @@ from PyQt5.QtCore import QTimer
 from src.models.schedule_ranker import ScheduleRanker
 from src.models.time_slot import TimeSlot
 from src.models.Preference import Preference, Metric
+from datetime import datetime, timedelta
+from src.services.GoogleCalenderManager import GoogleCalendarManager
 
 class ScheduleController:
     def __init__(self, api: ScheduleAPI):
@@ -22,7 +24,8 @@ class ScheduleController:
         self.queue = None  # Queue for generated schedules
         self.generation_active = False  # Flag to indicate if generation is active
         self.estimated_total = -1  # Estimated total number of schedules (optional, if known)
-
+        self.google_calendar_manager = None  # Google Calendar manager for exporting schedules
+        
     def generate_schedules(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None) -> List[Schedule]:
         """
         Generates possible schedules using the API and saves them.
@@ -227,11 +230,83 @@ class ScheduleController:
 
     def export_to_calendar(self, schedule: Schedule) -> None:
         """
-        Exports a schedule to calendar format.
-        Currently just prints a debug message.
-
-        Args:
-            schedule (Schedule): The schedule to export to calendar format.
+        Exports a given schedule as events to the user's Google Calendar.
+        :param schedule: The Schedule object to export.
         """
-        print("Exported!")  # Debug message
-        # TODO: Implement actual calendar export functionality
+        # Ensure the GoogleCalendarManager is initialized
+        if self.google_calendar_manager is None:
+            try:
+                self.google_calendar_manager = GoogleCalendarManager()
+            except Exception as e:
+                print(f"Error initializing Google Calendar Manager: {e}")
+                # Raise the error to the UI to display a message to the user
+                raise
+
+        # Use the existing method in the Schedule model to extract lessons by day
+        daily_slots = schedule.extract_by_day()
+
+        # Start date for export (e.g., the current week). Can be adjusted as needed.
+        # Start from the upcoming Sunday.
+        today = datetime.now()
+        # Find the upcoming Sunday (weekday 6)
+        start_date_for_export = today - timedelta(days=today.weekday()) + timedelta(days=6)
+        if today.weekday() == 6:  # If today is Saturday
+            start_date_for_export = today  # Start from today
+
+        # Export events for 12 weeks ahead to create recurring events
+        num_weeks_to_export = 12
+
+        for week_offset in range(num_weeks_to_export):
+            current_week_start_date = start_date_for_export + timedelta(weeks=week_offset)
+
+            # Map day numbers (1-7) to English weekday numbers.
+            # Adjust this to match datetime.weekday() (0=Monday) and your day numbers (1=Sunday).
+            # Conversion: 1 (Sunday) -> 6 (Sunday), 2 (Monday) -> 0 (Monday), ..., 7 (Saturday) -> 5 (Saturday)
+            day_mapping_for_weekday = {
+                "1": 6,  # Sunday
+                "2": 0,  # Monday
+                "3": 1,  # Tuesday
+                "4": 2,  # Wednesday
+                "5": 3,  # Thursday
+                "6": 4,  # Friday
+                "7": 5   # Saturday
+            }
+
+            for day_num_str, slots in daily_slots.items():
+                # Calculate the specific date for the lesson day in the current week
+                day_of_week_int = day_mapping_for_weekday.get(day_num_str)
+                if day_of_week_int is None:
+                    print(f"Warning: Unknown day: {day_num_str}. Skipping.")
+                    continue
+
+                # Find the start date of the week (Monday)
+                week_start = current_week_start_date - timedelta(days=current_week_start_date.weekday())
+
+                # Calculate the exact date for the lesson day in this week
+                lesson_date = week_start + timedelta(days=day_of_week_int)
+
+                for slot_type, course_name, course_code, slot_obj in slots:
+                    # Use the start and end time from slot_obj
+                    # slot_obj.start_time and slot_obj.end_time are likely datetime.time objects
+                    # Combine them with lesson_date to create full datetime objects
+
+                    start_datetime = datetime.combine(lesson_date, slot_obj.start_time)
+                    end_datetime = datetime.combine(lesson_date, slot_obj.end_time)
+
+                    # ISO 8601 format for Google API
+                    start_time_iso = start_datetime.isoformat()
+                    end_time_iso = end_datetime.isoformat()
+
+                    title = f"{course_name} - {slot_type}"
+                    description = f"Course: {course_name} ({course_code})\nType: {slot_type}\nLocation: {slot_obj.location}"
+                    if hasattr(slot_obj, 'lecturer') and slot_obj.lecturer:
+                            description += f"\nLecturer: {slot_obj.lecturer}"
+                    
+                    # Create the event in Google Calendar
+                    self.google_calendar_manager.create_event(
+                        summary=title,
+                        description=description,
+                        start_time=start_time_iso,
+                        end_time=end_time_iso
+                    )
+        print("Export to calendar completed successfully.")
