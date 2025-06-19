@@ -43,3 +43,8 @@ class Course:
         self._tirguls.append(tirgul)
     def add_maabada(self, maabada: TimeSlot):
         self._maabadas.append(maabada)
+
+
+    def is_detailed(self):
+        """Return True if the course has any lectures, tirguls, or maabadas."""
+        return bool(self.lectures or self.tirguls or self.maabadas)
