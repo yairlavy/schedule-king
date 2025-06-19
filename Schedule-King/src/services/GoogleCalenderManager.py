@@ -1,4 +1,4 @@
-from src.services.google_authenticatior import authenticate_google_account, verify_credentials
+from src.services.google_authenticatior import authenticate_google_account, verify_credentials, force_reauthentication
 from googleapiclient.discovery import build
 import datetime
 
@@ -8,8 +8,17 @@ class GoogleCalendarManager:
     def __init__(self):
         """Initialize the Google Calendar Manager."""
         self.creds = authenticate_google_account()
+        
+        # If credentials verification fails, try to force re-authentication
         if not verify_credentials(self.creds):
-            raise Exception("Failed to authenticate with Google account.")
+            print("Initial authentication failed. Attempting to re-authenticate with proper scopes...")
+            # Delete the old token and try again
+            if force_reauthentication():
+                self.creds = authenticate_google_account()
+                if not verify_credentials(self.creds):
+                    raise Exception("Failed to authenticate with Google account after re-authentication attempt.")
+            else:
+                raise Exception("Failed to authenticate with Google account.")
 
         # Build the Google Calendar service
         self.service = build('calendar', 'v3', credentials=self.creds)
@@ -45,10 +54,24 @@ class GoogleCalendarManager:
 
         try:
             # Insert the event into the primary calendar
-            event = self.service.events().insert(calendarId='primary', body=event).execute()
-            print(f"event created : {event.get('htmlLink')}")
-            return event
+            created_event = self.service.events().insert(calendarId='primary', body=event).execute()
+            print(f"Event created: {created_event.get('htmlLink')}")
+            return created_event
         except Exception as e:
             # Handle errors during event creation
-            print(f"error creating event: {e}")
+            print(f"Error creating event: {e}")
             return None
+
+    def test_connection(self):
+        """
+        Test the connection to Google Calendar API.
+        Returns True if successful, False otherwise.
+        """
+        try:
+            # Try to get the primary calendar info
+            calendar = self.service.calendars().get(calendarId='primary').execute()
+            print(f"Successfully connected to calendar: {calendar.get('summary', 'Primary Calendar')}")
+            return True
+        except Exception as e:
+            print(f"Connection test failed: {e}")
+            return False
