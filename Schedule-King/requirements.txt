@@ -6,3 +6,4 @@ xlsxwriter>=3.1.0
 openpyxl>=3.1.0
 pytest>=7.0.0
 pytest-qt>=4.0.0
+PyQtWebEngine
