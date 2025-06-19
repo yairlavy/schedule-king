@@ -78,11 +78,11 @@ class ChoiceFreakParser(IParser):
             target = self._KIND_MAP.get(kind, "lecture")
 
             if target == "lecture":
-                course.add_lecture(ts)
+                course.add_lecture([ts])
             elif target == "tirgul":
-                course.add_tirgul(ts)
+                course.add_tirgul([ts])
             elif target == "maabada":
-                course.add_maabada(ts)
+                course.add_maabada([ts])
 
         return course
 
