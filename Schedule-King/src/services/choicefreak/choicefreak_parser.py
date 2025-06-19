@@ -4,7 +4,7 @@ from datetime import timedelta
 import json
 from src.models.course import Course
 from src.models.time_slot import TimeSlot
-from src.services.choicefreak_api import ChoiceFreakApi
+from src.services.choicefreak.choicefreak_api import ChoiceFreakApi
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta

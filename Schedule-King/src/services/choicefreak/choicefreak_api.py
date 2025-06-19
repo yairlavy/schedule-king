@@ -1,7 +1,7 @@
 from collections import defaultdict
 import ast
 import requests
-from src.services.choicefreak_cookies import ChoiceFreakSessionManager
+from src.services.choicefreak.choicefreak_cookies import ChoiceFreakSessionManager
 
 class ChoiceFreakApi:
     # URL to the JS file containing the course index

@@ -8,7 +8,7 @@ from .text_parser import TextParser
 from .text_formatter import TextFormatter
 from .excel_formatter import ExcelFormatter
 from .excel_parser import ExcelParser
-from .choicefreak_parser import ChoiceFreakParser
+from .choicefreak.choicefreak_parser import ChoiceFreakParser
 class FileHandler:
     """
     FileHandler delegates parsing and formatting based on file extensions.
