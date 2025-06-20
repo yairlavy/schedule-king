@@ -8,14 +8,15 @@ from pprint import pprint
 DATE_CORE_PATTERN = r'(\d{1,2})(?:-(\d{1,2}))?[\.\/\s]?(\d{1,2})[\.\/\s]?(\d{4}|\d{2})'
 DATE_RANGE_PATTERN = re.compile(DATE_CORE_PATTERN)
 
-def parse_all_gregorian_dates(text):
+def parse_all_dates(text):
     """
-    Finds all Gregorian date strings in the text and tries to parse them.
+    Finds all date strings in the text and tries to parse them.
     Returns a list of (datetime_obj, matched_string) tuples, sorted by date.
     """
     found_dates = []
     for match in DATE_RANGE_PATTERN.finditer(text):
         try:
+            # Extract day, month, year from regex groups
             start_day = int(match.group(1))
             end_day = int(match.group(2)) if match.group(2) else start_day
             month = int(match.group(3))
@@ -34,53 +35,71 @@ def parse_all_gregorian_dates(text):
 
             found_dates.append((date_obj, matched_string))
         except ValueError:
+            # Skip invalid dates
             continue
     
+    # Sort dates chronologically
     found_dates.sort(key=lambda x: x[0])
     return found_dates
 
 def clean_event_title(event_raw, all_parsed_gregorian_dates):
     """
-    Clean the event title by removing dates and Hebrew calendar information.
+    Extracts the main event/holiday name from the raw event text using a hybrid approach:
+    1. First, tries to match known holiday/event patterns (e.g., 'צום י"ז תמוז', 'צום ט' באב', 'חופשת יום ירושלים', 'יום הסטודנט', 'יום הזיכרון ויום העצמאות').
+    2. If not found, uses a generic regex and split logic as fallback.
     """
     event = event_raw
-    
     # Remove all identified Gregorian date strings
     for _, matched_string in all_parsed_gregorian_dates:
         event = event.replace(matched_string, '')
-    
-    # Remove Hebrew date patterns and common phrases
-    hebrew_patterns = [
-        r'(?:מיום\s*)?יום\s*(?:ראשון|שני|שלישי|רביעי|חמישי|שישי|שבת)[,\s]*[^,]*?ב(?:תשרי|חשון|כסלו|טבת|שבט|אדר|אדר א|אדר ב|ניסן|אייר|סיון|תמוז|אב|אלול)\s*תשפ"(?:ה|ו)[,\s]*',
-        r'\s*ועד\s*',
-        r'מיום\s*',
+
+    # Remove text in parentheses
+    event = re.sub(r'\([^)]*\)', '', event)
+    # Remove Hebrew year
+    event = re.sub(r'תשפ"[וה]', '', event)
+
+    # 1. Try to match known holiday/event patterns
+    known_patterns = [
+        r'צום\s+[א-ת"׳\']+\s+[א-ת]+',  # e.g., 'צום י"ז תמוז', 'צום ט' באב'
+        r'חופשת?\s+יום\s+ירושלים',      # 'חופשת יום ירושלים'
+        r'יום\s+הסטודנט',                # 'יום הסטודנט'
+        r'יום\s+הזיכרון\s+ו?יום\s+העצמאות', # 'יום הזיכרון ויום העצמאות'
+        r'חופשת?\s+חנוכה',
+        r'חופשת?\s+פורים',
+        r'חופשת?\s+פסח',
+        r'חופשת?\s+חג\s+שבועות',
+        r'חופשת?\s+שבועות',
+        r'חופשת?\s+סוכות',
+        r'חופשת?\s+חג\s+הפסח',
+        r'חופשת?\s+חג\s+הסוכות',
+        r'חופשת?\s+יום',
+        r'חופשת?\s+[^,\(]+',
+        r'חג\s+[א-ת"׳\']+\s*[א-ת]*',
+        r'יום\s+ירושלים',
+    ]
+    for pat in known_patterns:
+        m = re.search(pat, event)
+        if m:
+            return m.group(0).strip('-,. ')
+
+    # 2. Fallback: generic pattern and split on weekday/preposition
+    m = re.search(r'(חופשת?\s+[^,\(\n]+|חג\s+[^,\(\n]+|צום\s+[^,\(\n]+|יום\s+[^,\(\n]+)', event)
+    if m:
+        title = m.group(0)
+        # Remove trailing weekday/preposition phrases
+        title = re.split(r'(?:מיום|ועד יום|יום ראשון|יום שני|יום שלישי|יום רביעי|יום חמישי|יום שישי|יום שבת|יום|מ|ועד)', title)[0]
+        return title.strip('-,. ')
+
+    # Fallback: remove weekday/preposition words and clean up
+    day_of_week_patterns = [
+        r'מיום\s*', r'ועד יום\s*', r'ועד\s*',
         r'יום\s*(?:ראשון|שני|שלישי|רביעי|חמישי|שישי|שבת)[,\s]*',
-        r'[,\s]*ב(?:תשרי|חשון|כסלו|טבת|שבט|אדר|אדר א|אדר ב|ניסן|אייר|סיון|תמוז|אב|אלול)\s*תשפ"(?:ה|ו)',
-        r'[,\s]*כ"[א-ת]\s*',
-        r'[,\s]*י"[א-ת]\s*',
-        r'[,\s]*[א-ת]"[א-ת]\s*',
+        r'ראשון', r'שני', r'שלישי', r'רביעי', r'חמישי', r'שישי', r'שבת'
     ]
-    
-    for pattern in hebrew_patterns:
+    for pattern in day_of_week_patterns:
         event = re.sub(pattern, '', event)
-    
-    # Remove specific phrases
-    cleanup_phrases = [
-        "*ביום זה הלימודים יסתיימו בשעה 18:00",
-        "*ביום זה הלימודים יתקיימו בזום",
-        "(אין לקיים בחינות)",
-        "(הוקדם)",
-        "(אין לימודים)",
-        "מ",  # Remove trailing "מ" from ranges
-    ]
-    
-    for phrase in cleanup_phrases:
-        event = event.replace(phrase, "")
-    
-    # General cleanup
-    event = re.sub(r'\s+', ' ', event).strip()
+    event = re.sub(r'\s+', ' ', event)
     event = event.strip('-,. ')
-    
     return event
 
 def get_full_academic_year():
@@ -95,137 +114,91 @@ def get_full_academic_year():
     soup = BeautifulSoup(response.text, "html.parser")
 
     holidays = []
-    semesters = {
-        "semester_a": {"name": "סמסטר א'", "start": None, "end": None},
-        "semester_b": {"name": "סמסטר ב'", "start": None, "end": None},
-        "summer_semester": {"name": "סמסטר קיץ", "start": None, "end": None}
-    }
+    # Temporary variables for semester dates
+    semester_a_start = None
+    semester_a_end = None
+    semester_b_start = None
+    semester_b_end = None
+    summer_start = None
+    summer_end = None
 
-    print(f"DEBUG: Fetched page content length: {len(response.text)} bytes")
-
-    # Find the main content container
+    # Find the main content container for the academic calendar
     academic_content_container = soup.find("div", class_="field__items")
     if not academic_content_container:
         academic_content_container = soup.find("div", class_="view-content")
 
     if not academic_content_container:
-        print("DEBUG: No academic calendar content container found.")
+        # Return empty if no content found
         return {"holidays": [], "semesters": []}
-    else:
-        print(f"DEBUG: Found main container: {academic_content_container.name} with class {academic_content_container.get('class')}")
 
+    # Find all entries (each event/row) in the calendar
     entries = academic_content_container.find_all("div", class_="field__item")
 
     if not entries:
-        print("DEBUG: No entries found.")
+        # Return empty if no entries found
         return {"holidays": [], "semesters": []}
-    else:
-        print(f"DEBUG: Found {len(entries)} entries.")
 
-    current_year = datetime.now().year
-    next_year = current_year + 1
-
-    for i, entry in enumerate(entries):
-        print(f"\nDEBUG: Processing entry {i+1}/{len(entries)}")
+    for entry in entries:
         full_entry_text = entry.get_text(strip=True)
-        print(f"DEBUG: Full entry text: '{full_entry_text}'")
 
-        # Skip next year's events (events with מקף indicating next year)
-        if f"תשפ\"ו" in full_entry_text and "יום ראשון ללימודים" in full_entry_text:
-            print("DEBUG: Skipping next year's event")
+        # Ignore next year's event ("יום ראשון ללימודים - תשפ"ו")
+        if ("יום ראשון ללימודים" in full_entry_text and "-" in full_entry_text) or ("תשפ\"ו" in full_entry_text and "יום ראשון ללימודים" in full_entry_text):
             continue
 
-        all_parsed_gregorian_dates = parse_all_gregorian_dates(full_entry_text)
-
+        # Parse all Gregorian dates in the entry
+        all_parsed_gregorian_dates = parse_all_dates(full_entry_text)
         if not all_parsed_gregorian_dates:
-            print(f"DEBUG: No valid dates found in entry {i+1}. Skipping.")
             continue
 
-        # Determine start and end dates
+        # Use the first and last parsed dates as start and end
         start = all_parsed_gregorian_dates[0][0]
-        if len(all_parsed_gregorian_dates) > 1:
-            last_matched_string = all_parsed_gregorian_dates[-1][1]
-            match_last = DATE_RANGE_PATTERN.search(last_matched_string)
-            if match_last:
-                end_day_last = int(match_last.group(2)) if match_last.group(2) else int(match_last.group(1))
-                month_last = int(match_last.group(3))
-                year_last = int(match_last.group(4))
+        end = all_parsed_gregorian_dates[-1][0] if len(all_parsed_gregorian_dates) > 1 else start
 
-                current_year_2_digit = datetime.now().year % 100
-                if year_last < 100:
-                    if year_last >= current_year_2_digit - 5 and year_last <= current_year_2_digit + 10:
-                        year_last += 2000
-                    else:
-                        year_last += 1900
-                end = datetime(year_last, month_last, end_day_last)
-            else:
-                end = start
-        else:
-            end = start
-
-        # Clean event title
+        # Clean and extract the event title
         event = clean_event_title(full_entry_text, all_parsed_gregorian_dates)
-        print(f"DEBUG: Cleaned event: '{event}', Start: {start}, End: {end}")
 
-        # Categorize events
-        if any(word in event for word in ["חופשת", "צום", "יום הזיכרון", "יום העצמאות"]):
+        # Always add any event containing 'סטודנט' to holidays
+        if 'סטודנט' in event:
             holidays.append({"title": event, "start": start, "end": end})
-            print(f"DEBUG: Added to holidays: '{event}'")
-            
-        elif "יום ראשון ללימודים" in full_entry_text and "תשפ\"ה" in full_entry_text:
-            # This is the start of semester A
-            semesters["semester_a"]["start"] = start
-            print(f"DEBUG: Set semester A start: {start}")
-            
-        elif "יום אחרון ללימודים בסמסטר א" in full_entry_text:
-            # End of semester A
-            semesters["semester_a"]["end"] = start
-            print(f"DEBUG: Set semester A end: {start}")
-            
-        elif "יום ראשון ללימודים בסמסטר ב" in full_entry_text:
-            # Start of semester B
-            semesters["semester_b"]["start"] = start
-            print(f"DEBUG: Set semester B start: {start}")
-            
-        elif "יום אחרון ללימודים בסמסטר ב" in full_entry_text:
-            # End of semester B
-            semesters["semester_b"]["end"] = start
-            print(f"DEBUG: Set semester B end: {start}")
-            
-        elif "סמסטר קיץ" in full_entry_text:
-            # Summer semester
-            semesters["summer_semester"]["start"] = start
-            semesters["summer_semester"]["end"] = end
-            print(f"DEBUG: Set summer semester: {start} to {end}")
+            continue
 
-    # Convert semesters dict to list, filtering out incomplete semesters
-    semester_list = []
-    for sem_key, sem_data in semesters.items():
-        if sem_data["start"] is not None:
-            # If end date is missing, estimate it (except for summer which should have both dates)
-            if sem_data["end"] is None:
-                if sem_key == "semester_a":
-                    # Semester A typically ends before semester B starts
-                    if semesters["semester_b"]["start"]:
-                        sem_data["end"] = semesters["semester_b"]["start"] - timedelta(days=1)
-                    else:
-                        sem_data["end"] = sem_data["start"] + timedelta(weeks=15)
-                elif sem_key == "semester_b":
-                    # Semester B typically ends before summer or extends for ~15 weeks
-                    if semesters["summer_semester"]["start"]:
-                        sem_data["end"] = semesters["summer_semester"]["start"] - timedelta(days=1)
-                    else:
-                        sem_data["end"] = sem_data["start"] + timedelta(weeks=15)
-            
-            semester_list.append({
-                "name": sem_data["name"],
-                "start": sem_data["start"],
-                "end": sem_data["end"]
-            })
-            print(f"DEBUG: Final semester - {sem_data['name']}: {sem_data['start']} to {sem_data['end']}")
+        # Detect semester A start
+        if ("יום ראשון ללימודים" in full_entry_text and "סמסטר" not in full_entry_text and semester_a_start is None):
+            semester_a_start = start
+            continue
+        # Detect semester A end
+        if ("יום אחרון ללימודים בסמסטר א" in full_entry_text):
+            semester_a_end = start
+            continue
+        # Detect semester B start
+        if ("יום ראשון ללימודים בסמסטר ב" in full_entry_text):
+            semester_b_start = start
+            continue
+        # Detect semester B end
+        if ("יום אחרון ללימודים בסמסטר ב" in full_entry_text):
+            semester_b_end = start
+            continue
+        # Detect summer semester
+        if ("סמסטר קיץ" in full_entry_text):
+            summer_start = start
+            summer_end = end
+            continue
+
+        # Holidays detection (improved)
+        if any(word in event for word in ["חופשת", "צום", "יום הזיכרון", "יום העצמאות", "שבועות", "ירושלים"]):
+            holidays.append({"title": event, "start": start, "end": end})
+
+    # Build semesters array
+    semesters = []
+    if semester_a_start and semester_a_end:
+        semesters.append({"name": "סמסטר א'", "start": semester_a_start, "end": semester_a_end})
+    if semester_b_start and semester_b_end:
+        semesters.append({"name": "סמסטר ב'", "start": semester_b_start, "end": semester_b_end})
+    if summer_start and summer_end:
+        semesters.append({"name": "סמסטר קיץ", "start": summer_start, "end": summer_end})
 
     return {
-        "semesters": semester_list,
+        "semesters": semesters,
         "holidays": holidays
     }
 
