@@ -1,6 +1,5 @@
 from src.services.google_authenticatior import authenticate_google_account, verify_credentials, force_reauthentication
 from googleapiclient.discovery import build
-import datetime
 
 class GoogleCalendarManager:
     """Manager for Google Calendar operations."""
@@ -23,7 +22,7 @@ class GoogleCalendarManager:
         # Build the Google Calendar service
         self.service = build('calendar', 'v3', credentials=self.creds)
 
-    def create_event(self, summary, description, start_time, end_time, timezone='Asia/Jerusalem'):
+    def create_event(self, summary, description, start_time, end_time, color_id=None, timezone='Asia/Jerusalem'):
         """
         Create a new event in the user's primary Google Calendar.
 
@@ -32,6 +31,7 @@ class GoogleCalendarManager:
             description (str): Description of the event.
             start_time (str): Event start time in RFC3339 format.
             end_time (str): Event end time in RFC3339 format.
+            color_id (str, optional): Color ID for the event (see Google Calendar API color IDs).
             timezone (str): Timezone for the event (default is 'Asia/Jerusalem').
 
         Returns:
@@ -52,6 +52,9 @@ class GoogleCalendarManager:
             },
         }
 
+        if color_id:
+            event['colorId'] = color_id
+
         try:
             # Insert the event into the primary calendar
             created_event = self.service.events().insert(calendarId='primary', body=event).execute()
@@ -61,6 +64,26 @@ class GoogleCalendarManager:
             # Handle errors during event creation
             print(f"Error creating event: {e}")
             return None
+        
+
+    def delete_event(self, event_id):
+        """
+        Delete an event from the user's primary Google Calendar.
+
+        Args:
+            event_id (str): The ID of the event to delete.
+
+        Returns:
+            bool: True if the event was deleted successfully, False otherwise.
+        """
+        try:
+            self.service.events().delete(calendarId='primary', eventId=event_id).execute()
+            print(f"Event with ID {event_id} deleted successfully.")
+            return True
+        except Exception as e:
+            print(f"Error deleting event: {e}")
+            return False
+        
 
     def test_connection(self):
         """
