@@ -2,8 +2,7 @@ from src.services.GoogleCalenderManager import GoogleCalendarManager
 from src.models.schedule import Schedule
 from datetime import datetime, timedelta
 
-
-# Map day numbers (1-7) to English weekday numbers.
+    # Map day numbers (1-7) to English weekday numbers.
 # Adjust this to match datetime.weekday() (0=Monday) and your day numbers (1=Sunday).
 # Conversion: 1 (Sunday) -> 6 (Sunday), 2 (Monday) -> 0 (Monday), ..., 7 (Saturday) -> 5 (Saturday)
 day_mapping_for_weekday = {
@@ -14,6 +13,18 @@ day_mapping_for_weekday = {
     "5": 3,  # Thursday
     "6": 4,  # Friday
     "7": 5   # Saturday
+}   
+
+# Define a color mapping for slot types
+# Google Calendar color IDs are limited to predefined palette.
+# We'll map the closest Google Calendar color IDs to your desired colors:
+# Light blue (Lecture)  -> colorId "9" (blue)
+# Peach (Tirgul)        -> colorId "5" (yellow/orange)
+# Light green (Maabada) -> colorId "10" (green)
+slot_type_colors = {
+    "Lecture": "9",    # Light blue
+    "Tirgul": "5",     # Peach (closest: yellow/orange)
+    "Maabada": "10"    # Light green
 }
 class ScheduleEventMaker :
 
@@ -23,6 +34,7 @@ class ScheduleEventMaker :
             self.calendar_manger = GoogleCalendarManager()
         except Exception as e:
                 raise 
+
 
     def create_events(self, schedule : Schedule) -> bool :
             # Use the existing method in the Schedule model to extract lessons by day
@@ -68,10 +80,18 @@ class ScheduleEventMaker :
                         end_time_iso = end_datetime.isoformat()
 
                         title = f"{course_name} - {slot_type}"
-                        description = f"Course: {course_name} ({course_code})\nType: {slot_type}"
+                        description = f"Course: {course_name}"
                         
                         # Safely add location if it exists
-                        location = getattr(slot_obj, 'location', None) or getattr(slot_obj, 'room', None)
+                        building = getattr(slot_obj, 'building', None)
+                        room = getattr(slot_obj, 'room', None)
+                        location = None
+                        if building and room:
+                            location = f"{building} - {room}"
+                        elif building:
+                            location = f"{building}"
+                        elif room:
+                            location = f"{room}"
                         if location:
                             description += f"\nLocation: {location}"
                         
@@ -79,12 +99,15 @@ class ScheduleEventMaker :
                         lecturer = getattr(slot_obj, 'lecturer', None) or getattr(slot_obj, 'instructor', None)
                         if lecturer:
                             description += f"\nLecturer: {lecturer}"
+
+                        color_id = slot_type_colors.get(slot_type, "1")
                         
-                        # Create the event in Google Calendar
+                        # Create the event in Google Calendar with color
                         self.calendar_manger.create_event(
                             summary=title,
                             description=description,
                             start_time=start_time_iso,
-                            end_time=end_time_iso
+                            end_time=end_time_iso,
+                            color_id=color_id
                         )
             return True
