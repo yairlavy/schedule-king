@@ -42,19 +42,6 @@ class ScheduleEventMaker :
             for week_offset in range(num_weeks_to_export):
                 current_week_start_date = start_date_for_export + timedelta(weeks=week_offset)
 
-                # Map day numbers (1-7) to English weekday numbers.
-                # Adjust this to match datetime.weekday() (0=Monday) and your day numbers (1=Sunday).
-                # Conversion: 1 (Sunday) -> 6 (Sunday), 2 (Monday) -> 0 (Monday), ..., 7 (Saturday) -> 5 (Saturday)
-                day_mapping_for_weekday = {
-                    "1": 6,  # Sunday
-                    "2": 0,  # Monday
-                    "3": 1,  # Tuesday
-                    "4": 2,  # Wednesday
-                    "5": 3,  # Thursday
-                    "6": 4,  # Friday
-                    "7": 5   # Saturday
-                }
-
                 for day_num_str, slots in daily_slots.items():
                     # Calculate the specific date for the lesson day in the current week
                     day_of_week_int = day_mapping_for_weekday.get(day_num_str)

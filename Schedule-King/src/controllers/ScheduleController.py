@@ -246,6 +246,7 @@ class ScheduleController:
                 # Attempt to create calendar events for the given schedule
                 created = self.event_maker.create_events(schedule)
                 if created:
+                    # Notify the user of successful export
                     QMessageBox.information(None, "Success", "Schedule successfully exported to Google Calendar.")
             except Exception as e:
                 # Show an error message if exporting to calendar fails
