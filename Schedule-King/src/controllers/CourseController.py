@@ -6,6 +6,7 @@ from src.services.choicefreak.choicefreak_api import ChoiceFreakApi
 from src.services.choicefreak.choicefreak_parser import ChoiceFreakParser
 from src.controllers.CourseFiller import CourseFillingWorker
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
+from collections import defaultdict
 import time
 
 class FillSignalEmitter(QObject):
@@ -37,7 +38,6 @@ class CourseController:
         """
         self.courses = self.api.get_courses(file_path)
         return self.courses
-
     def set_selected_courses(self, selected: List[Course],forbidden_slots: Optional[List[TimeSlot]] = None) -> None:
         """
         Saves the selected courses for future use.
@@ -63,22 +63,37 @@ class CourseController:
         """
         self.university_courses[university] = ChoiceFreakApi.get_courses_by_category(university)
 
-    def fetch_choicefreak_categories(self, university):
-        """Return a list of category names for the given university from ChoiceFreak."""
-        if university not in self.university_courses:
-            self.update_university_courses(university)
-        return list(self.university_courses[university].keys())
+    def get_courses_of_category(self, category: str) -> List[Course]:
+        """
+        Returns a list of courses for the given category.
+        This method is used to fetch courses from the cached university courses.
+        """
+        if not self.university_courses:
+            raise ValueError("No university courses available. Please update the university courses first.")
+        
+        # Assuming the first university in the cache is the one we want
+        university = next(iter(self.university_courses))
+        return self.fetch_choicefreak_courses(university, category)
 
-    def fetch_choicefreak_courses(self, university, category = None):
+    def fetch_choicefreak_courses(self, university, category=None):
         """Return a list of Course objects for the given university and category from ChoiceFreak."""
         if university not in self.university_courses:
             self.update_university_courses(university)
         index = self.university_courses[university]
+        
+        courses = []
         if category is None:
-            # get the first key
-            category = list(index.keys())[0]  # Default to the first category if none specified
-        raw_courses = index.get(category, [])
-        return [Course(course_name=c.get('title', ''), course_code=str(c.get('id', '')), instructor="", is_detailed=False) for c in raw_courses]
+            # Fetch courses from all categories
+            for cat, raw_courses in index.items():
+                courses.extend(
+                    [Course(course_name=c.get('title', ''), course_code=str(c.get('id', '')), instructor="", is_detailed=False, category=cat, university=university) for c in raw_courses]
+                )
+        else:
+            # Fetch courses from the specified category
+            raw_courses = index.get(category, [])
+            courses = [Course(course_name=c.get('title', ''), course_code=str(c.get('id', '')), instructor="", is_detailed=False, category=category) for c in raw_courses]
+        
+        return courses
 
     def fetch_choicefreak_courses_by_ids(self, university: str, period: str, course_ids: List[str]):
         """
@@ -117,5 +132,8 @@ class CourseController:
         """
         # only fill undetailed courses
         undetailed_courses = [c for c in courses if not c.is_detailed]
+        if not undetailed_courses:
+            print("No courses to fill, all are already detailed.")
+            return
         print(f"Requesting to fill {len(undetailed_courses)} courses")
         self.signal_emitter.fillRequested.emit(undetailed_courses)

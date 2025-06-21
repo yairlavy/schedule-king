@@ -15,7 +15,7 @@ class CourseFillingWorker(QObject):
     def fill_courses(self, courses):
         try:
             course_ids = [c.course_code for c in courses]
-            filled_courses = self.choicefreak_parser.parse_by_ids(course_ids, "biu")
+            filled_courses = self.choicefreak_parser.parse_by_ids(course_ids, courses[0].university)
 
             # Build a dict for quick lookup
             filled_map = {c.course_code: c for c in filled_courses}

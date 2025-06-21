@@ -4,13 +4,14 @@ class Course:
     """
     Represents a course with its details including lectures, tutorials, and labs.
     """
-    def __init__(self, course_name: str, course_code: str, instructor: str, category: str = "default", is_detailed: bool = True,
+    def __init__(self, course_name: str, course_code: str, instructor: str, category: str = "default", is_detailed: bool = True, university: str = "biu",
                   lectures: List[TimeSlot] = None, tirguls: List[TimeSlot] = None, maabadas: List[TimeSlot] = None):
         self._name = course_name
         self._course_code = course_code
         self._instructor = instructor
         self._category = category
         self._is_detailed = is_detailed
+        self._university = university
         self._lectures = lectures if lectures is not None else []
         self._tirguls = tirguls if tirguls is not None else []
         self._maabadas = maabadas if maabadas is not None else []
@@ -41,7 +42,9 @@ class Course:
     @property
     def maabadas(self):
         return self._maabadas
-    
+    @property
+    def university(self):
+        return self._university
     def add_lecture(self, lecture: TimeSlot):
         self._lectures.append(lecture)
     def add_tirgul(self, tirgul: TimeSlot):
