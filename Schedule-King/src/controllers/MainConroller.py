@@ -27,7 +27,7 @@ class MainController:
         self.course_window.on_courses_loaded = self.on_file_selected
         self.course_window.on_continue = self.on_courses_selected
         self.course_window.choicefreakSelectionMade.connect(self.on_choicefreak_selection)
-        
+        self.course_window.courseSelector.coursesSelected.connect(self.course_controller.fill_courses)
     def start_application(self):
         # Show the course window to start the application
         self.course_window.show()

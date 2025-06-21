@@ -29,7 +29,6 @@ class CourseWindow(QMainWindow):
         # Initialize the course selector component
         self.courseSelector = CourseSelector()
         self.courseSelector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         # Connect signals from the course selector to corresponding methods
         self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
         self.courseSelector.loadRequested.connect(self.load_courses_from_file)

@@ -171,6 +171,7 @@ class CourseSelector(QWidget):
             return
 
         # Update selected panel and UI
+        
         self.selected_panel.update_selection(selected_courses)
         self.title_label.setText(f"Available Courses ({len(selected_courses)} selected)")
         self._update_submit_button_state(selected_courses)

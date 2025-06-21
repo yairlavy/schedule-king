@@ -4,9 +4,12 @@ from typing import List, Optional
 from src.models.time_slot import TimeSlot
 from src.services.choicefreak.choicefreak_api import ChoiceFreakApi
 from src.services.choicefreak.choicefreak_parser import ChoiceFreakParser
+from src.controllers.CourseFiller import CourseFillingWorker
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
 import time
 
+class FillSignalEmitter(QObject):
+    fillRequested = pyqtSignal(list)
 
 class CourseController:
     def __init__(self, api: ScheduleAPI):
@@ -14,8 +17,20 @@ class CourseController:
         self.courses: List[Course] = []
         self.selected_courses: List[Course] = []
         self.forbidden_slots: List[TimeSlot] = []  # Add storage for forbidden slots
-        self.university_courses = {}  # Cache for courses by university
+        self.thread = QThread()
+        self.worker = CourseFillingWorker()
+        self.worker.moveToThread(self.thread)
 
+        # Connect the signal
+        self.worker.courseFilled.connect(self.on_course_filled)
+
+        # Signal emitter
+        self.signal_emitter = FillSignalEmitter()
+        self.signal_emitter.fillRequested.connect(self.worker.fill_courses)
+
+        self.thread.start()
+        self.university_courses = {}  # Cache for courses by university
+    
     def get_courses_names(self, file_path: str) -> List[Course]:
         """
         Loads the courses from the file path using the ScheduleAPI.
@@ -63,7 +78,7 @@ class CourseController:
             # get the first key
             category = list(index.keys())[0]  # Default to the first category if none specified
         raw_courses = index.get(category, [])
-        return [Course(course_name=c.get('title', ''), course_code=str(c.get('id', '')), instructor="") for c in raw_courses]
+        return [Course(course_name=c.get('title', ''), course_code=str(c.get('id', '')), instructor="", is_detailed=False) for c in raw_courses]
 
     def fetch_choicefreak_courses_by_ids(self, university: str, period: str, course_ids: List[str]):
         """
@@ -88,11 +103,19 @@ class CourseController:
         # Here you would typically update the UI with the fetched courses
         print(f"Fetched {len(courses)} courses for {university} in category {category}")
 
-    def fill_course(self, course: Course):
-        filled_course = self.fetch_choicefreak_courses_by_ids(
-            university=course.university,
-            period=course.period,
-            course_ids=[course.course_code]
-        )[0]
+    def on_course_filled(self, result):
+        """
+        Handle the filled course signal from the worker.
+        This method can be used to update the UI or store the filled course.
+        """
+        course, filled_course = result
         course.copy(filled_course)
-        
+
+    def fill_courses(self, courses: List[Course]):
+        """
+        Request the worker to fill courses without blocking.
+        """
+        # only fill undetailed courses
+        undetailed_courses = [c for c in courses if not c.is_detailed]
+        print(f"Requesting to fill {len(undetailed_courses)} courses")
+        self.signal_emitter.fillRequested.emit(undetailed_courses)
