@@ -32,6 +32,7 @@ class ChoiceFreakApi:
         """
         index_url = f"https://choicefreak.appspot.com/{university}/index.js"
         print(f"Fetching course index from {index_url}")
+        cookie_str = ChoiceFreakApi.session_manager.get_cookie()
         res = requests.get(index_url)
         if res.status_code != 200:
             raise Exception("Failed to fetch course index")
