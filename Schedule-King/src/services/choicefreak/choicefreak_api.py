@@ -56,6 +56,11 @@ class ChoiceFreakApi:
             list[dict]: Detailed info about the specified courses
         """
         period_code = ChoiceFreakApi.PERIODS.get(period, '0')
+        if university == 'bgu':
+            period_code = '7'
+        if university == 'tech':
+            period_code = '6'
+        
         courses_str = ':'.join(courses_ids)
         details_url = f"https://choicefreak.appspot.com/{university}/movies/?period={period_code}&ids={courses_str}"
         cookie_str = ChoiceFreakApi.session_manager.get_cookie()

@@ -21,6 +21,7 @@ class ChoiceFreakParser():
         "תרגיל": "tirgul",
         "תירגול": "tirgul",
         "מעבדה": "maabada",
+        "סדנא": "workshop"
     }
 
     def __init__(self, source: str, period: str = "2025-2"):
@@ -82,6 +83,8 @@ class ChoiceFreakParser():
                 course.add_tirgul([ts])
             elif target == "maabada":
                 course.add_maabada([ts])
+            else:
+                continue
 
         return course
 
