@@ -22,7 +22,6 @@ class ScheduleController:
         self.queue = None  # Queue for generated schedules
         self.generation_active = False  # Flag to indicate if generation is active
         self.estimated_total = -1  # Estimated total number of schedules (optional, if known)
-
     def generate_schedules(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None) -> List[Schedule]:
         """
         Generates possible schedules using the API and saves them.

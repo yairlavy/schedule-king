@@ -8,12 +8,15 @@ from PyQt5.QtGui import QIcon, QFont
 from typing import List, Callable
 from src.models.course import Course
 from src.components.course_selector import CourseSelector
+from src.components.choicefreak_loader_dialog import ChoiceFreakLoaderDialog
 from src.components.constraint_dialog import ConstraintDialog
 import os
 from src.models.time_slot import TimeSlot
 from src.styles.ui_styles import red_button_style, blue_button_style
+from PyQt5.QtCore import pyqtSignal
 
 class CourseWindow(QMainWindow):
+    choicefreakSelectionMade = pyqtSignal(str, str)  # define at class level
     def __init__(self, maximize_on_start=True):
         super().__init__()
         self.setWindowTitle("Select Courses")  # Set the window title
@@ -26,7 +29,6 @@ class CourseWindow(QMainWindow):
         # Initialize the course selector component
         self.courseSelector = CourseSelector()
         self.courseSelector.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-
         # Connect signals from the course selector to corresponding methods
         self.courseSelector.coursesSubmitted.connect(self.navigateToSchedulesWindow)
         self.courseSelector.loadRequested.connect(self.load_courses_from_file)
@@ -66,6 +68,12 @@ class CourseWindow(QMainWindow):
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
         self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
+        # button to open choicefreak loader dialog
+        self.choicefreakBtn = QPushButton("Load Courses from ChoiceFreak")
+        self.choicefreakBtn.setCursor(Qt.PointingHandCursor)
+        self.choicefreakBtn.setStyleSheet(blue_button_style())
+        self.choicefreakBtn.clicked.connect(self.load_courses_from_choicefreak)
+        outer_layout.addWidget(self.choicefreakBtn)
 
         # Note: The courseSelector.clear_button only clears course selections, not time constraints
         # Time constraints are managed independently through the constraint dialog
@@ -140,3 +148,17 @@ class CourseWindow(QMainWindow):
             self.courseSelector.close_progress_bar()
             self.courseSelector._handle_clear()
             self.on_courses_loaded(file_path)  # Trigger the courses loaded callback with the file path
+    # choice freak selected signal
+        
+    def load_courses_from_choicefreak(self):
+        dialog = ChoiceFreakLoaderDialog(self)
+        # Connect the custom signal to a handler method
+        dialog.selectionMade.connect(self.on_choicefreak_selection)
+        dialog.exec_()  # blocks until dialog closed
+
+    def on_choicefreak_selection(self, university: str, period: str):
+        """
+        Handle the selection made in the ChoiceFreakLoaderDialog.
+        This method should be implemented to fetch courses based on the selected university and period.
+        """
+        self.choicefreakSelectionMade.emit(university, period)
