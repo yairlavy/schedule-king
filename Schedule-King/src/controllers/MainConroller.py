@@ -26,7 +26,8 @@ class MainController:
         # Set up event handlers for the course window
         self.course_window.on_courses_loaded = self.on_file_selected
         self.course_window.on_continue = self.on_courses_selected
-
+        self.course_window.choicefreakSelectionMade.connect(self.on_choicefreak_selection)
+        
     def start_application(self):
         # Show the course window to start the application
         self.course_window.show()
@@ -68,6 +69,29 @@ class MainController:
                 self.course_window,
                 "Error Loading File",
                 f"An error occurred while loading the file: {str(e)}"
+            )
+    def on_choicefreak_selection(self, university: str, category: str):
+        # Handle the event when a ChoiceFreak selection is made
+        try:
+            # Fetch courses from ChoiceFreak based on the selected university and category
+            courses = self.course_controller.fetch_choicefreak_courses(university)
+            print(f"Fetched {len(courses)} courses for category '{category}' in university '{university}'")
+            if not courses:
+                # Show a warning if no courses are found
+                QMessageBox.warning(
+                    self.course_window,
+                    "No Courses Found",
+                    f"No courses found for the selected category '{category}' in university '{university}'."
+                )
+                return
+            # Display the fetched courses in the course window
+            self.course_window.displayCourses(courses)
+        except Exception as e:
+            # Show an error message if there is an issue fetching courses
+            QMessageBox.critical(
+                self.course_window,
+                "Error Fetching Courses",
+                f"An error occurred while fetching courses: {str(e)}"
             )
 
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None):

@@ -31,11 +31,13 @@ class ChoiceFreakApi:
             dict[str, list[dict]]: Dictionary mapping category names to course lists
         """
         index_url = f"https://choicefreak.appspot.com/{university}/index.js"
+        print(f"Fetching course index from {index_url}")
         res = requests.get(index_url)
         if res.status_code != 200:
             raise Exception("Failed to fetch course index")
         data_str = res.text.split('=', 1)[1].rsplit(';', 1)[0]
         courses = ast.literal_eval(data_str)
+        print(f"Fetched {len(courses)} courses from index")
         grouped = defaultdict(list)
         for course in courses:
             grouped[course['category']].append(course)

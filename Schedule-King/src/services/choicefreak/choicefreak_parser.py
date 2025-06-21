@@ -1,4 +1,3 @@
-from src.interfaces.parser_interface import IParser
 import datetime
 from datetime import timedelta
 import json
@@ -10,7 +9,7 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 
-class ChoiceFreakParser(IParser):
+class ChoiceFreakParser():
     """
     Parses course data either from a local .json file or by fetching
     details for a given category name (first 10 courses).
@@ -109,6 +108,18 @@ class ChoiceFreakParser(IParser):
         """
         raw = self._load_raw()
         # If raw is a dict (single course), wrap into list
+        if isinstance(raw, dict):
+            raw = [raw]
+        return [self._course_from_dict(d) for d in raw]
+
+    def parse_by_ids(self, course_ids: List[str], university: str) -> List[Course]:
+        """
+        Fetch and parse courses by a list of course IDs.
+        :param course_ids: List of course ID strings.
+        :param university: University code (e.g., 'biu').
+        :return: List of parsed Course objects.
+        """
+        raw = ChoiceFreakApi.get_courses_details(university, self.period, course_ids)
         if isinstance(raw, dict):
             raw = [raw]
         return [self._course_from_dict(d) for d in raw]
