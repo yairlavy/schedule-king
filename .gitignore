@@ -57,3 +57,6 @@ testTestingRootWkspc
 test_schedule_output.txt
 Schedule-King/.env.local
 credentials.json
+Schedule-King/credentials.json
+Schedule-King/cookie.txt
+Schedule-King/token.pickle

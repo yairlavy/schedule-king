@@ -563,3 +563,64 @@ QFrame#ScheduleMetrics QLabel {
     color: #E0E0E0; /* Lighter text color for better contrast in dark theme */
     font-size: 15px; /* Adjusted font size for metric labels */
 }
+
+/* Export to Calendar button */
+QPushButton#export_calendar_button {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 36px;
+    min-height: 36px;
+    icon-size: 22px 22px;
+    text-align: center;
+}
+
+/* Only apply these styles when the button has text (fallback case) */
+QPushButton#export_calendar_button:not(:has(icon)) {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
+}
+
+QPushButton#export_calendar_button:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1E88E5, stop:1 #1565C0);  /* Darker blue gradient */
+}
+
+QPushButton#export_calendar_button:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);  /* Darkest blue gradient */
+    padding-top: 2px;
+}
+
+QPushButton#export_calendar_button:disabled {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #B0BEC5, stop:1 #90A4AE);  /* Gray gradient */
+    color: #ECEFF1;
+}
+
+/* Dark theme support for export calendar button */
+[theme="dark"] QPushButton#export_calendar_button {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);  /* Darker blue gradient */
+    color: #E3F2FD;
+}
+
+[theme="dark"] QPushButton#export_calendar_button:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #0D47A1, stop:1 #0D47A1);  /* Darkest blue gradient */
+}
+
+[theme="dark"] QPushButton#export_calendar_button:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #0D47A1, stop:1 #0D47A1);  /* Darkest blue gradient */
+}
+
+[theme="dark"] QPushButton#export_calendar_button:disabled {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #455A64, stop:1 #37474F);  /* Dark gray gradient */
+    color: #90A4AE;
+}

@@ -6,6 +6,8 @@ from PyQt5.QtCore import QTimer
 from src.models.schedule_ranker import ScheduleRanker
 from src.models.time_slot import TimeSlot
 from src.models.Preference import Preference, Metric
+from PyQt5.QtWidgets import QMessageBox
+from src.controllers.calendar_export_worker import CalendarExportWorker
 
 class ScheduleController:
     def __init__(self, api: ScheduleAPI):
@@ -22,6 +24,9 @@ class ScheduleController:
         self.queue = None  # Queue for generated schedules
         self.generation_active = False  # Flag to indicate if generation is active
         self.estimated_total = -1  # Estimated total number of schedules (optional, if known)
+        self.event_maker = None  
+        self.calendar_export_worker = None  # Keep reference to prevent garbage collection
+
     def generate_schedules(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None) -> List[Schedule]:
         """
         Generates possible schedules using the API and saves them.
@@ -223,3 +228,19 @@ class ScheduleController:
             raise ValueError("No schedules provided for export. Please specify schedules to export.")
         # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules_to_export, file_path)
+
+    def export_to_calendar_async(self, schedule, on_finished=None):
+        """
+        Exports a given schedule to Google Calendar in a background thread.
+        Args:
+            schedule: The Schedule object to export.
+            on_finished: Optional callback function(success: bool, message: str) to call when export completes.
+        """
+        # Clean up any existing worker
+        if self.calendar_export_worker:
+            self.calendar_export_worker.deleteLater()
+        # Create and start the export worker (no controller reference needed)
+        self.calendar_export_worker = CalendarExportWorker(schedule)
+        if on_finished:
+            self.calendar_export_worker.export_finished.connect(on_finished)
+        self.calendar_export_worker.start()
