@@ -37,15 +37,20 @@ class ScheduleEventMaker:
     - Creates multi-day holiday events
     - Prevents conflicts between lessons and holidays
     - Deletes all semester events
+    - Creates and manages a dedicated academic calendar
     """
 
-    def __init__(self):
+    def __init__(self, calendar_name="לוח זמנים אקדמי"):
         """
         Initialize the ScheduleEventMaker - creates Google Calendar connection and loads academic year data.
+        
+        Args:
+            calendar_name (str): Name for the academic calendar
         
         Loads:
         - Google Calendar manager for performing calendar operations
         - Academic year data (semesters and holidays) from the parser
+        - Creates or finds the academic calendar
         
         Raises:
             Exception: If there's an issue initializing the Google Calendar connection
@@ -54,6 +59,11 @@ class ScheduleEventMaker:
             self.calendar_manager = GoogleCalendarManager()
             # Load academic year data including holidays and semesters
             self.academic_data = get_full_academic_year()
+            # Get or create the academic calendar
+            self.academic_calendar_id = self.calendar_manager.get_or_create_academic_calendar(calendar_name)
+            if not self.academic_calendar_id:
+                raise Exception("Failed to create or find academic calendar")
+            print(f"Using academic calendar ID: {self.academic_calendar_id}")
         except Exception as e:
             raise
 
@@ -166,10 +176,10 @@ class ScheduleEventMaker:
             'colorId': slot_type_colors['holiday']  # Red color for holidays
         }
         
-        # Insert the event into Google Calendar
+        # Insert the event into the academic calendar
         try:
             created_event = self.calendar_manager.service.events().insert(
-                calendarId='primary', 
+                calendarId=self.academic_calendar_id, 
                 body=event
             ).execute()
             days_count = (actual_end - actual_start).days + 1
@@ -202,7 +212,7 @@ class ScheduleEventMaker:
             print("Not currently in any semester period. Cannot create events.")
             return False
 
-        print(f"Creating events for {current_semester['name']}")
+        print(f"Creating events for {current_semester['name']} in academic calendar")
         
         # Step 2: Extract lessons organized by day of week
         daily_slots = schedule.extract_by_day()
@@ -260,7 +270,7 @@ class ScheduleEventMaker:
                 
                 # Step 5b: Build event title and description
                 title = f"{course_name} - {slot_type}"
-                description = f"Course: {course_name}"
+                description = f"Course: {course_name}\nCourse Code: {course_code}"
                 
                 # Step 5c: Add location information if available
                 building = getattr(slot_obj, 'building', None)
@@ -322,10 +332,10 @@ class ScheduleEventMaker:
                     'recurrence': recurrence_rules
                 }
                 
-                # Step 5j: Insert the event into Google Calendar
+                # Step 5j: Insert the event into the academic calendar
                 try:
                     created_event = self.calendar_manager.service.events().insert(
-                        calendarId='primary', 
+                        calendarId=self.academic_calendar_id, 
                         body=event
                     ).execute()
                     print(f"Recurring event created: {title} starting {first_occurrence} (excluding {len(exception_dates)} holiday dates)")
@@ -336,7 +346,7 @@ class ScheduleEventMaker:
 
     def delete_semester_events(self, semester_name=None):
         """
-        Delete all events for a specific semester from Google Calendar.
+        Delete all events for a specific semester from the academic Google Calendar.
         This is useful for cleaning up the calendar or re-creating events.
         
         Args:
@@ -371,9 +381,9 @@ class ScheduleEventMaker:
         semester_end = semester['end'].isoformat() + 'Z'
         
         try:
-            # Step 1: List all events in the semester time range
+            # Step 1: List all events in the semester time range from the academic calendar
             events_result = self.calendar_manager.service.events().list(
-                calendarId='primary',
+                calendarId=self.academic_calendar_id,
                 timeMin=semester_start,
                 timeMax=semester_end,
                 singleEvents=True,  # Expand recurring events into individual instances
@@ -387,7 +397,7 @@ class ScheduleEventMaker:
             for event in events:
                 try:
                     self.calendar_manager.service.events().delete(
-                        calendarId='primary',
+                        calendarId=self.academic_calendar_id,
                         eventId=event['id']
                     ).execute()
                     deleted_count += 1
@@ -395,9 +405,23 @@ class ScheduleEventMaker:
                     # Log individual deletion errors but continue with other events
                     print(f"Error deleting event {event.get('summary', 'Unknown')}: {e}")
                     
-            print(f"Deleted {deleted_count} events for {semester['name']}")
+            print(f"Deleted {deleted_count} events for {semester['name']} from academic calendar")
             return True
             
         except Exception as e:
             print(f"Error retrieving events for deletion: {e}")
+            return False
+
+    def delete_academic_calendar(self):
+        """
+        Delete the entire academic calendar.
+        WARNING: This will permanently delete all events in the academic calendar.
+        
+        Returns:
+            bool: True if deletion was successful, False otherwise
+        """
+        if self.academic_calendar_id and self.academic_calendar_id != 'primary':
+            return self.calendar_manager.delete_calendar(self.academic_calendar_id)
+        else:
+            print("Cannot delete primary calendar or invalid calendar ID")
             return False
