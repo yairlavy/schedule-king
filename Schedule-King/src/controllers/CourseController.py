@@ -18,6 +18,7 @@ class CourseController:
         self.courses: List[Course] = []
         self.selected_courses: List[Course] = []
         self.forbidden_slots: List[TimeSlot] = []  # Add storage for forbidden slots
+        self.preferred_slots: List[TimeSlot] = []
         self.thread = QThread()
         self.worker = CourseFillingWorker()
         self.worker.moveToThread(self.thread)
@@ -38,12 +39,12 @@ class CourseController:
         """
         self.courses = self.api.get_courses(file_path)
         return self.courses
-    def set_selected_courses(self, selected: List[Course],forbidden_slots: Optional[List[TimeSlot]] = None) -> None:
-        """
-        Saves the selected courses for future use.
-        """
+    def set_selected_courses(self, selected: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None,
+                            preferred_slots: Optional[List[TimeSlot]] = None) -> None:
         self.selected_courses = selected
         self.forbidden_slots = forbidden_slots or []
+        self.preferred_slots = preferred_slots or []
+
 
     def get_selected_courses(self) -> List[Course]:
         """

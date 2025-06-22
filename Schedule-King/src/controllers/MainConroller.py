@@ -94,7 +94,7 @@ class MainController:
                 f"An error occurred while fetching courses: {str(e)}"
             )
 
-    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None):
+    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
         if not selected_courses:
             # Show a warning if no courses are selected

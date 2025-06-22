@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QFont
-from typing import List, Callable
+from typing import List, Callable, Optional
 from src.models.course import Course
 from src.components.course_selector import CourseSelector
 from src.components.choicefreak_loader_dialog import ChoiceFreakLoaderDialog
@@ -13,6 +13,7 @@ from src.components.constraint_dialog import ConstraintDialog
 import os
 from src.models.time_slot import TimeSlot
 from src.styles.ui_styles import red_button_style, blue_button_style
+from typing import Callable, List, Optional
 from PyQt5.QtCore import pyqtSignal
 
 class CourseWindow(QMainWindow):
@@ -45,6 +46,7 @@ class CourseWindow(QMainWindow):
         # === Time Constraints Section ===
         # Store forbidden time slots
         self.forbidden_slots = set()
+        self.preferred_slots = set()
         
         # Create constraint button and add it to the CourseSelector's button layout
         self.constraintBtn = QPushButton("Set Time Constraints")
@@ -67,8 +69,10 @@ class CourseWindow(QMainWindow):
 
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
-        self.on_continue: Callable[[List[Course]], None] = lambda selected: None  # Callback for when user continues
-        # button to open choicefreak loader dialog
+        self.on_continue: Callable[
+            [List[Course], Optional[List[TimeSlot]], Optional[List[TimeSlot]]],
+            None] = lambda selected, forbidden, preferred: None
+                # button to open choicefreak loader dialog
         self.choicefreakBtn = QPushButton("Load Courses from ChoiceFreak")
         self.choicefreakBtn.setCursor(Qt.PointingHandCursor)
         self.choicefreakBtn.setStyleSheet(blue_button_style())
@@ -80,12 +84,13 @@ class CourseWindow(QMainWindow):
 
     def _open_constraint_dialog(self):
         """Open the constraint selection dialog"""
-        dialog = ConstraintDialog(self, self.forbidden_slots)
+        dialog = ConstraintDialog(self, self.forbidden_slots, self.preferred_slots)
         if dialog.exec_() == QDialog.Accepted:
-            forbidden_cells = dialog.get_constraints()
+            forbidden_cells = dialog.get_forbidden()
+            self.preferred_slots = dialog.get_preferred()
             self.forbidden_slots = forbidden_cells
             # Update button text to show number of constraints
-            count = len(self.forbidden_slots)
+            count = len(self.forbidden_slots)+ len(self.preferred_slots)
             if count > 0:
                 self.constraintBtn.setText(f"Time Constraints ({count} slots)")
             else:
@@ -103,7 +108,6 @@ class CourseWindow(QMainWindow):
         Retrieve the list of selected courses from the course selector.
         """
         return self.courseSelector.get_selected_courses()
-
     def navigateToSchedulesWindow(self):
         """
         Handle the event when the user submits their course selection.
@@ -113,12 +117,10 @@ class CourseWindow(QMainWindow):
 
         selected = self.handleSelection()
         if selected:
-            # Check if the number of selected courses exceeds the limit
             if len(selected) > 7:
-                # Display a warning message to the user
                 QMessageBox.warning(self, "Warning", "You cannot select more than 7 courses.")
-                return  # Exit the method to prevent further processing
-                    
+                return
+
         # Convert forbidden cells to TimeSlot objects
         forbidden = []
         for row, col in self.forbidden_slots:
@@ -127,10 +129,16 @@ class CourseWindow(QMainWindow):
             end_time = f"{8+row+1:02d}:00"
             forbidden.append(TimeSlot(day=str(day_index), start_time=start_time, end_time=end_time, room="", building=""))
 
-        if forbidden:
-            self.on_continue(selected, forbidden)
-        else:
-            self.on_continue(selected)
+        # Convert preferred cells to TimeSlot objects
+        preferred = []
+        for row, col in self.preferred_slots:
+            day_index = col + 1
+            start_time = f"{8+row:02d}:00"
+            end_time = f"{8+row+1:02d}:00"
+            preferred.append(TimeSlot(day=str(day_index), start_time=start_time, end_time=end_time, room="", building=""))
+
+        # Always call on_continue with all three arguments
+        self.on_continue(selected, forbidden if forbidden else None, preferred if preferred else None)
 
     def load_courses_from_file(self):
         """
