@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
 from PyQt5.QtCore import Qt
 from src.components.time_constraint_table import TimeConstraintTable
-from src.styles.ui_styles import red_button_style, green_button_style
+from src.styles.ui_styles import red_button_style, green_button_style, blue_button_style
 
 
 class ConstraintDialog(QDialog):
@@ -45,14 +45,14 @@ class ConstraintDialog(QDialog):
         btns = QHBoxLayout()
 
         self.clear_all_btn = QPushButton("Clear All")
-        self.clear_all_btn.setStyleSheet(red_button_style())
+        self.clear_all_btn.setStyleSheet(blue_button_style())
         self.clear_all_btn.setCursor(Qt.PointingHandCursor)
 
         self.ok_btn = QPushButton("OK")
         self.ok_btn.setStyleSheet(green_button_style())
 
         self.cancel_btn = QPushButton("Cancel")
-        self.cancel_btn.setStyleSheet(green_button_style())
+        self.cancel_btn.setStyleSheet(red_button_style())
 
         btns.addWidget(self.clear_all_btn)
         btns.addWidget(self.ok_btn)
@@ -90,6 +90,7 @@ class ConstraintDialog(QDialog):
         forbidden_count = len(self.table.forbidden)
         preferred_count = len(self.table.preferred)
         self.summary_label.setText(f"❌ Forbidden: {forbidden_count}    ✅ Preferred: {preferred_count}")
+        self.summary_label.setStyleSheet("font-size: 20px; font-weight: bold; color: #333;")
 
     def get_forbidden(self):
         return set(self.table.forbidden)

@@ -46,44 +46,19 @@ class Schedule:
                     day_map[slot.day].append(("Maabada", lg.course_name, lg.course_code, slot))
         return day_map
 
-    def compute_preference_score(self, preferred_matrix: PreferredScheduleMatrix) -> None:
+    def compute_preference_score(self, preferred_matrix):
         """
-        Computes preference alignment score:
-        +3 for preferred slot
-        -1 for forbidden slot
-        +1 for neutral slots if day used without any preferred/forbidden marking
+        Compute preference score using the PreferredScheduleMatrix.
+        
+        Args:
+            preferred_matrix: PreferredScheduleMatrix instance or None
+            
+        Returns:
+            int: Preference score (0 if no preference matrix provided)
         """
-        score = 0
-        used_slots_per_day = [[] for _ in range(7)]  # Sunday = 0, Saturday = 6
-
-        for lg in self.lecture_groups:
-            for group in [lg.lecture, lg.tirguls, lg.maabadas]:
-                if not group:
-                    continue
-                slots = group if isinstance(group, list) else [group]
-                for s in slots:
-                    day_index = int(s.day) - 1
-                    slot_index = s.start_time.hour - 8  # Assuming 08:00 is the first slot
-
-                    if 0 <= day_index < 7 and 0 <= slot_index < 12:
-                        used_slots_per_day[day_index].append(slot_index)
-                        cell = preferred_matrix.get_slot(day_index, slot_index)
-
-                        if cell == CellPreference.PREFERRED:
-                            score += 3
-                        elif cell == CellPreference.FORBIDDEN:
-                            score -= 0
-
-        # Add +1 per day if used only in EMPTY (neutral) slots
-        for day_index in range(7):
-            if not used_slots_per_day[day_index]:
-                continue
-            if all(preferred_matrix.get_slot(day_index, slot) == CellPreference.EMPTY
-                   for slot in used_slots_per_day[day_index]):
-                score += 1
-
-        self.preference_score = score
-
+        if preferred_matrix is None:
+            return 0
+        return preferred_matrix.score_schedule(self)
     def generate_metrics(self):
         """
         Computes all schedule metrics: days, gaps, total gap time, average start/end times.

@@ -32,11 +32,14 @@ class AllStrategy(IScheduleStrategy):
             for slot in forbidden:
                 self._checker.place(slot)
 
-        # Initialize the preferred matrix if preferences were provided
+        # Only add preferred slots to the preference matrix
+        # Forbidden slots are handled by conflict checking, not preference scoring
         if preferred:
             self._preferred_matrix = PreferredScheduleMatrix()
             for slot in preferred:
-                self._preferred_matrix.add(slot)
+                self._preferred_matrix.add_preferred(slot)
+        else:
+            self._preferred_matrix = None
 
     def generate(self) -> Iterator[Schedule]:
         """
@@ -61,7 +64,7 @@ class AllStrategy(IScheduleStrategy):
                 schedule = Schedule(current.copy())
                 # Score based on preferred matrix if available
                 if self._preferred_matrix:
-                    schedule.compute_preference_score(self._preferred_matrix)
+                    schedule.preference_score = schedule.compute_preference_score(self._preferred_matrix)  
                 schedule.generate_metrics()
                 yield schedule
             return

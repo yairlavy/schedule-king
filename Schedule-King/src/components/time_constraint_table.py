@@ -11,7 +11,9 @@ class TimeConstraintTable(QTableWidget):
         self.setColumnCount(6)
         self.setHorizontalHeaderLabels(["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"])
         self.setRowCount(12)
-        self.setVerticalHeaderLabels([f"{hour}:00-{hour+1}:00" for hour in range(8, 20)])
+        
+        # Create vertical headers with just the hour (08:00, 09:00, etc.)
+        self.setVerticalHeaderLabels([f"{hour:02d}:00 - {hour + 1:02d}:00" for hour in range(8, 20)])
 
         self.setSelectionMode(QTableWidget.NoSelection)
         self.setEditTriggers(QTableWidget.NoEditTriggers)
@@ -21,6 +23,18 @@ class TimeConstraintTable(QTableWidget):
         self.verticalHeader().setDefaultSectionSize(38)
         self.setMinimumSize(900, 500)
         self.setShowGrid(True)
+
+        # Style the vertical header to look like blue rectangles with white text
+        self.verticalHeader().setStyleSheet("""
+            QHeaderView::section {
+                background-color: #2196F3;
+                color: white;
+                font-weight: bold;
+                font-size: 15px;
+                border: 1px solid #1976D2;
+                padding: 4px;
+            }
+        """)
 
         self.forbidden = set()
         self.preferred = set()
@@ -104,10 +118,10 @@ class TimeConstraintTable(QTableWidget):
     def clear_constraints(self):
         self.forbidden.clear()
         self.preferred.clear()
-        self.clearContents()
 
     def eventFilter(self, source, event):
-        if self.dragging and event.type() == event.MouseMove and source is self.viewport():
+        # Check if dragging attribute exists before using it
+        if hasattr(self, 'dragging') and self.dragging and event.type() == event.MouseMove and source is self.viewport():
             index = self.indexAt(event.pos())
             if index.isValid():
                 self._drag_enter_cell(index.row(), index.column())
