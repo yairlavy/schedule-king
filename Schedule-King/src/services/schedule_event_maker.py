@@ -41,7 +41,7 @@ class ScheduleEventMaker:
         and loading the academic year data (semesters and holidays).
         """
         try:
-            self.calendar_manager = GoogleCalendarManager()
+            self.calendar_manager = GoogleCalendarManager()  # Initialize Google Calendar manager
             # Get academic year data including holidays and semesters
             self.academic_data = get_full_academic_year()
         except Exception as e:
@@ -75,33 +75,64 @@ class ScheduleEventMaker:
                 return holiday
         return None
 
-    def _create_holiday_event(self, holiday, date):
+    def _get_all_holiday_dates_in_semester(self, semester):
         """
-        Create a holiday event for the given date as an all-day event in Google Calendar.
+        Get all dates that are holidays within the given semester.
+        Returns a set of dates that should be excluded from regular events.
         """
-        # Create all-day event
-        start_time = date.isoformat()
-        end_time = (date + timedelta(days=1)).isoformat()
-        # Build the event dictionary for Google Calendar API
+        semester_start = semester['start'].date()
+        semester_end = semester['end'].date()
+        holiday_dates = set()
+        
+        for holiday in self.academic_data['holidays']:
+            holiday_start = holiday['start'].date()
+            holiday_end = holiday['end'].date()
+            
+            # Check if holiday overlaps with semester
+            if holiday_start <= semester_end and holiday_end >= semester_start:
+                # Add all dates in the holiday period that are within the semester
+                current_date = max(holiday_start, semester_start)
+                end_date = min(holiday_end, semester_end)
+                while current_date <= end_date:
+                    holiday_dates.add(current_date)
+                    current_date += timedelta(days=1)
+        
+        return holiday_dates
+
+    def _create_holiday_event(self, holiday, semester_start, semester_end):
+        """
+        Create a single multi-day holiday event that spans the entire holiday period
+        (or the part that overlaps with the semester).
+        """
+        holiday_start = holiday['start'].date()
+        holiday_end = holiday['end'].date()
+        
+        # Calculate the actual start and end dates within the semester
+        actual_start = max(holiday_start, semester_start)
+        actual_end = min(holiday_end, semester_end)
+        
+        # Create multi-day all-day event
         event = {
             'summary': holiday['title'],
             'start': {
-                'date': date.isoformat(),
+                'date': actual_start.isoformat(),
                 'timeZone': 'Asia/Jerusalem',
             },
             'end': {
-                'date': (date + timedelta(days=1)).isoformat(),
+                'date': (actual_end + timedelta(days=1)).isoformat(),  # End date is exclusive in Google Calendar
                 'timeZone': 'Asia/Jerusalem',
             },
             'colorId': slot_type_colors['holiday']  # Red color for holidays
         }
+        
         # Insert the event into Google Calendar
         try:
             created_event = self.calendar_manager.service.events().insert(
                 calendarId='primary', 
                 body=event
             ).execute()
-            print(f"Holiday event created: {holiday['title']} on {date}")
+            days_count = (actual_end - actual_start).days + 1
+            print(f"Holiday event created: {holiday['title']} from {actual_start} to {actual_end} ({days_count} days)")
             return created_event
         except Exception as e:
             print(f"Error creating holiday event: {e}")
@@ -126,22 +157,19 @@ class ScheduleEventMaker:
         semester_start = current_semester['start'].date()
         semester_end = current_semester['end'].date()
 
-        # Create holiday events first (one event per holiday day in semester)
+        # Create holiday events first (one event per holiday covering multiple days)
         created_holidays = set()
         for holiday in self.academic_data['holidays']:
             holiday_start = holiday['start'].date()
             holiday_end = holiday['end'].date()
             # Check if holiday overlaps with semester
             if holiday_start <= semester_end and holiday_end >= semester_start:
-                # Create holiday events for each day in the holiday period
-                current_holiday_date = max(holiday_start, semester_start)
-                end_holiday_date = min(holiday_end, semester_end)
-                while current_holiday_date <= end_holiday_date:
-                    holiday_key = (holiday['title'], current_holiday_date)
-                    if holiday_key not in created_holidays:
-                        self._create_holiday_event(holiday, current_holiday_date)
-                        created_holidays.add(holiday_key)
-                    current_holiday_date += timedelta(days=1)
+                if holiday['title'] not in created_holidays:
+                    self._create_holiday_event(holiday, semester_start, semester_end)
+                    created_holidays.add(holiday['title'])
+
+        # Get all holiday dates in the semester for exclusion from regular events
+        holiday_dates = self._get_all_holiday_dates_in_semester(current_semester)
 
         # Create recurring events for each day type and course combination
         for day_num_str, slots in daily_slots.items():
@@ -194,12 +222,14 @@ class ScheduleEventMaker:
                 # Calculate the number of weeks from first occurrence to semester end
                 weeks_count = ((semester_end - first_occurrence).days // 7) + 1
                 
-                # Create list of exception dates (holidays)
+                # Create list of exception dates (holidays) in YYYYMMDD format
                 exception_dates = []
                 current_check_date = first_occurrence
                 while current_check_date <= semester_end:
-                    if self._is_holiday_date(current_check_date):
-                        exception_dates.append(current_check_date.strftime('%Y%m%d'))
+                    if current_check_date in holiday_dates:
+                        # Format as YYYYMMDDTHHMMSSZ for the specific event time
+                        exception_datetime = datetime.combine(current_check_date, slot_obj.start_time)
+                        exception_dates.append(exception_datetime.strftime('%Y%m%dT%H%M%S'))
                     current_check_date += timedelta(weeks=1)
                 
                 # Build recurrence rule
