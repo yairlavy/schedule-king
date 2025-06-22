@@ -16,8 +16,7 @@ class FileHandler:
     # Dictionary mapping file extensions to their respective parser classes
     _parsers = {
         '.txt': TextParser,
-        '.xlsx': ExcelParser
-        
+        '.xlsx': ExcelParser,
     }
     # Dictionary mapping file extensions to their respective formatter classes
     _formatters = {
@@ -49,6 +48,7 @@ class FileHandler:
         
         # Instantiate the parser and parse the file
         parser: IParser = parser_cls(source)
+        
         return parser.parse()
 
     @staticmethod

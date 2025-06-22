@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListWidgetItem, QVBoxLayout, QWidget, QSizePolicy, QLabel
+from PyQt5.QtWidgets import QListWidget, QAbstractItemView, QListWidgetItem, QVBoxLayout, QWidget, QSizePolicy, QLabel, QComboBox
 from PyQt5.QtCore import pyqtSignal, Qt
 from PyQt5.QtGui import QFont
 from typing import List
@@ -17,6 +17,12 @@ class CourseList(QWidget):
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(10)
+
+        # Create category filter dropdown
+        self.category_filter = QComboBox()
+        self.category_filter.addItem("All Categories")  # Default option
+        self.category_filter.currentIndexChanged.connect(self._apply_filters)
+        layout.addWidget(self.category_filter)
 
         # Create list widget
         self.list_widget = QListWidget()
@@ -65,6 +71,15 @@ class CourseList(QWidget):
         self.courses = courses
         self.filtered_courses = courses
         self.selected_course_codes.clear()
+
+        # Populate category filter
+        self.category_filter.blockSignals(True)
+        self.category_filter.clear()
+        self.category_filter.addItem("All Categories")
+        categories = sorted(set(course.category for course in courses))
+        self.category_filter.addItems(categories)
+        self.category_filter.blockSignals(False)
+
         self._update_course_list(courses)
 
     def _update_course_list(self, course_list: List[Course]):
@@ -79,6 +94,7 @@ class CourseList(QWidget):
             # Basic course info
             details = [
                 f"<b>{course.course_code}</b>: {course.name}",
+                f"Category: {course.category}",
                 f"Instructor: {course.instructor}",
                 f"Lectures: {len(course.lectures)} | Tirguls: {len(course.tirguls)} | Labs: {len(course.maabadas)}",
             ]
@@ -140,9 +156,11 @@ class CourseList(QWidget):
 
     def filter_courses(self, text: str):
         text = text.strip().lower()
+        selected_category = self.category_filter.currentText()
         self.filtered_courses = [
             course for course in self.courses
-            if text in course.name.lower() or text in course.course_code.lower()
+            if (text in course.name.lower() or text in course.course_code.lower()) and
+               (selected_category == "All Categories" or course.category == selected_category)
         ]
         # Store current selections before updating
         current_selections = self.selected_course_codes.copy()
@@ -150,4 +168,8 @@ class CourseList(QWidget):
         # Restore selections after updating
         self.selected_course_codes = current_selections
         # Emit selection changed to update the selected courses panel
-        self._handle_selection_changed() 
+        self._handle_selection_changed()
+
+    def _apply_filters(self):
+        # Reapply filters when category changes
+        self.filter_courses("")
