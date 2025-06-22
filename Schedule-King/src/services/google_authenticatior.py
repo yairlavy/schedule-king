@@ -6,8 +6,8 @@ from googleapiclient.discovery import build
 
 # Define scopes for Google Calendar API 
 SCOPES = [
-    'https://www.googleapis.com/auth/calendar.events',
-    'https://www.googleapis.com/auth/calendar.readonly'
+    'https://www.googleapis.com/auth/calendar',  # Full access to manage calendars (including create, delete, and manage)
+    'https://www.googleapis.com/auth/calendar.events'  # Access to manage events
 ]
 
 def authenticate_google_account():

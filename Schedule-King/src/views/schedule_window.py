@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QFileDialog, QMessageBox,
     QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox
 )
-from PyQt5.QtCore import Qt, QSize
+from PyQt5.QtCore import Qt, QSize, QThread, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
@@ -10,9 +10,11 @@ from src.components.schedule_header import ScheduleHeader
 from src.components.schedule_progress import ScheduleProgress
 from src.components.full_size_window import FullSizeWindow
 from src.components.ScheduleMetrics import ScheduleMetrics
+from src.components.loading_overlay import LoadingOverlay
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from src.components.ranking_controls import RankingControls
+from src.services.schedule_event_maker import ScheduleEventMaker
 from typing import List, Optional
 import os
 
@@ -56,6 +58,9 @@ class ScheduleWindow(QMainWindow):
         self.first_schedule_shown = False
         self.full_size_window = None
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+        
+        # Initialize loading overlay and export worker
+        self.loading_overlay = None
 
         # Create header and metrics components
         # ScheduleHeader components (back_button, title_container, export_controls) are now public attributes
@@ -398,11 +403,57 @@ class ScheduleWindow(QMainWindow):
     def on_export_calendar_clicked(self):
         """
         Handle export to calendar button click.
-        Calls the controller's export to calendar method.
+        Shows loading screen and calls the controller's async export method.
         """
         if not self.schedules or self.navigator.current_index >= self.schedules:
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
             
-        # Export only the currently displayed schedule
-        self.controller.export_to_calendar(self.current_schedule)
+        # Disable the export button to prevent multiple clicks
+        self.export_calendar_button.setEnabled(False)
+        
+        # Show loading overlay
+        self.show_loading_overlay()
+        
+        # Use the controller's async export method
+        self.controller.export_to_calendar_async(self.current_schedule, self.on_export_finished)
+        
+    def hide_loading_overlay(self):
+        """Hide the loading overlay"""
+        if self.loading_overlay:
+            self.loading_overlay.stop_spinner()
+            self.loading_overlay.hide()
+            
+    def on_export_finished(self, success: bool, message: str):
+        """Handle export completion"""
+        # Hide loading overlay
+        self.hide_loading_overlay()
+        # Re-enable the export button
+        self.export_calendar_button.setEnabled(True)
+        # Show result message
+        if success:
+            QMessageBox.information(self, "Success", message)
+        else:
+            QMessageBox.critical(self, "Error", message)
+            
+    def resizeEvent(self, event):
+        """Handle window resize events"""
+        super().resizeEvent(event)
+        # Update loading overlay size if it exists and is visible
+        if self.loading_overlay and self.loading_overlay.isVisible():
+            central_size = self.central_widget.size()
+            self.loading_overlay.setGeometry(0, 0, central_size.width(), central_size.height())
+
+    def show_loading_overlay(self):
+        """Show the loading overlay"""
+        if self.loading_overlay is None:
+            # Create overlay as direct child of main window
+            self.loading_overlay = LoadingOverlay(self, "Exporting to Calendar...")
+        
+        # Position the overlay to cover the entire window
+        window_size = self.size()
+        self.loading_overlay.setGeometry(0, 0, window_size.width(), window_size.height())
+
+        # Show the overlay
+        self.loading_overlay.show()
+        self.loading_overlay.raise_()
