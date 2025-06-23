@@ -1,5 +1,8 @@
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel
+from PyQt5.QtWidgets import (
+    QDialog, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QMessageBox, QToolButton
+)
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QFont
 from src.components.time_constraint_table import TimeConstraintTable
 from src.styles.ui_styles import red_button_style, green_button_style, blue_button_style
 
@@ -11,14 +14,48 @@ class ConstraintDialog(QDialog):
         self.setMinimumSize(950, 600)
 
         layout = QVBoxLayout()
-        # === Summary label ===
+        
+        # === Header with summary and help icon ===
+        header_layout = QHBoxLayout()
+        
+        # Summary label
         self.summary_label = QLabel("")
         self.summary_label.setAlignment(Qt.AlignCenter)
         font = self.summary_label.font()
         font.setPointSize(12)
         font.setBold(True)
         self.summary_label.setFont(font)
-        layout.addWidget(self.summary_label)
+        
+        # Help button (info icon)
+        self.help_btn = QToolButton()
+        self.help_btn.setText("ℹ️")
+        self.help_btn.setFixedSize(30, 30)
+        self.help_btn.setStyleSheet("""
+            QToolButton {
+                background-color: #2196F3;
+                color: white;
+                border: none;
+                border-radius: 15px;
+                font-size: 16px;
+                font-weight: bold;
+            }
+            QToolButton:hover {
+                background-color: #1976D2;
+            }
+            QToolButton:pressed {
+                background-color: #0D47A1;
+            }
+        """)
+        self.help_btn.setToolTip("Click for scoring explanation")
+        self.help_btn.clicked.connect(self.show_scoring_help)
+        
+        # Add to header layout
+        header_layout.addStretch(1)
+        header_layout.addWidget(self.summary_label)
+        header_layout.addStretch(1)
+        header_layout.addWidget(self.help_btn)
+        
+        layout.addLayout(header_layout)
 
         # === Time slot table ===
         self.table = TimeConstraintTable()
@@ -69,6 +106,40 @@ class ConstraintDialog(QDialog):
         self.update_summary()
         self.toggle_mode()  # apply default style
 
+    def show_scoring_help(self):
+        """Show help dialog explaining the preference scoring system"""
+        help_dialog = QMessageBox(self)
+        help_dialog.setWindowTitle("Preference Scoring Explanation")
+        help_dialog.setIcon(QMessageBox.Information)
+        
+        help_text = """
+<h3>📊 How Preference Scoring Works</h3>
+
+<p><b>🎯 Simple Formula:</b><br>
+Score = (Preferred slots used ÷ Total preferred slots) × 100</p>
+
+<p><b>📋 What this means:</b><br>
+• <span style="color: #4CAF50;"><b>100%</b></span> = All your preferred time slots have classes<br>
+• <span style="color: #FF9800;"><b>50%</b></span> = Half of your preferred time slots have classes<br>
+• <span style="color: #F44336;"><b>1%</b></span> = None of your preferred time slots have classes</p>
+
+<p><b>🔴 Forbidden slots:</b> Prevent classes from being scheduled (no scoring impact)</p>
+
+<p><b>🟢 Preferred slots:</b> Count towards your preference score when filled</p>
+
+<p><b>⚪ Neutral slots:</b> Ignored in scoring (neither help nor hurt your score)</p>
+
+<p><b>📈 Example:</b><br>
+You mark 10 preferred slots → System schedules 7 classes in preferred slots → Score = 70%</p>
+        """
+        
+        help_dialog.setText(help_text)
+        help_dialog.setTextFormat(Qt.RichText)
+        
+        # Make dialog wider to accommodate the text
+        help_dialog.setStyleSheet("QMessageBox { min-width: 500px; }")
+        
+        help_dialog.exec_()
 
     def toggle_mode(self):
         """Toggle between forbidden and preferred mode."""
@@ -80,6 +151,7 @@ class ConstraintDialog(QDialog):
             self.table.mark_mode = 'forbidden'
             self.mode_toggle_btn.setText("Mode: ❌ Forbidden")
             self.mode_toggle_btn.setStyleSheet("background-color: rgb(255, 105, 97); color: white; font-weight: bold;")
+    
     def _clear_all_constraints(self):
         """Clear all cell markings."""
         self.table.clear_constraints()
