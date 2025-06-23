@@ -23,8 +23,8 @@ class CourseWindow(QMainWindow):
         self.setWindowTitle("Select Courses")  # Set the window title
 
         # Set custom icon for the window
-        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
-        self.setWindowIcon(QIcon(icon_path))
+        #icon_path = os.path.join(os.path.dirname(__file__), "../assets/logo.ico")
+        #self.setWindowIcon(QIcon(icon_path))
 
         # === Course Selector ===
         # Initialize the course selector component

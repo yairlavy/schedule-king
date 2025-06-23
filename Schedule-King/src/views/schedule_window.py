@@ -36,7 +36,7 @@ class ScheduleWindow(QMainWindow):
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
-        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/logo.ico")
         self.setWindowIcon(QIcon(icon_path))
         
         # Create main layout
