@@ -1,5 +1,6 @@
 from collections import defaultdict
 import ast
+import json
 import requests
 from src.services.choicefreak.choicefreak_cookies import ChoiceFreakSessionManager
 
@@ -36,8 +37,9 @@ class ChoiceFreakApi:
         res = requests.get(index_url)
         if res.status_code != 200:
             raise Exception("Failed to fetch course index")
-        data_str = res.text.split('=', 1)[1].rsplit(';', 1)[0]
-        courses = ast.literal_eval(data_str)
+        data_str = res.content.decode('utf-8').split('=', 1)[1].rsplit(';', 1)[0]
+        json_str = data_str.replace("'", '"')
+        courses = json.loads(json_str)
         print(f"Fetched {len(courses)} courses from index")
         grouped = defaultdict(list)
         for course in courses:
