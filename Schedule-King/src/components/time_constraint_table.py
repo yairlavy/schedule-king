@@ -116,8 +116,15 @@ class TimeConstraintTable(QTableWidget):
         self._color_cell(row, col, QColor(144, 238, 144, 160))
 
     def clear_constraints(self):
+        """Clear all constraints and reset table visual state"""
         self.forbidden.clear()
         self.preferred.clear()
+        # Clear all cell contents and colors
+        for row in range(self.rowCount()):
+            for col in range(self.columnCount()):
+                self.setItem(row, col, QTableWidgetItem(""))
+        # Emit signal to update UI
+        self.cell_toggled.emit()
 
     def eventFilter(self, source, event):
         # Check if dragging attribute exists before using it
