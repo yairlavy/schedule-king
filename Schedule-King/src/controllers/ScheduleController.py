@@ -27,7 +27,11 @@ class ScheduleController:
         self.event_maker = None  
         self.calendar_export_worker = None  # Keep reference to prevent garbage collection
 
-    def generate_schedules(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None) -> List[Schedule]:
+    def generate_schedules(self, selected_courses: List[Course],
+                            forbidden_slots: Optional[List[TimeSlot]] = None,
+                            preferred_slots: Optional[List[TimeSlot]] = None
+
+        ) -> List[Schedule]:
         """
         Generates possible schedules using the API and saves them.
         Starts a timer to periodically check for new schedules and report progress.
@@ -43,7 +47,7 @@ class ScheduleController:
         self.next = 1  # Reset notification threshold
 
         # Start the schedule generation in parallel (returns a queue)
-        self.queue = self.api.generate_schedules_in_parallel(selected_courses, forbidden_slots)
+        self.queue = self.api.generate_schedules_in_parallel(selected_courses, forbidden_slots, preferred_slots)
 
         # Attempt to get estimated schedules count if supported by the API
         self.estimated_total = self.api.get_estimated_schedules_count(selected_courses)

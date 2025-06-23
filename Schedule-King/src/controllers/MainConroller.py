@@ -94,7 +94,7 @@ class MainController:
                 f"An error occurred while fetching courses: {str(e)}"
             )
 
-    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None):
+    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
         if not selected_courses:
             # Show a warning if no courses are selected
@@ -105,10 +105,11 @@ class MainController:
             )
             return
 
-        # Set the selected courses and forbidden slots (if exist) in the course controller
+        # Set the selected courses, forbidden slots, and preferred slots in the course controller
         forbidden_slots = forbidden_slots or []
-        self.course_controller.set_selected_courses(selected_courses, forbidden_slots)
-       
+        preferred_slots = preferred_slots or []  
+        self.course_controller.set_selected_courses(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
+    
         # Make sure any previous schedule generation is stopped if the schedule window exists
         if self.schedule_window:
             self.schedule_controller.stop_schedules_generation()
@@ -116,17 +117,16 @@ class MainController:
         
         # Initialize the schedule window with the generated schedules
         self.schedule_window = ScheduleWindow(
-                                               self.schedule_controller, 
-                                              maximize_on_start=self._maximize_on_start, 
-                                              show_progress_on_start=False)
+                                            self.schedule_controller, 
+                                            maximize_on_start=self._maximize_on_start, 
+                                            show_progress_on_start=False)
 
         self.schedule_window.on_back = self.on_navigate_back_to_courses
         # Hide the course window and show the schedule window
         self.course_window.hide()
         self.schedule_window.show()
-        # Generate schedules based on the selected courses and forbidden slots if any
-        self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
-
+        # Generate schedules based on the selected courses, forbidden slots, and preferred slots
+        self.schedule_controller.generate_schedules(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
     def on_generate_schedules(self):
         # Generate schedules for the currently selected courses
         selected_courses = self.course_controller.get_selected_courses()

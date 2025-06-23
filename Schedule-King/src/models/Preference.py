@@ -11,7 +11,7 @@ class Metric(Enum):
     TOTAL_GAP_TIME = auto()
     AVG_START_TIME = auto()
     AVG_END_TIME = auto()
-
+    PREFERENCE_SCORE = auto()
 class Preference:
     """
     Represents a user-defined preference for sorting schedules.
@@ -35,6 +35,8 @@ class Preference:
             return lambda s: s.avg_start_time
         elif self.metric == Metric.AVG_END_TIME:
             return lambda s: s.avg_end_time
+        elif self.metric == Metric.PREFERENCE_SCORE:
+            return lambda s: s.preference_score
         else:
             raise ValueError("Unsupported metric selected")
     def evaluate(self, lecture_groups: List[LectureGroup]) -> float:

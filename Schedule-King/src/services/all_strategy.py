@@ -6,88 +6,108 @@ from src.models.course import Course
 from src.models.lecture_group import LectureGroup
 from .MatrixConflicChecker import MatrixConflictChecker
 from src.models.time_slot import TimeSlot
+from src.models.preferred_schedule_matrix import PreferredScheduleMatrix  
 
 class AllStrategy(IScheduleStrategy):
-    def __init__(self, selected: List[Course], forbidden: Optional[List[TimeSlot]] = None):
+    def __init__(self, 
+                 selected: List[Course],
+                 forbidden: Optional[List[TimeSlot]] = None,
+                 preferred: Optional[List[TimeSlot]] = None):
         """
         Initialize the AllStrategy with a list of selected courses.
         :param selected: List of courses to be included in the strategy.
+        :param forbidden: List of time slots to avoid completely.
+        :param preferred: List of preferred time slots (used for scoring schedules).
         :raises ValueError: If more than 7 courses are selected.
         """
         if len(selected) > 7:
             raise ValueError("Cannot select more than 7 courses.")
+        
         self._selected = selected
         self._checker = MatrixConflictChecker()
+        self._preferred_matrix = None
 
-        # Pre-fill forbidden slots if exists
+        # Place forbidden slots in the matrix so they are treated as conflicts
         if forbidden:
             for slot in forbidden:
                 self._checker.place(slot)
 
+        # Only add preferred slots to the preference matrix
+        # Forbidden slots are handled by conflict checking, not preference scoring
+        if preferred:
+            self._preferred_matrix = PreferredScheduleMatrix()
+            for slot in preferred:
+                self._preferred_matrix.add_preferred(slot)
+        else:
+            self._preferred_matrix = None
+
     def generate(self) -> Iterator[Schedule]:
         """
-        Lazily generate all valid, conflict-free schedules via matrix checker.
+        Lazily generate all valid, conflict-free schedules using backtracking.
+        :return: Iterator yielding valid Schedule objects.
         """
         if not self._selected:
-            return # empty iterator
+            return  # Return empty iterator
         yield from self._build_valid_combinations(0, [])
 
     def _build_valid_combinations(
         self, index: int, current: List[LectureGroup]) -> Iterator[Schedule]:
         """
-        Recursive generator for valid combinations of LectureGroups.
-        :param index: The index of the current course in self._selected.
-        :param current: A list of LectureGroups representing the current combination.
-        :param result: A list of Schedules to which the valid combinations will be appended.
-        :return: Iterator[Schedule]: A generator yielding valid Schedule objects.
+        Recursive generator that builds all valid lecture group combinations.
+        :param index: The current course index.
+        :param current: Accumulated lecture groups (one per course).
+        :yield: Valid, conflict-free Schedule object.
         """
-        # Base case: if we've selected a group for every course, yield a Schedule
+        # If all courses are assigned, yield a new schedule
         if index == len(self._selected):
-            if current:  # we only yield non-empty schedules
+            if current:
                 schedule = Schedule(current.copy())
+                # Score based on preferred matrix if available
+                if self._preferred_matrix:
+                    schedule.preference_score = schedule.compute_preference_score(self._preferred_matrix)  
                 schedule.generate_metrics()
                 yield schedule
             return
 
-        # Get the current course
+        # Get current course
         course = self._selected[index]
-        
-        # Default to [None] if no tirguls or maabadas
-        tirguls  = [t for t in course.tirguls  if t] or [None]
+
+        # If there are no tirguls or maabadas, use [None] so we can still loop
+        tirguls = [t for t in course.tirguls if t] or [None]
         maabadas = [m for m in course.maabadas if m] or [None]
 
-        # Iterate over all possible combinations of lecture, tirgul, and maabada for this course
+        # Try every possible combination of lecture, tirgul, and maabada
         for lecture, tirgul, maabada in product(course.lectures, tirguls, maabadas):
-            # Flatten the slots into a single list
+            # Combine all timeslots into a flat list
             all_slots = [slot for group in (lecture, tirgul, maabada) if group for slot in group]
 
-            # Check for internal conflicts using a temporary matrix if it have then skip this group
+            # Check for internal conflicts within the same course
             temp_checker = MatrixConflictChecker()
             if not all(temp_checker.can_place(slot) and (temp_checker.place(slot) or True) for slot in all_slots):
                 continue
 
-            # Skip this group if any slot is forbidden or has a conflict
+            # Check if these slots conflict with already placed courses
             if not all(self._checker.can_place(slot) for slot in all_slots):
                 continue
 
-            #  Place the slots in the main matrix
+            # Place slots in the global conflict checker
             for slot in all_slots:
                 self._checker.place(slot)
 
-            # Add the current group to the combination
+            # Add current group to the partial solution
             current.append(LectureGroup(
-                            course_name=course.name,
-                            course_code=course.course_code,
-                            instructor=course.instructor,
-                            lecture=lecture,
-                            tirguls=tirgul,
-                            maabadas=maabada
-                            ))
+                course_name=course.name,
+                course_code=course.course_code,
+                instructor=course.instructor,
+                lecture=lecture,
+                tirguls=tirgul,
+                maabadas=maabada
+            ))
 
-            # Recursively build combinations for the next course
+            # Recursively try to build the rest of the schedule
             yield from self._build_valid_combinations(index + 1, current)
 
-            # Backtrack: remove the last group and unmark the slots
+            # Backtrack: remove last group and its times from the matrix
             current.pop()
             for slot in all_slots:
                 self._checker.remove(slot)
