@@ -32,6 +32,7 @@ class CourseController:
 
         self.thread.start()
         self.university_courses = {}  # Cache for courses by university
+        self.update_ui_course_filled = None
     
     def get_courses_names(self, file_path: str) -> List[Course]:
         """
@@ -111,6 +112,7 @@ class CourseController:
         """
         course, filled_course = result
         course.copy(filled_course)
+        self.update_ui_course_filled()
 
     def fill_courses(self, courses: List[Course]):
         """

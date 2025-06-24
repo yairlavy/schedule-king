@@ -227,3 +227,9 @@ class CourseSelector(QWidget):
         # Refresh the list to reflect selection
         self.course_list._update_course_list(self.course_list.courses)
         self._handle_selection_changed(self.get_selected_courses())
+
+    
+    def update_selected_courses_panel(self):
+        """Re-render the selected courses in the SelectedCoursesPanel."""
+        selected_courses = self.get_selected_courses()
+        self.selected_panel.update_selection(selected_courses)
