@@ -68,20 +68,31 @@ class ChoiceFreakParser():
             instructor=instr_str,
         )
 
-        # Add time slots to the course based on their kind
+        # Group shows by their grouping ID and kind (e.g., lecture, tirgul, etc.)
+        grouped_shows = defaultdict(list)
         for show in d.get("shows", []):
-            ts = self._show_to_timeslot(show)
-            kind = show.get("kind", "")
-            target = self._KIND_MAP.get(kind, "lecture")
+            # Use 'groupping_id' if available, otherwise fallback to 'id'
+            group_id = show.get("groupping_id", show.get("id"))
+            grouped_shows[(group_id, show.get("kind", ""))].append(show)
 
+        # Iterate over grouped shows and map them to the appropriate course type
+        for (group_id, kind), shows in grouped_shows.items():
+            # Map the kind to the internal representation (default to "lecture")
+            target = self._KIND_MAP.get(kind, "lecture")
+            # Convert each show in the group to a TimeSlot object
+            timeslots = [self._show_to_timeslot(s) for s in shows]
+
+            # Add the timeslots to the appropriate course attribute
             if target == "lecture":
-                course.add_lecture([ts])
+                course.add_lecture(timeslots)
             elif target == "tirgul":
-                course.add_tirgul([ts])
+                course.add_tirgul(timeslots)
             elif target == "maabada":
-                course.add_maabada([ts])
+                course.add_maabada(timeslots)
             else:
+            # Skip unknown kinds
                 continue
+
 
         return course
 
