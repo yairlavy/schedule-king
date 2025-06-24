@@ -53,15 +53,14 @@ class ChoiceFreakParser():
         Convert a course dictionary to a Course object, including all its time slots.
         """
         # Collect unique instructor names from shows
-        try:
-            instructors = {
-            s["details"]["who"]["name"]
-            for s in d.get("shows", [])
-            if s.get("details", {}).get("who")
-            }
-            instr_str = ", ".join(instructors)
-        except KeyError:
-            instr_str = ""
+        instructors = set()
+        for s in d.get("shows", []):
+            try:
+                if s.get("details", {}).get("who"):
+                    instructors.add(s["details"]["who"]["name"])
+            except KeyError as e:
+                print(f"Error processing instructor: {e}")
+        instr_str = ", ".join(instructors)
 
         course = Course(
             course_name=d.get("title", ""),

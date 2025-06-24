@@ -59,12 +59,6 @@ class CourseController:
         """
         return self.forbidden_slots
 
-    def update_university_courses(self, university: str, period: str = "2025-2"):
-        """
-        Fetch and cache all courses by category for the given university.
-        """
-        self.university_courses[university] = ChoiceFreakApi.get_courses_by_category(university, period)
-
     def get_courses_of_category(self, category: str) -> List[Course]:
         """
         Returns a list of courses for the given category.
@@ -80,10 +74,8 @@ class CourseController:
     def fetch_choicefreak_courses(self, university, period: str) -> List[Course]:
         """Return a list of Course objects for the given university and category from ChoiceFreak."""
         self.period = period  # Update the period for future calls
-        if university not in self.university_courses:
-            self.update_university_courses(university, period)
-        index = self.university_courses[university]
-        
+        index = ChoiceFreakApi.get_courses_by_category(university, period)
+
         courses = []
         # Fetch courses from all categories
         for cat, raw_courses in index.items():
