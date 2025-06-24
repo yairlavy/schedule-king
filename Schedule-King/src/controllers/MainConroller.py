@@ -71,18 +71,18 @@ class MainController:
                 "Error Loading File",
                 f"An error occurred while loading the file: {str(e)}"
             )
-    def on_choicefreak_selection(self, university: str, category: str):
+    def on_choicefreak_selection(self, university: str, period: str):
         # Handle the event when a ChoiceFreak selection is made
         try:
-            # Fetch courses from ChoiceFreak based on the selected university and category
-            courses = self.course_controller.fetch_choicefreak_courses(university)
-            print(f"Fetched {len(courses)} courses for category '{category}' in university '{university}'")
+            # Fetch courses from ChoiceFreak based on the selected university and period
+            courses = self.course_controller.fetch_choicefreak_courses(university, period)
+            print(f"Fetched {len(courses)} courses for period '{period}' in university '{university}'")
             if not courses:
                 # Show a warning if no courses are found
                 QMessageBox.warning(
                     self.course_window,
                     "No Courses Found",
-                    f"No courses found for the selected category '{category}' in university '{university}'."
+                    f"No courses found for the selected period '{period}' in university '{university}'."
                 )
                 return
             # Display the fetched courses in the course window

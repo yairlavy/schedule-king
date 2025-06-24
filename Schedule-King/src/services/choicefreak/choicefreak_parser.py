@@ -24,13 +24,8 @@ class ChoiceFreakParser():
         "סדנא": "workshop"
     }
 
-    def __init__(self, source: str, period: str = "2025-2"):
-        """
-        :param source: local .json file path or category name (str).
-        :param period: semester code, e.g. "2025-2" (used if fetching by category)
-        """
-        self.source = source
-        self.period = period
+    def __init__(self):
+        pass
 
     def _heb_day(self, when: datetime) -> str:
         """
@@ -49,8 +44,8 @@ class ChoiceFreakParser():
             day=self._heb_day(start),
             start_time=start.strftime("%H:%M"),
             end_time=end.strftime("%H:%M"),
-            room=show["where"]["room"],
-            building=show["where"]["building"],
+            room=show["where"].get("room", ""),
+            building=show["where"].get("building", ""),
         )
 
     def _course_from_dict(self, d: Dict[str, Any]) -> Course:
@@ -58,12 +53,15 @@ class ChoiceFreakParser():
         Convert a course dictionary to a Course object, including all its time slots.
         """
         # Collect unique instructor names from shows
-        instructors = {
+        try:
+            instructors = {
             s["details"]["who"]["name"]
             for s in d.get("shows", [])
             if s.get("details", {}).get("who")
-        }
-        instr_str = ", ".join(instructors)
+            }
+            instr_str = ", ".join(instructors)
+        except KeyError:
+            instr_str = ""
 
         course = Course(
             course_name=d.get("title", ""),
@@ -88,41 +86,14 @@ class ChoiceFreakParser():
 
         return course
 
-    def _load_raw(self) -> List[Dict[str, Any]]:
-        """
-        Load raw course data from a JSON file or fetch from API by category.
-        """
-        # If source is a JSON file path, load it
-        if self.source.lower().endswith('.json'):
-            with open(self.source, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        # Otherwise, treat source as a category name
-        category = os.path.basename(self.source).replace(".category", "").strip()
-        courses_by_cat = ChoiceFreakApi.get_courses_by_category()
-        entries = courses_by_cat.get(category, [])
-        # take first 10 course IDs
-        ids = [c.get("id") for c in entries[:10]]
-        # fetch details for these IDs
-        return ChoiceFreakApi.get_courses_details(self.period, ids)
-
-    def parse(self) -> List[Course]:
-        """
-        Parse the loaded raw data into a list of Course objects.
-        """
-        raw = self._load_raw()
-        # If raw is a dict (single course), wrap into list
-        if isinstance(raw, dict):
-            raw = [raw]
-        return [self._course_from_dict(d) for d in raw]
-
-    def parse_by_ids(self, course_ids: List[str], university: str) -> List[Course]:
+    def parse_by_ids(self, course_ids: List[str], university: str, period: str) -> List[Course]:
         """
         Fetch and parse courses by a list of course IDs.
         :param course_ids: List of course ID strings.
         :param university: University code (e.g., 'biu').
         :return: List of parsed Course objects.
         """
-        raw = ChoiceFreakApi.get_courses_details(university, self.period, course_ids)
+        raw = ChoiceFreakApi.get_courses_details(university, period, course_ids)
         if isinstance(raw, dict):
             raw = [raw]
         return [self._course_from_dict(d) for d in raw]

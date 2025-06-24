@@ -8,14 +8,14 @@ class CourseFillingWorker(QObject):
 
     def __init__(self):
         super().__init__()
-        self.choicefreak_parser = ChoiceFreakParser("biu","2025-2")  # Initialize with default values
+        self.choicefreak_parser = ChoiceFreakParser()  # Initialize with default values
         self._running = True
 
-    @pyqtSlot(list)
-    def fill_courses(self, courses):
+    @pyqtSlot(list, str)
+    def fill_courses(self, courses, period="2025-2"):
         try:
             course_ids = [c.course_code for c in courses]
-            filled_courses = self.choicefreak_parser.parse_by_ids(course_ids, courses[0].university)
+            filled_courses = self.choicefreak_parser.parse_by_ids(course_ids, courses[0].university, period=period)
 
             # Build a dict for quick lookup
             filled_map = {c.course_code: c for c in filled_courses}

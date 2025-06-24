@@ -3,7 +3,7 @@ import ast
 import json
 import requests
 from src.services.choicefreak.choicefreak_cookies import ChoiceFreakSessionManager
-
+import re
 class ChoiceFreakApi:
     # Standard browser-like headers to avoid being blocked by user-agent checks
     HEADERS = {
@@ -18,11 +18,23 @@ class ChoiceFreakApi:
         "2024-1": '0'
     }
 
+    @staticmethod
+    def period_to_code(university: str, period: str) -> str:
+        """ Converts a period string (e.g., "2025-2") to its corresponding code."""
+        base = int(ChoiceFreakApi.PERIODS.get(period, '0'))
+        if university == 'bgu':
+            base += 4
+        elif university == 'tech':
+            base += 3
+        elif university == 'tau':
+            base += 3
+        return str(base)
+    
     # A single session manager that lazily loads or triggers login if needed
     session_manager = ChoiceFreakSessionManager()
 
     @staticmethod
-    def get_courses_by_category(university: str):
+    def get_courses_by_category(university: str, period: str = "2025-2"):
         """
         Fetches the full list of courses and groups them by category.
 
@@ -31,13 +43,17 @@ class ChoiceFreakApi:
         Returns:
             dict[str, list[dict]]: Dictionary mapping category names to course lists
         """
-        index_url = f"https://choicefreak.appspot.com/{university}/index.js"
+        period_code = ChoiceFreakApi.period_to_code(university, period)
+        index_url = f"https://choicefreak.appspot.com/{university}/index.js?period={period_code}"
         print(f"Fetching course index from {index_url}")
         cookie_str = ChoiceFreakApi.session_manager.get_cookie()
         res = requests.get(index_url)
         if res.status_code != 200:
             raise Exception("Failed to fetch course index")
         data_str = res.content.decode('utf-8').split('=', 1)[1].rsplit(';', 1)[0]
+        print(data_str[:1000])  # Print first 100 characters for debugging
+        pattern = r"&#\d+;"
+        data_str = re.sub(pattern, "", data_str)
         json_str = data_str.replace("'", '"')
         courses = json.loads(json_str)
         print(f"Fetched {len(courses)} courses from index")
@@ -58,12 +74,8 @@ class ChoiceFreakApi:
         Returns:
             list[dict]: Detailed info about the specified courses
         """
-        period_code = ChoiceFreakApi.PERIODS.get(period, '0')
-        if university == 'bgu':
-            period_code = '7'
-        if university == 'tech':
-            period_code = '6'
-        
+        period_code = ChoiceFreakApi.period_to_code(university, period)
+
         courses_str = ':'.join(courses_ids)
         details_url = f"https://choicefreak.appspot.com/{university}/movies/?period={period_code}&ids={courses_str}"
         cookie_str = ChoiceFreakApi.session_manager.get_cookie()
