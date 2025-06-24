@@ -133,16 +133,16 @@ class CourseSelector(QWidget):
         footer.setStyleSheet(footer_label_style())
         self.layout.addWidget(footer)
 
-    def show_progress_bar(self):
+    def show_progress_bar(self, text="Generating schedules...", title="Generating"):
         """Show progress bar while schedules are generating."""
         if self.progress_bar:
             self.progress_bar.close()
-        self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
+        self.progress_bar = QProgressDialog(text, "Cancel", 0, 0, self)
         self.progress_bar.setWindowModality(Qt.WindowModal)
         self.progress_bar.setMinimumDuration(0)
         self.progress_bar.setAutoClose(False)
         self.progress_bar.setAutoReset(False)
-        self.progress_bar.setWindowTitle("Generating")
+        self.progress_bar.setWindowTitle(title)
         self.progress_bar.show()
 
     def close_progress_bar(self):

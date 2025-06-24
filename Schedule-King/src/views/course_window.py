@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import (
     QHBoxLayout, QWidget, QSizePolicy, QMessageBox,
     QPushButton, QDialog
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, pyqtSignal, QTimer
 from PyQt5.QtGui import QIcon, QFont
 from typing import List, Callable, Optional
 from src.models.course import Course
@@ -176,4 +176,5 @@ class CourseWindow(QMainWindow):
         Handle the selection made in the ChoiceFreakLoaderDialog.
         This method should be implemented to fetch courses based on the selected university and period.
         """
-        self.choicefreakSelectionMade.emit(university, period)
+        self.courseSelector.show_progress_bar("Loading courses from ChoiceFreak...", "Loading")
+        QTimer.singleShot(1000, lambda: self.choicefreakSelectionMade.emit(university, period))

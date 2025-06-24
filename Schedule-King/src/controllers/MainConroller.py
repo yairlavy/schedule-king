@@ -95,6 +95,9 @@ class MainController:
                 "Error Fetching Courses",
                 f"An error occurred while fetching courses: {str(e)}"
             )
+        finally:
+            # Ensure the progress bar is closed
+            self.course_window.courseSelector.close_progress_bar()
 
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
