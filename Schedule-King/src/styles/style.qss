@@ -623,3 +623,154 @@ QPushButton#export_calendar_button:disabled {
                               stop:0 #455A64, stop:1 #37474F);  /* Dark gray gradient */
     color: #90A4AE;
 }
+
+/* ChoiceFreak Loader Dialog Styles */
+QDialog#ChoiceFreakLoaderDialog {
+    background-color: #FFFFFF;
+    border: 2px solid #42A5F5;
+    border-radius: 16px;
+    padding: 24px 32px;
+    min-width: 350px;
+    min-height: 200px;
+}
+
+QComboBox#university_combo, QComboBox#period_combo {
+    background-color: #E3F2FD;
+    border: 1.5px solid #90CAF9;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 15px;
+    color: #1565C0;
+    min-width: 120px;
+}
+QComboBox#university_combo:focus, QComboBox#period_combo:focus {
+    border-color: #42A5F5;
+    background-color: #F0F7FF;
+}
+QComboBox#university_combo::drop-down, QComboBox#period_combo::drop-down {
+    border: none;
+    width: 22px;
+}
+QComboBox#university_combo::down-arrow, QComboBox#period_combo::down-arrow {
+    image: url(../assets/down-arrow.png);
+    width: 14px;
+    height: 14px;
+}
+
+/* ComboBox Dropdown List Styling */
+QComboBox#university_combo QAbstractItemView, QComboBox#period_combo QAbstractItemView {
+    background-color: #F0F7FF;
+    border: 1.5px solid #90CAF9;
+    border-radius: 8px;
+    padding: 4px 0;
+    font-size: 15px;
+    color: #1565C0;
+    selection-background-color: #42A5F5;
+    selection-color: white;
+}
+QComboBox#university_combo QAbstractItemView::item, QComboBox#period_combo QAbstractItemView::item {
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 2px 6px;
+}
+QComboBox#university_combo QAbstractItemView::item:selected, QComboBox#period_combo QAbstractItemView::item:selected {
+    background-color: #42A5F5;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#university_combo QAbstractItemView::item:hover, QComboBox#period_combo QAbstractItemView::item:hover {
+    background-color: #90CAF9;
+    color: #1565C0;
+}
+
+QDialogButtonBox#choicefreak_button_box {
+    qproperty-centerButtons: true;
+    padding-top: 18px;
+}
+QDialogButtonBox#choicefreak_button_box QPushButton {
+    background-color: #42A5F5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 90px;
+    margin: 0 8px;
+}
+QDialogButtonBox#choicefreak_button_box QPushButton:hover {
+    background-color: #1976D2;
+}
+QDialogButtonBox#choicefreak_button_box QPushButton:pressed {
+    background-color: #1565C0;
+}
+
+QLabel {
+    font-size: 15px;
+    color: #1976D2;
+    font-weight: 500;
+}
+
+/* Course Filter UI Styles */
+QLineEdit#course_search_bar {
+    background-color: #F0F7FF;
+    border: 2px solid #90CAF9;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: #1565C0;
+    min-width: 220px;
+    margin-bottom: 8px;
+}
+QLineEdit#course_search_bar:focus {
+    border-color: #42A5F5;
+    background-color: #FFFFFF;
+}
+
+QComboBox#category_filter {
+    background-color: #E3F2FD;
+    border: 2px solid #90CAF9;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: #1565C0;
+    min-width: 160px;
+    margin-bottom: 8px;
+}
+QComboBox#category_filter:focus {
+    border-color: #42A5F5;
+    background-color: #F0F7FF;
+}
+QComboBox#category_filter::drop-down {
+    border: none;
+    width: 22px;
+}
+QComboBox#category_filter::down-arrow {
+    image: url(../assets/down-arrow.png);
+    width: 14px;
+    height: 14px;
+}
+QComboBox#category_filter QAbstractItemView {
+    background-color: #F0F7FF;
+    border: 1.5px solid #90CAF9;
+    border-radius: 8px;
+    padding: 4px 0;
+    font-size: 15px;
+    color: #1565C0;
+    selection-background-color: #42A5F5;
+    selection-color: white;
+}
+QComboBox#category_filter QAbstractItemView::item {
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 2px 6px;
+}
+QComboBox#category_filter QAbstractItemView::item:selected {
+    background-color: #42A5F5;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#category_filter QAbstractItemView::item:hover {
+    background-color: #90CAF9;
+    color: #1565C0;
+}

@@ -20,6 +20,7 @@ class CourseList(QWidget):
 
         # Create category filter dropdown
         self.category_filter = QComboBox()
+        self.category_filter.setObjectName("category_filter")
         self.category_filter.addItem("All Categories")  # Default option
         self.category_filter.currentIndexChanged.connect(self._apply_filters)
         layout.addWidget(self.category_filter)
