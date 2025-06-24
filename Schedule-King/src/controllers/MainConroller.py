@@ -10,17 +10,18 @@ from src.models.time_slot import TimeSlot
 from src.services.logger import Logger
 
 class MainController:
-    def __init__(self, api: ScheduleAPI, maximize_on_start=True):
+    def __init__(self, api: ScheduleAPI, maximize_on_start=True, fullscreen_on_start=False):
         # Initialize the main controller with the API instance
         self.api = api
         self._maximize_on_start = maximize_on_start
+        self._fullscreen_on_start = fullscreen_on_start
 
         # Initialize course and schedule controllers
         self.course_controller = CourseController(api)
         self.schedule_controller = ScheduleController(api)
 
         # Initialize the course window and set up event handlers
-        self.course_window = CourseWindow(maximize_on_start=maximize_on_start)
+        self.course_window = CourseWindow(maximize_on_start=maximize_on_start, fullscreen_on_start=fullscreen_on_start)
         self.schedule_window = None  # Schedule window will be created later
 
         # Set up event handlers for the course window

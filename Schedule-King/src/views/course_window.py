@@ -18,9 +18,12 @@ from PyQt5.QtCore import pyqtSignal
 
 class CourseWindow(QMainWindow):
     choicefreakSelectionMade = pyqtSignal(str, str)  # define at class level
-    def __init__(self, maximize_on_start=True):
+    def __init__(self, maximize_on_start=True, fullscreen_on_start=False):
         super().__init__()
         self.setWindowTitle("Select Courses")  # Set the window title
+        self._maximize_on_start = maximize_on_start
+        self._fullscreen_on_start = fullscreen_on_start
+        self._first_show = True
 
         # Set custom icon for the window
         #icon_path = os.path.join(os.path.dirname(__file__), "../assets/logo.ico")
@@ -62,11 +65,6 @@ class CourseWindow(QMainWindow):
         container.setLayout(outer_layout)
         self.setCentralWidget(container)  # Set the container as the central widget
 
-        # Set full-screen display
-        # Optionally set full-screen display (disabled during tests to prevent access violations on Windows)
-        if maximize_on_start:
-            self.showMaximized()
-
         # External callbacks for handling events
         self.on_courses_loaded: Callable[[str], None] = lambda path: None  # Callback for when courses are loaded
         self.on_continue: Callable[
@@ -81,6 +79,15 @@ class CourseWindow(QMainWindow):
 
         # Note: The courseSelector.clear_button only clears course selections, not time constraints
         # Time constraints are managed independently through the constraint dialog
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        if self._first_show:
+            if self._fullscreen_on_start:
+                self.showFullScreen()
+            elif self._maximize_on_start:
+                self.showMaximized()
+            self._first_show = False
 
     def _open_constraint_dialog(self):
         """Open the constraint selection dialog"""

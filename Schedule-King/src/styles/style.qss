@@ -26,28 +26,30 @@ QPushButton:pressed {
 }
 
 /* Style for the Submit Selection button */
-QPushButton[text="Submit Selection"] {
+/* TODO: Set objectName to 'submit_selection_button' in code for this style to apply */
+QPushButton#submit_selection_button {
     background-color: #3F51B5;  /* Indigo */
     font-size: 12pt;
     font-weight: bold;
 }
-QPushButton[text="Submit Selection"]:hover {
+QPushButton#submit_selection_button:hover {
     background-color: #303F9F;
 }
-QPushButton[text="Submit Selection"]:pressed {
+QPushButton#submit_selection_button:pressed {
     background-color: #1A237E;
 }
 
 /* Style for the Clear All button */
-QPushButton[text="Clear All"] {
+/* TODO: Set objectName to 'clear_all_button' in code for this style to apply */
+QPushButton#clear_all_button {
     background-color: #F44336;  /* Red */
     font-size: 12pt;
     font-weight: bold;
 }
-QPushButton[text="Clear All"]:hover {
+QPushButton#clear_all_button:hover {
     background-color: #D32F2F;
 }
-QPushButton[text="Clear All"]:pressed {
+QPushButton#clear_all_button:pressed {
     background-color: #B71C1C;
 }
 
@@ -580,10 +582,7 @@ QPushButton#export_calendar_button {
 }
 
 /* Only apply these styles when the button has text (fallback case) */
-QPushButton#export_calendar_button:not(:has(icon)) {
-    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
-                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
-}
+/* Qt QSS does not support :not() or :has(), so this selector is removed. If you need a fallback, set a different objectName in code. */
 
 QPushButton#export_calendar_button:hover {
     background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 

@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     # Initialize core logic
     api = ScheduleAPI()
-    controller = MainController(api)
+    controller = MainController(api, maximize_on_start=True, fullscreen_on_start=False)
     controller.start_application()
 
     #  Run the Qt event loop
