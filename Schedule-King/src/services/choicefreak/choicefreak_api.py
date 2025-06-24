@@ -4,6 +4,10 @@ import json
 import requests
 from src.services.choicefreak.choicefreak_cookies import ChoiceFreakSessionManager
 import re
+import diskcache
+
+cache = diskcache.Cache('.cfreak_cache')
+
 class ChoiceFreakApi:
     # Standard browser-like headers to avoid being blocked by user-agent checks
     HEADERS = {
@@ -34,6 +38,7 @@ class ChoiceFreakApi:
     session_manager = ChoiceFreakSessionManager()
 
     @staticmethod
+    @cache.memoize(expire=60 * 60 * 24 * 7)
     def get_courses_by_category(university: str, period: str = "2025-2"):
         """
         Fetches the full list of courses and groups them by category.
@@ -63,6 +68,7 @@ class ChoiceFreakApi:
         return grouped
 
     @staticmethod
+    @cache.memoize(expire=60 * 60 * 24 * 7)
     def get_courses_details(university: str, period: str, courses_ids: list[str]):
         """
         Fetches detailed schedule info for a list of course IDs in a specific semester.
