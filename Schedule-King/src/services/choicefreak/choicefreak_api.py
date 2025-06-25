@@ -11,7 +11,8 @@ cache = diskcache.Cache('.cfreak_cache')
 class ChoiceFreakApi:
     # Standard browser-like headers to avoid being blocked by user-agent checks
     HEADERS = {
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0",
+        "Content-Type": "application/json; application/javascript; charset=utf-8",
     }
 
     # Mapping academic year/semester strings to internal period codes
@@ -21,6 +22,24 @@ class ChoiceFreakApi:
         "2024-2": '1',
         "2024-1": '0'
     }
+
+    import re
+
+    def fix(s: str, university: str) -> str:
+        if university not in ['tau']:
+            return s
+        # If there are weird characters, try to fix it
+        if re.search(r'[×ÿ\x9b\x9c]', s):
+            try:
+                decoded = s.encode('latin1').decode('utf-8')
+                # Validate the decoded string
+                if re.search(r'[^\u0590-\u05FF\w\s,.\-()\[\]\'"/&]', decoded):
+                    return ''
+                return decoded
+            except:
+                return ''
+        return s
+
 
     @staticmethod
     def period_to_code(university: str, period: str) -> str:
@@ -56,15 +75,13 @@ class ChoiceFreakApi:
         if res.status_code != 200:
             raise Exception("Failed to fetch course index")
         data_str = res.content.decode('utf-8').split('=', 1)[1].rsplit(';', 1)[0]
-        print(data_str[:1000])  # Print first 100 characters for debugging
         pattern = r"&#\d+;"
         data_str = re.sub(pattern, "", data_str)
         json_str = data_str.replace("'", '"')
         courses = json.loads(json_str)
-        print(f"Fetched {len(courses)} courses from index")
         grouped = defaultdict(list)
         for course in courses:
-            grouped[course['category']].append(course)
+            grouped[ChoiceFreakApi.fix(course['category'], university)].append(course)
         return grouped
 
     @staticmethod
