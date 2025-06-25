@@ -70,7 +70,7 @@ class ChoiceFreakApi:
         period_code = ChoiceFreakApi.period_to_code(university, period)
         index_url = f"https://choicefreak.appspot.com/{university}/index.js?period={period_code}"
         print(f"Fetching course index from {index_url}")
-        cookie_str = ChoiceFreakApi.session_manager.get_cookie()
+        cookie_str = ChoiceFreakApi.session_manager.cookie
         res = requests.get(index_url)
         if res.status_code != 200:
             raise Exception("Failed to fetch course index")
@@ -101,7 +101,7 @@ class ChoiceFreakApi:
 
         courses_str = ':'.join(courses_ids)
         details_url = f"https://choicefreak.appspot.com/{university}/movies/?period={period_code}&ids={courses_str}"
-        cookie_str = ChoiceFreakApi.session_manager.get_cookie()
+        cookie_str = ChoiceFreakApi.session_manager.cookie
         cookies = ChoiceFreakApi.session_manager.cookie_dict(cookie_str)
         res = requests.get(details_url, headers=ChoiceFreakApi.HEADERS, cookies=cookies)
         return res.json() if res.status_code == 200 else []

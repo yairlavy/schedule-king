@@ -78,6 +78,7 @@ class CourseController:
 
     def fetch_choicefreak_courses(self, university, period: str) -> List[Course]:
         """Return a list of Course objects for the given university and category from ChoiceFreak."""
+        ChoiceFreakApi.session_manager.get_cookie()  # Ensure the session cookie is loaded
         self.period = period  # Update the period for future calls
         index = ChoiceFreakApi.get_courses_by_category(university, period)
 

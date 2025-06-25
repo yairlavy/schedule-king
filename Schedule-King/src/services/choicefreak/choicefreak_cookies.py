@@ -17,7 +17,19 @@ class ChoiceFreakSessionManager:
     def __init__(self):
         self._cookie = None  # Lazy-loaded
 
+        @property
+        def cookie(self):
+            """Returns the cookie string, loading it if necessary."""
+            return self._cookie
+
     def get_cookie(self):
+        # if there is not internet return None
+        try:
+            res = requests.get("https://www.google.com")
+            if res.status_code != 200:
+                return None
+        except:
+            return None
         if self._cookie is None:
             self._cookie = self.load_or_login()
         return self._cookie
@@ -33,14 +45,15 @@ class ChoiceFreakSessionManager:
     def test_cookie(self, cookie_str):
         try:
             res = requests.get(
-                "https://choicefreak.appspot.com/biu/index.js",
-                headers={"User-Agent": "Mozilla/5.0"},
-                cookies=self.cookie_dict(cookie_str)
+                "https://choicefreak.appspot.com/biu/movies/?period=4&ids=01010",
+                headers={"Cookie": cookie_str},
             )
-            return res.status_code == 200
-        except:
+            res.raise_for_status()
+            res.json()  # Check if the response is valid JSON
+            return True
+        except (requests.RequestException, ValueError):
             return False
-        
+    
     def browser_login(self):
         app = QApplication.instance()
         created_app = False
