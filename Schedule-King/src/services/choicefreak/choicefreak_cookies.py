@@ -17,13 +17,15 @@ class ChoiceFreakSessionManager:
     def __init__(self):
         self._cookie = None  # Lazy-loaded
 
-        @property
-        def cookie(self):
-            """Returns the cookie string, loading it if necessary."""
-            return self._cookie
+    @property
+    def cookie(self):
+        """Returns the cookie string, loading it if necessary."""
+        return self._cookie
 
     def get_cookie(self):
         # if there is not internet return None
+        if self._cookie is not None:
+            return self._cookie
         try:
             res = requests.get("https://www.google.com")
             if res.status_code != 200:
