@@ -73,6 +73,7 @@ class MainController:
                 f"An error occurred while loading the file: {str(e)}"
             )
     def on_choicefreak_selection(self, university: str, period: str):
+        self.course_controller.start_thread()  # Start the thread for course filling
         # Handle the event when a ChoiceFreak selection is made
         try:
             # Fetch courses from ChoiceFreak based on the selected university and period

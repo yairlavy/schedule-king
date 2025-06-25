@@ -19,9 +19,7 @@ class CourseController:
         self.selected_courses: List[Course] = []
         self.forbidden_slots: List[TimeSlot] = []  # Add storage for forbidden slots
         self.preferred_slots: List[TimeSlot] = []
-        self.thread = QThread()
         self.worker = CourseFillingWorker()
-        self.worker.moveToThread(self.thread)
         self.period = "2025-2"  # Default period, can be changed later
         # Connect the signal
         self.worker.courseFilled.connect(self.on_course_filled)
@@ -30,9 +28,16 @@ class CourseController:
         self.signal_emitter = FillSignalEmitter()
         self.signal_emitter.fillRequested.connect(self.worker.fill_courses)
 
-        self.thread.start()
         self.university_courses = {}  # Cache for courses by university
         self.update_ui_course_filled = None
+        self.running = False
+    
+    def start_thread(self):
+        if not self.running:
+            self.thread = QThread()
+            self.worker.moveToThread(self.thread)
+            self.thread.start()
+            self.running = True
     
     def get_courses_names(self, file_path: str) -> List[Course]:
         """
