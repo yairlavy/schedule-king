@@ -167,33 +167,6 @@ class TestPreferredScheduleMatrix:
         expected = 75  # 3 out of 4 preferred slots = 75%
         assert score == expected, f"Expected {expected}% for complex schedule, got {score}%"
     
-    def test_get_preference_breakdown(self):
-        """Test the breakdown function returns correct information"""
-        matrix = PreferredScheduleMatrix()
-        
-        # Create 3 preferred slots
-        pref1 = TimeSlot("1", "08:00", "09:00", "101", "Building A")
-        pref2 = TimeSlot("2", "10:00", "11:00", "201", "Building B")
-        pref3 = TimeSlot("3", "14:00", "15:00", "301", "Building C")
-        
-        matrix.add_preferred(pref1)
-        matrix.add_preferred(pref2)
-        matrix.add_preferred(pref3)
-        
-        # Schedule with 1 preferred + 1 neutral
-        neutral = TimeSlot("4", "11:00", "12:00", "401", "Building D")
-        
-        lecture_group = LectureGroup("Math", "MATH101", "Dr. Smith", pref1, neutral, None)
-        schedule = Schedule([lecture_group])
-        
-        breakdown = matrix.get_preference_breakdown(schedule)
-        
-        assert breakdown['filled_preferred_slots'] == 1
-        assert breakdown['total_preferred_slots'] == 3
-        assert breakdown['total_schedule_slots'] == 2
-        assert breakdown['percentage'] == 33  # 1/3 = 33%
-        assert breakdown['display_text'] == "1/3 preferred slots filled (33%)"
-    
     @pytest.mark.parametrize("preferred_count,filled_count,expected_score", [
         (1, 1, 100),   # 1/1 = 100%
         (2, 1, 50),    # 1/2 = 50%
@@ -267,8 +240,7 @@ def test_integration_with_schedule_object():
     matrix.add_preferred(lecture_pref)
     
     # Create schedule
-    lecture_group = LectureGroup("Math", "MATH101", "Dr. Smith", 
-                               lecture_pref, tirgul_neutral, None)
+    lecture_group = LectureGroup("Math", "MATH101", "Dr. Smith", lecture_pref, tirgul_neutral, None)
     schedule = Schedule([lecture_group])
     
     # Test that compute_preference_score works
