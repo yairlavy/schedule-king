@@ -99,8 +99,6 @@ class CourseController:
         if not courses:
             print(f"No courses found for {university} in category {category}")
             return
-        # Here you would typically update the UI with the fetched courses
-        print(f"Fetched {len(courses)} courses for {university} in category {category}")
 
     def on_course_filled(self, result):
         """
@@ -109,16 +107,15 @@ class CourseController:
         """
         course, filled_course = result
         course.copy(filled_course)
-        self.update_ui_course_filled()
+        if self.update_ui_course_filled:
+            self.update_ui_course_filled(course)
 
-    def fill_courses(self, courses: List[Course]):
+    def fill_courses(self, courses: List['Course']):
         """
         Request the worker to fill courses without blocking.
         """
         # only fill undetailed courses
         undetailed_courses = [c for c in courses if not c.is_detailed]
         if not undetailed_courses:
-            print("No courses to fill, all are already detailed.")
             return
-        print(f"Requesting to fill {len(undetailed_courses)} courses")
         self.signal_emitter.fillRequested.emit(undetailed_courses, self.period)

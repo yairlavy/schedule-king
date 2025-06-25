@@ -30,6 +30,8 @@ class MainController:
         self.course_window.choicefreakSelectionMade.connect(self.on_choicefreak_selection)
         self.course_window.courseSelector.coursesSelected.connect(self.course_controller.fill_courses)
         self.course_controller.update_ui_course_filled = self.on_course_filled
+        self.course_window.courseSelector.course_list.tooltipRequested.connect(self.on_tooltip_requested)
+
     def start_application(self):
         # Show the course window to start the application
         self.course_window.show()
@@ -72,6 +74,7 @@ class MainController:
                 "Error Loading File",
                 f"An error occurred while loading the file: {str(e)}"
             )
+
     def on_choicefreak_selection(self, university: str, period: str):
         self.course_controller.start_thread()  # Start the thread for course filling
         # Handle the event when a ChoiceFreak selection is made
@@ -133,6 +136,7 @@ class MainController:
         self.schedule_window.show()
         # Generate schedules based on the selected courses, forbidden slots, and preferred slots
         self.schedule_controller.generate_schedules(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
+
     def on_generate_schedules(self):
         # Generate schedules for the currently selected courses
         selected_courses = self.course_controller.get_selected_courses()
@@ -151,5 +155,12 @@ class MainController:
         # Show the course window again
         self.course_window.show()
 
-    def on_course_filled(self):
+    def on_tooltip_requested(self, course: Course):
+        if not course.is_detailed:
+            self.course_controller.fill_courses([course])
+
+    def on_course_filled(self, filled_course=None):
         self.course_window.courseSelector.update_selected_courses_panel()
+        # Only update the tooltip for the filled course if provided
+        if filled_course is not None:
+            self.course_window.courseSelector.course_list.update_course_tooltip(filled_course)
