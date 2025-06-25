@@ -203,10 +203,10 @@ def get_full_academic_year():
     }
 
 # Debugging/testing code
-# if __name__ == "__main__":
-#     # Pretty-print the parsed academic year data
-#     result = get_full_academic_year()
-#     print("\n" + "="*50)
-#     print("FINAL RESULT:")
-#     print("="*50)
-#     pprint(result)
+if __name__ == "__main__":
+    # Pretty-print the parsed academic year data
+    result = get_full_academic_year()
+    print("\n" + "="*50)
+    print("FINAL RESULT:")
+    print("="*50)
+    pprint(result)

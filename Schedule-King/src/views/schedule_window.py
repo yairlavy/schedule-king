@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QFileDialog, QMessageBox,
-    QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox
+    QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox, QInputDialog
 )
 from PyQt5.QtCore import Qt, QSize, QThread, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QPixmap
@@ -408,15 +408,20 @@ class ScheduleWindow(QMainWindow):
         if not self.schedules or self.navigator.current_index >= self.schedules:
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
-            
+        
+        # Ask user to choose semester
+        semester_options = ["סמסטר א'", "סמסטר ב'"]
+        semester, ok = QInputDialog.getItem(self, "בחר סמסטר", "לאיזה סמסטר לייצא את לוח השנה?", semester_options, 0, False)
+        if not ok:
+            return  # User cancelled
+        
         # Disable the export button to prevent multiple clicks
         self.export_calendar_button.setEnabled(False)
         
         # Show loading overlay
         self.show_loading_overlay()
-        
-        # Use the controller's async export method
-        self.controller.export_to_calendar_async(self.current_schedule, self.on_export_finished)
+        # Use the controller's async export method, pass semester
+        self.controller.export_to_calendar_async(self.current_schedule, semester, self.on_export_finished)
         
     def hide_loading_overlay(self):
         """Hide the loading overlay"""

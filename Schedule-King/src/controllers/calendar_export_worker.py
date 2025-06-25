@@ -8,16 +8,17 @@ class CalendarExportWorker(QThread):
     # Signal emitted when export is finished: (success: bool, message: str)
     export_finished = pyqtSignal(bool, str)  # success, message
     
-    def __init__(self, schedule):
+    def __init__(self, schedule, semester=None):
         """
-        Initialize the worker with a schedule.
+        Initialize the worker with a schedule and semester.
         """
         super().__init__()
         self.schedule = schedule      # The schedule object to export
+        self.semester = semester      # The semester to export for
         self.event_maker = None      # Placeholder for the event maker instance
     
     @staticmethod
-    def export_to_calendar(schedule) -> tuple:
+    def export_to_calendar(schedule , semester = None) -> tuple:
         """
         Exports a given schedule as events to the user's Google Calendar.
         Returns (success: bool, message: str)
@@ -25,7 +26,7 @@ class CalendarExportWorker(QThread):
         try:
             # Initialize the ScheduleEventMaker if it hasn't been created yet
             try:
-                event_maker = ScheduleEventMaker()
+                event_maker = ScheduleEventMaker(semester=semester)
             except FileNotFoundError:
                 # Credentials file missing
                 return False, "Google Calendar credentials file not found. Please ensure 'credentials.json' is in the project root directory."
@@ -86,7 +87,7 @@ class CalendarExportWorker(QThread):
                 self.export_finished.emit(False, "Schedule is empty. Please select a schedule with courses.")
                 return
             # Use the worker's export method and emit the result
-            success, message = self.export_to_calendar(self.schedule)
+            success, message = self.export_to_calendar(self.schedule, self.semester)
             self.export_finished.emit(success, message)
         except Exception as e:
             # Handle threading and memory errors gracefully

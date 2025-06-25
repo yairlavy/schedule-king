@@ -233,7 +233,7 @@ class ScheduleController:
         # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules_to_export, file_path)
 
-    def export_to_calendar_async(self, schedule, on_finished=None):
+    def export_to_calendar_async(self, schedule, semester=None , on_finished=None):
         """
         Exports a given schedule to Google Calendar in a background thread.
         Args:
@@ -244,7 +244,7 @@ class ScheduleController:
         if self.calendar_export_worker:
             self.calendar_export_worker.deleteLater()
         # Create and start the export worker (no controller reference needed)
-        self.calendar_export_worker = CalendarExportWorker(schedule)
+        self.calendar_export_worker = CalendarExportWorker(schedule,semester=semester)
         if on_finished:
             self.calendar_export_worker.export_finished.connect(on_finished)
         self.calendar_export_worker.start()

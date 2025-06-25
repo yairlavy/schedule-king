@@ -40,7 +40,7 @@ class ScheduleEventMaker:
     - Creates and manages a dedicated academic calendar
     """
 
-    def __init__(self, calendar_name="לוח זמנים אקדמי"):
+    def __init__(self, semester = None, calendar_name="לוח זמנים אקדמי"):
         """
         Initialize the ScheduleEventMaker - creates Google Calendar connection and loads academic year data.
         
@@ -55,6 +55,7 @@ class ScheduleEventMaker:
         Raises:
             Exception: If there's an issue initializing the Google Calendar connection
         """
+        self.semester = semester  # Optional semester to use, if provided
         try:
             self.calendar_manager = GoogleCalendarManager()
             # Load academic year data including holidays and semesters
@@ -78,6 +79,11 @@ class ScheduleEventMaker:
             dict: The current semester dictionary containing start/end dates and name,
                   or None if not currently in any semester period
         """
+        if self.semester:
+            # If a specific semester is provided, find it by name
+            for semester in self.academic_data['semesters']:
+                if semester['name'] == self.semester:
+                    return semester
         today = datetime.now().date()
         # Loop through all semesters to find the one containing today's date
         for semester in self.academic_data['semesters']:
