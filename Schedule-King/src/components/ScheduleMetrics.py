@@ -39,7 +39,7 @@ class ScheduleMetrics(QFrame):
         layout.addWidget(self._create_metric_label("Total Gap Time (hours)", self.schedule.total_gap_time, "total_gap_time_label"))
         layout.addWidget(self._create_metric_label("Average Start Time", self._format_time(self.schedule.avg_start_time), "avg_start_time_label"))
         layout.addWidget(self._create_metric_label("Average End Time", self._format_time(self.schedule.avg_end_time), "avg_end_time_label"))
-        layout.addWidget(self._create_metric_label("Preference Score", self.schedule.preference_score, "preference_score_label"))
+        layout.addWidget(self._create_metric_labelP("Preference Score", self.schedule.preference_score, "preference_score_label"))
 
         self.setLayout(layout)
         self.setFixedWidth(250) 
@@ -57,6 +57,22 @@ class ScheduleMetrics(QFrame):
             QLabel: The configured label.
         """
         label = QLabel(f"{name}: {value}")
+        label.setObjectName(obj_name)
+        label.setFont(QFont("Arial", 9))
+        return label
+    def _create_metric_labelP(self, name, value, obj_name):
+        """
+        Helper to create a QLabel for a metric.
+
+        Args:
+            name (str): The name of the metric.
+            value: The value to display.
+            obj_name (str): The object name for styling.
+
+        Returns:
+            QLabel: The configured label.
+        """
+        label = QLabel(f"{name}: {value} %")
         label.setObjectName(obj_name)
         label.setFont(QFont("Arial", 9))
         return label
