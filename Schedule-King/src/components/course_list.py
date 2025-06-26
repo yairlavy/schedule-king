@@ -97,8 +97,8 @@ class CourseList(QWidget):
                         details.append(f"&nbsp;&nbsp;&bull; {group}")
 
             format_slot_groups(course.lectures, "Lecture", "#1976D2")
-            format_slot_groups(course.tirguls, "Tirgul", "#388E3C")
-            format_slot_groups(course.maabadas, "Lab", "#7B1FA2")
+            format_slot_groups(course.tirguls, "Tirgul", "#FF9800")
+            format_slot_groups(course.maabadas, "Maabada", "#4CAF50")
 
             item.setToolTip("<br>".join(details))
             self.list_widget.addItem(item)

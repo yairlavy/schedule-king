@@ -7,6 +7,7 @@ class ConstraintDialog(QDialog):
     def __init__(self, parent=None, initial_forbidden=None):
         super().__init__(parent)
         self.setWindowTitle("Select Forbidden Time Slots")
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setMinimumSize(950, 600)
 
         self.table = TimeConstraintTable()
