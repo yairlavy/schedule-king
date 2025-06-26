@@ -292,6 +292,10 @@ class CourseEditorDialog(QDialog):
             self.current_schedule_option_index = min(self.current_schedule_option_index, len(self.all_schedule_options) - 1)
             if self.current_schedule_option_index != -1:
                 self.schedule_options_tab_widget.setCurrentIndex(self.current_schedule_option_index)
+            
+            # Reset active block template and refresh UI
+            self.active_block_template = None
+            self.refresh_all_schedule_tables()
             self.populate_available_block_list()
             QMessageBox.information(self, "Removal Completed", "Schedule option removed successfully.")
 
@@ -513,24 +517,39 @@ class CourseEditorDialog(QDialog):
         course_code = self.code_input.text().strip()
         instructor = self.instructor_input.text().strip()
         
-        # If any of the required fields are empty or no schedule options exist, show a warning
-        if not course_name or not course_code or not instructor or not self.all_schedule_options:
-            QMessageBox.warning(self, "Input Error", "Please fill in all course details and add at least one schedule option.")
+        # If any of the required fields are empty, show a warning
+        if not course_name or not course_code or not instructor:
+            QMessageBox.warning(self, "Input Error", "Please fill in all course details.")
             return
         
-        # Assemble the final data for the course
-        # Extract lecture, tirgul, and maabada data from all schedule options
-        final_lectures_data = [option["lecture"] for option in self.all_schedule_options]
-        final_tirguls_data = [option["tirgul"] for option in self.all_schedule_options]
-        final_maabadas_data = [option["maabada"] for option in self.all_schedule_options]
+        # Filter out schedule options where all lists are empty
+        valid_schedule_options = [
+            option for option in self.all_schedule_options
+            if option["lecture"] or option["tirgul"] or option["maabada"]
+        ]
         
-        # If a current course exists, update its data;
+        # Assemble final data, including only non-empty lists for each type
+        final_lectures_data = []
+        final_tirguls_data = []
+        final_maabadas_data = []
+        
+        # itrate through valid schedule options and collect their data
+        # Only include non-empty lists for lectures, tirguls, and maabadas
+        for option in valid_schedule_options:
+            if option["lecture"]:
+                final_lectures_data.append(option["lecture"])
+            if option["tirgul"]:
+                final_tirguls_data.append(option["tirgul"])
+            if option["maabada"]:
+                final_maabadas_data.append(option["maabada"])
+        
+        # If a current course exists, update its data
         if self.current_course:
-            self.current_course.name = course_name
-            self.current_course.course_code = course_code
-            self.current_course.instructor = instructor
-            self.current_course.lectures = final_lectures_data
-            self.current_course.tirguls = final_tirguls_data
+            self.current_course._name = course_name
+            self.current_course._course_code = course_code
+            self.current_course._instructor = instructor
+            self.current_course._lectures = final_lectures_data
+            self.current_course._tirguls = final_tirguls_data
             self.current_course._maabadas = final_maabadas_data
         
         # Otherwise, create a new Course object
