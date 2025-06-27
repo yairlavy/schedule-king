@@ -53,7 +53,9 @@ def test_submit_emits_signal(qtbot, selector, sample_courses):
     # Verify that the emitted signal contains the correct courses
     submitted = signal.args[0]
     assert len(submitted) == 2
-    assert submitted[0].course_code == sample_courses[0].course_code
+    submitted_codes = [c.course_code for c in submitted]
+    expected_codes = [sample_courses[0].course_code, sample_courses[2].course_code]
+    assert set(submitted_codes) == set(expected_codes)
 
 def test_clear_button_clears_selection(qtbot, selector, sample_courses):
     # Test that clicking the clear button clears all selected courses
