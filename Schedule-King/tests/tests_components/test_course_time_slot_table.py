@@ -5,7 +5,6 @@ from PyQt5.QtWidgets import QTableWidgetItem
 from src.components.course_time_slot_table import CourseTimeSlotTable
 from src.models.time_slot import TimeSlot
 import os
-from PyQt5.QtTest import QTest
 
 # ——— Fixtures ———
 @pytest.fixture

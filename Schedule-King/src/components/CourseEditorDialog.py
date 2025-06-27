@@ -172,7 +172,7 @@ class CourseEditorDialog(QDialog):
         self.course_combo.setCurrentIndex(0)
         self.active_block_template = None
 
-        self.add_new_schedule_option(initial_load=True) # Add the initial empty option tab
+        self.add_new_schedule_option()
 
     def on_course_selected(self, index: int):
         ''' when a course is selected from the dropdown, this method loads its data into the form.'''
@@ -200,7 +200,7 @@ class CourseEditorDialog(QDialog):
             
             # If no options exist, add an empty option
             if max_options == 0:
-                self.add_new_schedule_option(initial_load=True)
+                self.add_new_schedule_option()
             
             # Otherwise, populate the schedule options with existing data
             else:
@@ -231,22 +231,33 @@ class CourseEditorDialog(QDialog):
             self.active_block_template = None
             self.available_block_templates_list_widget.clearSelection()
 
+    def restore_active_block_selection(self):
+        '''
+        Helper function 
+        Finds and re-selects the active block template in the list widget if it exists.
+        '''
+        if self.active_block_template is not None:
+            for i in range(self.available_block_templates_list_widget.count()):
+                item = self.available_block_templates_list_widget.item(i)
+                if item.data(Qt.UserRole) == self.active_block_template:
+                    self.available_block_templates_list_widget.setCurrentItem(item)
+                    break
+
     def on_schedule_option_tab_changed(self, index: int):
         ''' Handles the event when the user switches between schedule option tabs.'''
         # Get the currently new selected tab index
         self.current_schedule_option_index = index
         self.populate_available_block_list()
 
-        # Clear the active block template when switching tabs
+        # Pass the active block template down into the newly selected table
         widget = self.schedule_options_tab_widget.currentWidget()
         if widget and self.active_block_template:
-            widget.set_active_time_slot_block(None)
-            
+            self.restore_active_block_selection()
+            widget.set_active_time_slot_block(self.active_block_template)
 
-    def add_new_schedule_option(self, initial_load: bool = False):
+    def add_new_schedule_option(self: bool = False):
         '''
         Add a new empty schedule option.
-        If not `initial_load` = loading existing course, also shows a confirmation message.
         '''
         # Create a new empty schedule option with empty lists for each type
         new_option_data = {"lecture": [], "tirgul": [], "maabada": []}
@@ -259,11 +270,10 @@ class CourseEditorDialog(QDialog):
         tab_name = f"Option {len(self.all_schedule_options)}"
         self.schedule_options_tab_widget.addTab(new_table_widget, tab_name)
         self.schedule_options_tab_widget.setCurrentIndex(len(self.all_schedule_options) - 1)
-        # If it not initial load, popup a message box to inform the user that a new option was added
-        # and populate the available block templates list widget
-        if not initial_load:
-            QMessageBox.information(self, "New Option", f"New schedule option '{tab_name}' added.")
-            self.populate_available_block_list()
+        
+        # Rebuild the block list and restore the active block selection
+        self.populate_available_block_list()
+        self.restore_active_block_selection()
 
     def remove_current_schedule_option(self):
         ''' 
@@ -301,11 +311,16 @@ class CourseEditorDialog(QDialog):
 
     def populate_available_block_list(self):
         ''' Populate the list of available time slot block templates based on the current schedule options.'''
-        # Clear the existing list widget items and create a unique set of templates
-        self.available_block_templates_list_widget.clear()
+        # create a unique set of templates and load the exisitng block list 
         unique_templates = set()
+        for i in range(self.available_block_templates_list_widget.count()):
+            tpl = self.available_block_templates_list_widget.item(i).data(Qt.UserRole)
+            unique_templates.add(tpl)
+
+        # Clear the exisitng block list            
+        self.available_block_templates_list_widget.clear()
         
-        # Collect unique templates from all schedule options
+        # Collect unique templates from all schedule options (For loading exisiting course blocks)
         for option_data in self.all_schedule_options:
             for slot_type, slots_list in option_data.items():
                 for slot in slots_list:
@@ -359,7 +374,7 @@ class CourseEditorDialog(QDialog):
                 self.available_block_templates_list_widget.addItem(item)
                 self.available_block_templates_list_widget.setCurrentItem(item)
                 self.on_block_selected(item)
-                QMessageBox.information(self, "Template Block Created", "New time slot block added.")
+                #QMessageBox.information(self, "Template Block Created", "New time slot block added.")
 
     def remove_selected_block(self):
         ''' Remove the currently selected time slot block template from the list and all schedule options.'''
