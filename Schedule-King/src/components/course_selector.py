@@ -1,9 +1,8 @@
 from PyQt5.QtWidgets import (
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QSizePolicy, QLabel, QFrame, QMessageBox, QProgressDialog
+    QLabel, QMessageBox, QProgressDialog
 )
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QFont, QPixmap
 from typing import List
 from src.models.course import Course
 from src.components.course_list import CourseList
@@ -156,6 +155,14 @@ class CourseSelector(QWidget):
         self.course_list.populate_courses(courses)
         self.title_label.setText(f"Available Courses ({len(courses)} total)")
 
+    def get_all_courses(self) -> List[Course]:
+        """
+        Returns the current list of all available courses.
+        This is needed by CourseWindow for the CourseEditorDialog.
+        """
+        # Assuming course_list stores all available courses after population
+        return self.course_list.courses 
+    
     def _handle_search(self, text: str):
         """Filter courses based on search text."""
         self.course_list.filter_courses(text)

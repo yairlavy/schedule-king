@@ -3,17 +3,17 @@ from src.models.course import Course
 from typing import List, Optional
 from src.models.time_slot import TimeSlot
 from src.services.choicefreak.choicefreak_api import ChoiceFreakApi
-from src.services.choicefreak.choicefreak_parser import ChoiceFreakParser
 from src.controllers.CourseFiller import CourseFillingWorker
 from PyQt5.QtCore import QObject, pyqtSignal, QThread
-from collections import defaultdict
-import time
 
 class FillSignalEmitter(QObject):
     fillRequested = pyqtSignal(list, str)
 
-class CourseController:
+class CourseController(QObject):
+    courses_updated = pyqtSignal(list)  # Signal to emit when courses are updated
+    
     def __init__(self, api: ScheduleAPI):
+        super().__init__()
         self.api = api
         self.courses: List[Course] = []
         self.selected_courses: List[Course] = []
@@ -44,7 +44,9 @@ class CourseController:
         Loads the courses from the file path using the ScheduleAPI.
         """
         self.courses = self.api.get_courses(file_path)
+        self.courses_updated.emit(self.courses)
         return self.courses
+    
     def set_selected_courses(self, selected: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None,
                             preferred_slots: Optional[List[TimeSlot]] = None) -> None:
         self.selected_courses = selected
@@ -63,6 +65,21 @@ class CourseController:
         Returns the forbidden time slots.
         """
         return self.forbidden_slots
+
+    def add_or_update_course(self, course: Course):
+        """
+        Adds a new course or updates an existing one based on its course code.
+        Emits a signal when the course list changes.
+        """
+        found = False
+        for i, existing_course in enumerate(self.courses):
+            if existing_course.course_code == course.course_code:
+                self.courses[i] = course
+                found = True
+                break
+        if not found:
+            self.courses.append(course)
+        self.courses_updated.emit(self.courses)
 
     def get_courses_of_category(self, category: str) -> List[Course]:
         """

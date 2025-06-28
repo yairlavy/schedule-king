@@ -75,7 +75,7 @@ class SuperTester:
         while True:
             self.display_tests()
             print("Enter test numbers (0 for all) and optional pytest flags like (-v, -s), qt-show:time for gui window, or 'q' to quit")
-            print("Example: 1 2 -v -s qt-show:2 (for show the qt for 2 sec)")
+            print("Example: 1 2 -v -s qt-show:2 (for show the qt for 2 ms)")
             user_input = input().strip()
             if user_input.lower() in ('q', 'quit', 'exit'):
                 break

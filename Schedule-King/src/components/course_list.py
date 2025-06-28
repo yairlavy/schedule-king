@@ -153,8 +153,8 @@ class CourseList(QWidget):
             f"Lectures: {len(course.lectures)} | Tirguls: {len(course.tirguls)} | Labs: {len(course.maabadas)}",
         ]
         self._format_slot_groups(course.lectures, "Lecture", "#1976D2", details)
-        self._format_slot_groups(course.tirguls, "Tirgul", "#388E3C", details)
-        self._format_slot_groups(course.maabadas, "Lab", "#7B1FA2", details)
+        self._format_slot_groups(course.tirguls, "Tirgul", "#FF9800", details)
+        self._format_slot_groups(course.maabadas, "Maabada", "#4CAF50", details)
         return "<br>".join(details)
 
     def _format_slot_groups(self, slot_groups, label: str, color: str, details: List[str]):

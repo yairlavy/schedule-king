@@ -11,6 +11,7 @@ class ConstraintDialog(QDialog):
     def __init__(self, parent=None, initial_forbidden=None, initial_preferred=None):
         super().__init__(parent)
         self.setWindowTitle("Select Time Constraints")
+        self.setWindowFlags(self.windowFlags() & ~Qt.WindowContextHelpButtonHint)
         self.setMinimumSize(950, 600)
 
         layout = QVBoxLayout()

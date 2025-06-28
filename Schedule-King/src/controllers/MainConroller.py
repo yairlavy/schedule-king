@@ -27,10 +27,14 @@ class MainController:
         # Set up event handlers for the course window
         self.course_window.on_courses_loaded = self.on_file_selected
         self.course_window.on_continue = self.on_courses_selected
+        self.course_window.on_course_added_or_updated = self.on_course_added_or_updated
         self.course_window.choicefreakSelectionMade.connect(self.on_choicefreak_selection)
         self.course_window.courseSelector.coursesSelected.connect(self.course_controller.fill_courses)
-        self.course_controller.update_ui_course_filled = self.on_course_filled
         self.course_window.courseSelector.course_list.tooltipRequested.connect(self.on_tooltip_requested)
+
+        # CourseController signal
+        self.course_controller.courses_updated.connect(self.course_window.displayCourses)
+        self.course_controller.update_ui_course_filled = self.on_course_filled
 
     def start_application(self):
         # Show the course window to start the application
@@ -90,6 +94,8 @@ class MainController:
                     f"No courses found for the selected period '{period}' in university '{university}'."
                 )
                 return
+            # Add the course list to the courses
+            self.course_controller.courses = courses
             # Display the fetched courses in the course window
             self.course_window.displayCourses(courses)
         except Exception as e:
@@ -102,7 +108,7 @@ class MainController:
         finally:
             # Ensure the progress bar is closed
             self.course_window.courseSelector.close_progress_bar()
-
+            
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
         if not selected_courses:
@@ -156,6 +162,9 @@ class MainController:
         self.course_window.showMaximized()
         self.course_window.update()
         self.course_window.repaint()
+
+    def on_course_added_or_updated(self, course: Course):
+        self.course_controller.add_or_update_course(course)
 
     def on_tooltip_requested(self, course: Course):
         if not course.is_detailed:

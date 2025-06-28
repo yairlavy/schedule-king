@@ -4,17 +4,14 @@ from PyQt5.QtWidgets import (
     QPushButton, QDialog
 )
 from PyQt5.QtCore import Qt, pyqtSignal, QTimer
-from PyQt5.QtGui import QIcon, QFont
 from typing import List, Callable, Optional
 from src.models.course import Course
+from src.models.time_slot import TimeSlot
 from src.components.course_selector import CourseSelector
 from src.components.choicefreak_loader_dialog import ChoiceFreakLoaderDialog
 from src.components.constraint_dialog import ConstraintDialog
-import os
-from src.models.time_slot import TimeSlot
-from src.styles.ui_styles import red_button_style, blue_button_style
-from typing import Callable, List, Optional
-from PyQt5.QtCore import pyqtSignal
+from src.components.CourseEditorDialog import CourseEditorDialog
+from src.styles.ui_styles import blue_button_style
 
 class CourseWindow(QMainWindow):
     choicefreakSelectionMade = pyqtSignal(str, str)  # define at class level
@@ -45,6 +42,18 @@ class CourseWindow(QMainWindow):
 
         # Add courseSelector directly without extra stretching
         outer_layout.addWidget(self.courseSelector)
+
+        # === Add/Edit Course Button ===
+        additional_buttons_layout = QHBoxLayout()
+        additional_buttons_layout.addStretch(1)
+
+        self.add_edit_course_button = QPushButton("Add/Edit Course")
+        self.add_edit_course_button.setStyleSheet(blue_button_style())
+        self.add_edit_course_button.setCursor(Qt.PointingHandCursor)
+        self.add_edit_course_button.clicked.connect(self.open_course_editor_dialog)
+        additional_buttons_layout.addWidget(self.add_edit_course_button)
+
+        outer_layout.addLayout(additional_buttons_layout)
 
         # === Time Constraints Section ===
         # Store forbidden time slots
@@ -168,8 +177,24 @@ class CourseWindow(QMainWindow):
             self.courseSelector.close_progress_bar()
             self.courseSelector._handle_clear()
             self.on_courses_loaded(file_path)  # Trigger the courses loaded callback with the file path
+
+    def open_course_editor_dialog(self):
+        all_current_courses = self.courseSelector.get_all_courses()
+        editor_dialog = CourseEditorDialog(all_current_courses, self)
+        editor_dialog.courseEdited.connect(self._handle_course_edited)
+
+        if editor_dialog.exec_() == QDialog.Accepted:
+            pass
+        else:
+            QMessageBox.information(self, "Cancelled", "Course editing cancelled.")
+
+    def _handle_course_edited(self, edited_course: Course):
+        if edited_course:
+            QMessageBox.information(self, "Course Saved", f"Course '{edited_course.name}' saved successfully.")
+            if self.on_course_added_or_updated:
+                self.on_course_added_or_updated(edited_course)
+
     # choice freak selected signal
-        
     def load_courses_from_choicefreak(self):
         dialog = ChoiceFreakLoaderDialog(self)
         # Connect the custom signal to a handler method
