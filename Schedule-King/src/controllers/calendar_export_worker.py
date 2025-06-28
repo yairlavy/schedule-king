@@ -75,21 +75,43 @@ class CalendarExportWorker(QThread):
     def run(self):
         """Run the export operation in a separate thread."""
         try:
+            # Check for interruption before starting
+            if self.isInterruptionRequested():
+                self.export_finished.emit(False, "Export cancelled by user.")
+                return
+                
             # Validate schedule before export
             if not self.schedule or not hasattr(self.schedule, 'extract_by_day'):
                 # Schedule is invalid or missing required method
                 self.export_finished.emit(False, "Invalid schedule data. Please select a valid schedule.")
                 return
+                
+            # Check for interruption after validation
+            if self.isInterruptionRequested():
+                self.export_finished.emit(False, "Export cancelled by user.")
+                return
+                
             # Check if schedule has any courses
             daily_slots = self.schedule.extract_by_day()
             if not daily_slots:
                 # No courses in the schedule
                 self.export_finished.emit(False, "Schedule is empty. Please select a schedule with courses.")
                 return
+                
+            # Check for interruption before export
+            if self.isInterruptionRequested():
+                self.export_finished.emit(False, "Export cancelled by user.")
+                return
+                
             # Use the worker's export method and emit the result
             success, message = self.export_to_calendar(self.schedule, self.semester)
             self.export_finished.emit(success, message)
         except Exception as e:
+            # Check if the exception was due to interruption
+            if self.isInterruptionRequested():
+                self.export_finished.emit(False, "Export cancelled by user.")
+                return
+                
             # Handle threading and memory errors gracefully
             error_msg = str(e).lower()
             if "memory" in error_msg:

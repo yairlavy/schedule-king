@@ -17,6 +17,7 @@ from src.components.ranking_controls import RankingControls
 from src.services.schedule_event_maker import ScheduleEventMaker
 from typing import List, Optional
 import os
+from src.components.semester_choice_dialog import SemesterChoiceDialog
 
 class ScheduleWindow(QMainWindow):
     """
@@ -409,10 +410,9 @@ class ScheduleWindow(QMainWindow):
             QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
             return
         
-        # Ask user to choose semester
-        semester_options = ["סמסטר א'", "סמסטר ב'"]
-        semester, ok = QInputDialog.getItem(self, "בחר סמסטר", "לאיזה סמסטר לייצא את לוח השנה?", semester_options, 0, False)
-        if not ok:
+        # Use the new modern semester choice dialog
+        semester, ok = SemesterChoiceDialog.get_semester(self)
+        if not ok or not semester:
             return  # User cancelled
         
         # Disable the export button to prevent multiple clicks
@@ -454,6 +454,8 @@ class ScheduleWindow(QMainWindow):
         if self.loading_overlay is None:
             # Create overlay as direct child of main window
             self.loading_overlay = LoadingOverlay(self, "Exporting to Calendar...")
+            # Connect the cancel signal
+            self.loading_overlay.cancelled.connect(self.on_export_cancelled)
         
         # Position the overlay to cover the entire window
         window_size = self.size()
@@ -462,3 +464,14 @@ class ScheduleWindow(QMainWindow):
         # Show the overlay
         self.loading_overlay.show()
         self.loading_overlay.raise_()
+        
+    def on_export_cancelled(self):
+        """Handle export cancellation"""
+        # Cancel the export operation
+        self.controller.cancel_calendar_export()
+        # Hide loading overlay
+        self.hide_loading_overlay()
+        # Re-enable the export button
+        self.export_calendar_button.setEnabled(True)
+        # Show cancellation message
+        QMessageBox.information(self, "Cancelled", "Calendar export was cancelled.")
