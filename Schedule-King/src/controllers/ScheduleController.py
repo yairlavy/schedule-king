@@ -248,3 +248,19 @@ class ScheduleController:
         if on_finished:
             self.calendar_export_worker.export_finished.connect(on_finished)
         self.calendar_export_worker.start()
+        
+    def cancel_calendar_export(self):
+        """
+        Cancels the current calendar export operation gracefully.
+        """
+        if self.calendar_export_worker and self.calendar_export_worker.isRunning():
+            # Request the worker to stop gracefully
+            self.calendar_export_worker.requestInterruption()
+            # Wait for the worker to finish (with timeout)
+            if not self.calendar_export_worker.wait(3000):  # Wait up to 3 seconds
+                # Force terminate if it doesn't stop gracefully
+                self.calendar_export_worker.terminate()
+                self.calendar_export_worker.wait(1000)  # Wait for termination
+            # Clean up the worker
+            self.calendar_export_worker.deleteLater()
+            self.calendar_export_worker = None

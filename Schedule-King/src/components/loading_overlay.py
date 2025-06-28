@@ -1,13 +1,17 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QDialog
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QDialog, QPushButton, QHBoxLayout
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 
 class LoadingOverlay(QDialog):
     """
     A loading overlay widget that displays a loading animation and message.
     """
-    def __init__(self, parent=None, message="Loading..."):
+    # Signal emitted when cancel button is clicked
+    cancelled = pyqtSignal()
+    
+    def __init__(self, parent=None, message="Loading...", show_cancel=True):
         super().__init__(parent)
         self.message = message
+        self.show_cancel = show_cancel
         self.setup_ui()  # Initialize the UI components
         
     def setup_ui(self):
@@ -63,8 +67,43 @@ class LoadingOverlay(QDialog):
         layout.addWidget(self.spinner_label, alignment=Qt.AlignCenter)
         layout.addWidget(self.loading_label, alignment=Qt.AlignCenter)
         
+        # Add cancel button if requested
+        if self.show_cancel:
+            # Create horizontal layout for cancel button
+            button_layout = QHBoxLayout()
+            button_layout.setAlignment(Qt.AlignCenter)
+            
+            # Create cancel button
+            self.cancel_button = QPushButton("Cancel")
+            self.cancel_button.setStyleSheet("""
+                QPushButton {
+                    background-color: #f44336;
+                    color: white;
+                    border: none;
+                    border-radius: 8px;
+                    padding: 10px 20px;
+                    font-size: 14px;
+                    font-weight: 500;
+                    min-width: 80px;
+                }
+                QPushButton:hover {
+                    background-color: #d32f2f;
+                }
+                QPushButton:pressed {
+                    background-color: #b71c1c;
+                }
+            """)
+            self.cancel_button.clicked.connect(self.on_cancel_clicked)
+            
+            button_layout.addWidget(self.cancel_button)
+            layout.addLayout(button_layout)
+        
         # Start spinner animation
         self.start_spinner()
+        
+    def on_cancel_clicked(self):
+        """Handle cancel button click"""
+        self.cancelled.emit()
         
     def show(self):
         """Override show method to add debug info"""
@@ -93,3 +132,9 @@ class LoadingOverlay(QDialog):
         """Update the loading message"""
         self.message = message
         self.loading_label.setText(message)  # Update label text
+        
+    def closeEvent(self, event):
+        """Handle close event - emit cancelled signal"""
+        self.stop_spinner()
+        self.cancelled.emit()
+        super().closeEvent(event)

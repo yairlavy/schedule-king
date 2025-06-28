@@ -82,12 +82,17 @@ class CourseWindow(QMainWindow):
 
     def showEvent(self, event):
         super().showEvent(event)
-        if self._first_show:
-            if self._fullscreen_on_start:
-                self.showFullScreen()
-            elif self._maximize_on_start:
-                self.showMaximized()
-            self._first_show = False
+        if self._fullscreen_on_start:
+            self.showFullScreen()
+        elif self._maximize_on_start:
+            self.showMaximized()
+        # Force layout update every time
+        if self.centralWidget() and self.centralWidget().layout():
+            self.centralWidget().layout().activate()
+            self.centralWidget().updateGeometry()
+            self.centralWidget().adjustSize()
+        # Force a resize event
+        self.resize(self.size())
 
     def _open_constraint_dialog(self):
         """Open the constraint selection dialog"""
