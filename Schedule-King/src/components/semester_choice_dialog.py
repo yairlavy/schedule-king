@@ -8,7 +8,7 @@ class SemesterChoiceDialog(QDialog):
         self.setModal(True)
         self.selected_semester = None
         if semesters is None:
-            semesters = ["סמסטר א'", "סמסטר ב'"]
+            semesters = ["סמסטר א'", "סמסטר ב'","סמסטר קיץ"]
         self.semesters = semesters
         self.setup_ui(subtitle)
 
