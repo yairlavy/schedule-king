@@ -24,7 +24,8 @@ slot_type_colors = {
     "Lecture": "9",    # Light blue for lectures
     "Tirgul": "5",     # Orange/yellow for tutorials
     "Maabada": "10",   # Light green for labs
-    "holiday": "11"    # Red for holidays
+    "holiday": "11",   # Red for holidays
+    "semester": "3"    # Purple for semester start/end events
 }
 
 class ScheduleEventMaker:
@@ -40,7 +41,7 @@ class ScheduleEventMaker:
     - Creates and manages a dedicated academic calendar
     """
 
-    def __init__(self, semester = None, calendar_name="לוח זמנים אקדמי"):
+    def __init__(self, semester = None, calendar_name="מערכת שעות אקדמית"):
         """
         Initialize the ScheduleEventMaker - creates Google Calendar connection and loads academic year data.
         
@@ -195,6 +196,69 @@ class ScheduleEventMaker:
             print(f"Error creating holiday event: {e}")
             return None
 
+    def _create_semester_boundary_events(self, semester):
+        """
+        Create events for the start and end of the semester in purple color.
+        
+        Args:
+            semester (dict): Semester dictionary containing start, end dates and name
+            
+        Returns:
+            bool: True if events were created successfully, False otherwise
+        """
+        semester_start = semester['start'].date()
+        semester_end = semester['end'].date()
+        semester_name = semester['name']
+        
+        # Create semester start event
+        start_event = {
+            'summary': f" {semester_name} - Start of Semester",
+            'description': f"Academic semester '{semester_name}' begins today.\n\nGood luck with your studies!",
+            'start': {
+                'date': semester_start.isoformat(),
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'end': {
+                'date': (semester_start + timedelta(days=1)).isoformat(),  # End date is exclusive
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'colorId': slot_type_colors['semester']  # Purple color for semester events
+        }
+        
+        # Create semester end event
+        end_event = {
+            'summary': f" {semester_name} - End of Semester",
+            'description': f"Academic semester '{semester_name}' ends today.\n\nCongratulations on completing the semester!",
+            'start': {
+                'date': semester_end.isoformat(),
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'end': {
+                'date': (semester_end + timedelta(days=1)).isoformat(),  # End date is exclusive
+                'timeZone': 'Asia/Jerusalem',
+            },
+            'colorId': slot_type_colors['semester']  # Purple color for semester events
+        }
+        
+        # Insert the events into the academic calendar
+        try:
+            created_start_event = self.calendar_manager.service.events().insert(
+                calendarId=self.academic_calendar_id, 
+                body=start_event
+            ).execute()
+            print(f"Semester start event created: {semester_name} on {semester_start}")
+            
+            created_end_event = self.calendar_manager.service.events().insert(
+                calendarId=self.academic_calendar_id, 
+                body=end_event
+            ).execute()
+            print(f"Semester end event created: {semester_name} on {semester_end}")
+            
+            return True
+        except Exception as e:
+            print(f"Error creating semester boundary events: {e}")
+            return False
+
     def create_events(self, schedule: Schedule) -> bool:
         """
         Create recurring events for the schedule, respecting holidays and semester boundaries.
@@ -239,6 +303,9 @@ class ScheduleEventMaker:
                 if holiday['title'] not in created_holidays:
                     self._create_holiday_event(holiday, semester_start, semester_end)
                     created_holidays.add(holiday['title'])
+
+        # Step 3.5: Create semester start and end events in purple
+        self._create_semester_boundary_events(current_semester)
 
         # Step 4: Get all holiday dates in the semester for exclusion from regular events
         # This prevents lesson events from being created on holiday dates
