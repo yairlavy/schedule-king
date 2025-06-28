@@ -98,7 +98,7 @@ def test_submit_selection(loaded_window, qtbot):
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
     captured_selections = []
 
-    def capture_selections(selected):
+    def capture_selections(selected,*_):
         captured_selections.extend(selected)
 
     loaded_window.on_continue = capture_selections

@@ -10,37 +10,38 @@ from src.models.time_slot import TimeSlot
 from src.services.logger import Logger
 
 class MainController:
-    def __init__(self, api: ScheduleAPI, maximize_on_start=True):
+    def __init__(self, api: ScheduleAPI, maximize_on_start=True, fullscreen_on_start=False):
         # Initialize the main controller with the API instance
         self.api = api
         self._maximize_on_start = maximize_on_start
+        self._fullscreen_on_start = fullscreen_on_start
 
         # Initialize course and schedule controllers
         self.course_controller = CourseController(api)
         self.schedule_controller = ScheduleController(api)
 
         # Initialize the course window and set up event handlers
-        self.course_window = CourseWindow(maximize_on_start=maximize_on_start)
+        self.course_window = CourseWindow(maximize_on_start=maximize_on_start, fullscreen_on_start=fullscreen_on_start)
         self.schedule_window = None  # Schedule window will be created later
 
         # Set up event handlers for the course window
         self.course_window.on_courses_loaded = self.on_file_selected
         self.course_window.on_continue = self.on_courses_selected
-        # Connect the new signal for course additions/updates
         self.course_window.on_course_added_or_updated = self.on_course_added_or_updated
+        self.course_window.choicefreakSelectionMade.connect(self.on_choicefreak_selection)
+        self.course_window.courseSelector.coursesSelected.connect(self.course_controller.fill_courses)
+        self.course_window.courseSelector.course_list.tooltipRequested.connect(self.on_tooltip_requested)
 
-        # Connect the CourseController's courses_updated signal to CourseWindow's display_courses method
+        # CourseController signal
         self.course_controller.courses_updated.connect(self.course_window.displayCourses)
+        self.course_controller.update_ui_course_filled = self.on_course_filled
 
     def start_application(self):
         # Show the course window to start the application
         self.course_window.show()
 
     def on_file_selected(self, file_path: str):
-        """
-        Handle the event when a file is selected.
-        Loads courses from the file, checks for conflicts, and displays them.
-        """
+        # Handle the event when a file is selected
         try:
             # Get course names from the selected file
             courses = self.course_controller.get_courses_names(file_path)
@@ -78,11 +79,36 @@ class MainController:
                 f"An error occurred while loading the file: {str(e)}"
             )
 
-    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None):
-        """
-        Handle the event when courses are selected.
-        Sets selected courses, initializes the schedule window, and generates schedules.
-        """
+    def on_choicefreak_selection(self, university: str, period: str):
+        self.course_controller.start_thread()  # Start the thread for course filling
+        # Handle the event when a ChoiceFreak selection is made
+        try:
+            # Fetch courses from ChoiceFreak based on the selected university and period
+            courses = self.course_controller.fetch_choicefreak_courses(university, period)
+            print(f"Fetched {len(courses)} courses for period '{period}' in university '{university}'")
+            if not courses:
+                # Show a warning if no courses are found
+                QMessageBox.warning(
+                    self.course_window,
+                    "No Courses Found",
+                    f"No courses found for the selected period '{period}' in university '{university}'."
+                )
+                return
+            # Display the fetched courses in the course window
+            self.course_window.displayCourses(courses)
+        except Exception as e:
+            # Show an error message if there is an issue fetching courses
+            QMessageBox.critical(
+                self.course_window,
+                "Error Fetching Courses",
+                f"An error occurred while fetching courses: {str(e)}"
+            )
+        finally:
+            # Ensure the progress bar is closed
+            self.course_window.courseSelector.close_progress_bar()
+
+    def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
+        # Handle the event when courses are selected
         if not selected_courses:
             # Show a warning if no courses are selected
             QMessageBox.warning(
@@ -92,10 +118,11 @@ class MainController:
             )
             return
 
-        # Set the selected courses and forbidden slots (if exist) in the course controller
+        # Set the selected courses, forbidden slots, and preferred slots in the course controller
         forbidden_slots = forbidden_slots or []
-        self.course_controller.set_selected_courses(selected_courses, forbidden_slots)
-       
+        preferred_slots = preferred_slots or []  
+        self.course_controller.set_selected_courses(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
+    
         # Make sure any previous schedule generation is stopped if the schedule window exists
         if self.schedule_window:
             self.schedule_controller.stop_schedules_generation()
@@ -103,22 +130,19 @@ class MainController:
         
         # Initialize the schedule window with the generated schedules
         self.schedule_window = ScheduleWindow(
-                                               self.schedule_controller, 
-                                              maximize_on_start=self._maximize_on_start, 
-                                              show_progress_on_start=False)
+                                            self.schedule_controller, 
+                                            maximize_on_start=self._maximize_on_start, 
+                                            show_progress_on_start=False)
 
-        # Set up event handler for navigating back
         self.schedule_window.on_back = self.on_navigate_back_to_courses
         # Hide the course window and show the schedule window
         self.course_window.hide()
         self.schedule_window.show()
-        # Generate schedules based on the selected courses and forbidden slots if any
-        self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
+        # Generate schedules based on the selected courses, forbidden slots, and preferred slots
+        self.schedule_controller.generate_schedules(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
 
     def on_generate_schedules(self):
-        """
-        Generate schedules for the currently selected courses and display them.
-        """
+        # Generate schedules for the currently selected courses
         selected_courses = self.course_controller.get_selected_courses()
         forbidden_slots = self.course_controller.get_forbidden_slots()
         schedules = self.schedule_controller.generate_schedules(selected_courses, forbidden_slots)
@@ -127,20 +151,25 @@ class MainController:
             self.schedule_window.displaySchedules(schedules)
 
     def on_navigate_back_to_courses(self):
-        """
-        Handle navigation back to the course selection window.
-        Hides the schedule window and shows the course window.
-        """
+        # Handle navigation back to the course selection window
         if self.schedule_window:
             # Hide the schedule window and reset it
             self.schedule_window.hide()
             self.schedule_window = None  
-        # Show the course window again
-        self.course_window.show()
+        # Show the course window again, maximized, and update its layout
+        self.course_window.showMaximized()
+        self.course_window.update()
+        self.course_window.repaint()
 
     def on_course_added_or_updated(self, course: Course):
-        """
-        Handles the event when a course is added or updated from the CourseEditorDialog.
-        This method will call the CourseController to update its internal list.
-        """
         self.course_controller.add_or_update_course(course)
+
+    def on_tooltip_requested(self, course: Course):
+        if not course.is_detailed:
+            self.course_controller.fill_courses([course])
+
+    def on_course_filled(self, filled_course=None):
+        self.course_window.courseSelector.update_selected_courses_panel()
+        # Only update the tooltip for the filled course if provided
+        if filled_course is not None:
+            self.course_window.courseSelector.course_list.update_course_tooltip(filled_course)

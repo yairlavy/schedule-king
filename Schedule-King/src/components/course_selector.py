@@ -132,16 +132,16 @@ class CourseSelector(QWidget):
         footer.setStyleSheet(footer_label_style())
         self.layout.addWidget(footer)
 
-    def show_progress_bar(self):
+    def show_progress_bar(self, text="Generating schedules...", title="Generating"):
         """Show progress bar while schedules are generating."""
         if self.progress_bar:
             self.progress_bar.close()
-        self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
+        self.progress_bar = QProgressDialog(text, "Cancel", 0, 0, self)
         self.progress_bar.setWindowModality(Qt.WindowModal)
         self.progress_bar.setMinimumDuration(0)
         self.progress_bar.setAutoClose(False)
         self.progress_bar.setAutoReset(False)
-        self.progress_bar.setWindowTitle("Generating")
+        self.progress_bar.setWindowTitle(title)
         self.progress_bar.show()
 
     def close_progress_bar(self):
@@ -178,6 +178,7 @@ class CourseSelector(QWidget):
             return
 
         # Update selected panel and UI
+        
         self.selected_panel.update_selection(selected_courses)
         self.title_label.setText(f"Available Courses ({len(selected_courses)} selected)")
         self._update_submit_button_state(selected_courses)
@@ -233,3 +234,9 @@ class CourseSelector(QWidget):
         # Refresh the list to reflect selection
         self.course_list._update_course_list(self.course_list.courses)
         self._handle_selection_changed(self.get_selected_courses())
+
+    
+    def update_selected_courses_panel(self):
+        """Re-render the selected courses in the SelectedCoursesPanel."""
+        selected_courses = self.get_selected_courses()
+        self.selected_panel.update_selection(selected_courses)
