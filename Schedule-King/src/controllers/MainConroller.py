@@ -94,6 +94,8 @@ class MainController:
                     f"No courses found for the selected period '{period}' in university '{university}'."
                 )
                 return
+            # Add the course list to the courses
+            self.course_controller.courses = courses
             # Display the fetched courses in the course window
             self.course_window.displayCourses(courses)
         except Exception as e:
@@ -106,7 +108,7 @@ class MainController:
         finally:
             # Ensure the progress bar is closed
             self.course_window.courseSelector.close_progress_bar()
-
+            
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
         if not selected_courses:
