@@ -147,8 +147,10 @@ class MainController:
             # Hide the schedule window and reset it
             self.schedule_window.hide()
             self.schedule_window = None  
-        # Show the course window again
-        self.course_window.show()
+        # Show the course window again, maximized, and update its layout
+        self.course_window.showMaximized()
+        self.course_window.update()
+        self.course_window.repaint()
 
     def on_course_filled(self):
         self.course_window.courseSelector.update_selected_courses_panel()
