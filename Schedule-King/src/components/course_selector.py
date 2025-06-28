@@ -196,7 +196,6 @@ class CourseSelector(QWidget):
         if len(selected) > self.MAX_COURSES:
             QMessageBox.warning(self, "Course Limit", f"You cannot select more than {self.MAX_COURSES} courses.")
             return
-        self.show_progress_bar()
         self.coursesSubmitted.emit(selected)
 
     def _handle_clear(self):
