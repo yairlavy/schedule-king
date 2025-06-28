@@ -9,8 +9,11 @@ from PyQt5.QtCore import QObject, pyqtSignal, QThread
 class FillSignalEmitter(QObject):
     fillRequested = pyqtSignal(list, str)
 
-class CourseController:
+class CourseController(QObject):
+    courses_updated = pyqtSignal(list)  # Signal to emit when courses are updated
+    
     def __init__(self, api: ScheduleAPI):
+        super().__init__()
         self.api = api
         self.courses: List[Course] = []
         self.selected_courses: List[Course] = []
