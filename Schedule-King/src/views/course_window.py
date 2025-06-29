@@ -216,18 +216,18 @@ class CourseWindow(QMainWindow):
         
         
         # === Add/Edit Course Button ===
-        additional_buttons_layout = QHBoxLayout()
-        additional_buttons_layout.addStretch(1)
+        #additional_buttons_layout = QHBoxLayout()
+        #additional_buttons_layout.addStretch(1)
 
         self.add_edit_course_button = QPushButton("Add/Edit Course")
         self.add_edit_course_button.setStyleSheet(blue_button_style())
         self.add_edit_course_button.setCursor(Qt.PointingHandCursor)
         self.add_edit_course_button.clicked.connect(self.open_course_editor_dialog)
-        additional_buttons_layout.addWidget(self.add_edit_course_button)
+        #additional_buttons_layout.addWidget(self.add_edit_course_button)
 
-        outer_layout.addLayout(additional_buttons_layout)
+        #outer_layout.addLayout(additional_buttons_layout)
         self.user_guide_button = self._create_user_guide_button()
-        additional_buttons_layout.addWidget(self.user_guide_button)
+        #additional_buttons_layout.addWidget(self.user_guide_button)
 
         # === Time Constraints Section ===
         # Store forbidden time slots
@@ -246,6 +246,8 @@ class CourseWindow(QMainWindow):
         # === NEW Load Data Button (replaces the two separate buttons) ===
         self.load_data_button = self._create_load_data_button()
         self.courseSelector.button_layout.addWidget(self.load_data_button)
+        self.courseSelector.button_layout.addWidget(self.add_edit_course_button)
+        self.courseSelector.button_layout.addWidget(self.user_guide_button)
 
         # Wrap the layout in a container widget
         container = QWidget()
