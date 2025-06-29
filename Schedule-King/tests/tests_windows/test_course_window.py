@@ -73,6 +73,7 @@ def get_wait_time():
 # ——— Tests ————————————————————————————————————————————
 
 def test_load_courses(loaded_window, courses):
+    loaded_window.displayCourses(courses)
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
     assert list_widget.count() == len(courses)
     assert list_widget.item(0).text() == "00001 - Calculus 1"
@@ -80,7 +81,8 @@ def test_load_courses(loaded_window, courses):
     assert list_widget.item(2).text() == "83112 - Calculus 1 (eng)"
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 total)"
 
-def test_select_and_clear_courses(loaded_window, qtbot):
+def test_select_and_clear_courses(loaded_window, qtbot, courses):
+    loaded_window.displayCourses(courses)
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
     for i in range(list_widget.count()):
         item = list_widget.item(i)
@@ -94,7 +96,8 @@ def test_select_and_clear_courses(loaded_window, qtbot):
     assert not list_widget.selectedItems()
     assert loaded_window.courseSelector.title_label.text() == "Available Courses (3 total)"
 
-def test_submit_selection(loaded_window, qtbot):
+def test_submit_selection(loaded_window, qtbot, courses):
+    loaded_window.displayCourses(courses)
     list_widget = loaded_window.courseSelector.findChild(QListWidget)
     captured_selections = []
 
