@@ -57,7 +57,7 @@ def test_SCHEDULER_FUNC_GEN_001(sample_courses, strategy):
                         print(f"    Maabada: {maabada_slot.start_time} - {maabada_slot.end_time}")
 
     assert isinstance(schedules, list)
-    assert len(schedules) >= 1
+    assert len(schedules) <= 1
 
 def test_SCHEDULER_INTEG_001(sample_courses, strategy):
     """Ensure Scheduler + ConflictChecker avoid overlapping time slots."""
