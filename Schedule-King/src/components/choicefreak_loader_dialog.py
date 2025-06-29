@@ -11,7 +11,7 @@ class ChoiceFreakLoaderDialog(QDialog):
         layout = QFormLayout(self)
         self.university_combo = QComboBox()
         self.university_combo.setObjectName("university_combo")
-        self.university_combo.addItems(["biu", "tau", "bgu", "tech", "ariel", "huji", "hit"])
+        self.university_combo.addItems(["biu", "tau", "bgu", "tech", "ariel", "huji", "hit", "haifa"])
         layout.addRow("University:", self.university_combo)
         self.period_combo = QComboBox()
         self.period_combo.setObjectName("period_combo")
