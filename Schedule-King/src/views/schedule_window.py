@@ -423,11 +423,27 @@ class ScheduleWindow(QMainWindow):
         # Use the controller's async export method, pass semester
         self.controller.export_to_calendar_async(self.current_schedule, semester, self.on_export_finished)
         
+    def show_loading_overlay(self):
+        """Show the loading overlay"""
+        # Always create a new overlay
+        if self.loading_overlay is not None:
+            self.loading_overlay.deleteLater()
+            self.loading_overlay = None
+
+        self.loading_overlay = LoadingOverlay(self, "Exporting to Calendar...")
+        self.loading_overlay.cancelled.connect(self.on_export_cancelled)
+        window_size = self.size()
+        self.loading_overlay.setGeometry(0, 0, window_size.width(), window_size.height())
+        self.loading_overlay.show()
+        self.loading_overlay.raise_()
+
     def hide_loading_overlay(self):
         """Hide the loading overlay"""
         if self.loading_overlay:
             self.loading_overlay.stop_spinner()
             self.loading_overlay.hide()
+            self.loading_overlay.deleteLater()
+            self.loading_overlay = None
             
     def on_export_finished(self, success: bool, message: str):
         """Handle export completion"""
@@ -449,22 +465,6 @@ class ScheduleWindow(QMainWindow):
             central_size = self.central_widget.size()
             self.loading_overlay.setGeometry(0, 0, central_size.width(), central_size.height())
 
-    def show_loading_overlay(self):
-        """Show the loading overlay"""
-        if self.loading_overlay is None:
-            # Create overlay as direct child of main window
-            self.loading_overlay = LoadingOverlay(self, "Exporting to Calendar...")
-            # Connect the cancel signal
-            self.loading_overlay.cancelled.connect(self.on_export_cancelled)
-        
-        # Position the overlay to cover the entire window
-        window_size = self.size()
-        self.loading_overlay.setGeometry(0, 0, window_size.width(), window_size.height())
-
-        # Show the overlay
-        self.loading_overlay.show()
-        self.loading_overlay.raise_()
-        
     def on_export_cancelled(self):
         """Handle export cancellation"""
         # Cancel the export operation
