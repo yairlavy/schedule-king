@@ -40,6 +40,7 @@ class ChoiceFreakParser():
         when = datetime.fromisoformat(show["when"])
         start = when
         end = when + timedelta(minutes=show.get("duration", 0))
+        # Create and return a TimeSlot object using show details
         return TimeSlot(
             day=self._heb_day(start),
             start_time=start.strftime("%H:%M"),
@@ -62,6 +63,7 @@ class ChoiceFreakParser():
                 print(f"Error processing instructor: {e}")
         instr_str = ", ".join(instructors)
 
+        # Create the Course object with basic info
         course = Course(
             course_name=d.get("title", ""),
             course_code=d.get("id", ""),
@@ -90,9 +92,8 @@ class ChoiceFreakParser():
             elif target == "maabada":
                 course.add_maabada(timeslots)
             else:
-            # Skip unknown kinds
+                # Skip unknown kinds
                 continue
-
 
         return course
 
@@ -101,9 +102,13 @@ class ChoiceFreakParser():
         Fetch and parse courses by a list of course IDs.
         :param course_ids: List of course ID strings.
         :param university: University code (e.g., 'biu').
+        :param period: Academic period or semester.
         :return: List of parsed Course objects.
         """
+        # Fetch raw course data from the API
         raw = ChoiceFreakApi.get_courses_details(university, period, course_ids)
+        # Ensure raw is a list for consistent processing
         if isinstance(raw, dict):
             raw = [raw]
+        # Parse each course dictionary into a Course object
         return [self._course_from_dict(d) for d in raw]
