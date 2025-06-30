@@ -8,7 +8,8 @@ from src.models.course import Course
 from typing import List, Optional
 from src.models.time_slot import TimeSlot
 from src.services.logger import Logger
-from PyQt5.QtCore import QTimer
+from PyQt5.QtCore import QTimer, Qt
+from PyQt5.QtWidgets import QProgressDialog
 
 class MainController:
     def __init__(self, api: ScheduleAPI, maximize_on_start=True, fullscreen_on_start=False):
@@ -111,7 +112,6 @@ class MainController:
             self.course_window.courseSelector.close_progress_bar()
             
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
-        # Handle the event when courses are selected
         if not selected_courses:
             QMessageBox.warning(
                 self.course_window,
@@ -120,43 +120,61 @@ class MainController:
             )
             return
 
-        # Store what you need for later
         self._selected_courses = selected_courses
         self._forbidden_slots = forbidden_slots or []
         self._preferred_slots = preferred_slots or []
 
-        # Start checking when they are detailed
-        self.check_if_courses_detailed()
+        # First: try immediately
+        if all(course.is_detailed for course in self._selected_courses):
+            self._proceed_with_detailed_courses()
+        else:
+            # Not ready, show loading dialog
+            self.loading_dialog = QProgressDialog(
+                "Loading course details...", None, 0, 0, self.course_window
+            )
+            self.loading_dialog.setWindowTitle("Please wait")
+            self.loading_dialog.setCancelButton(None)
+            self.loading_dialog.setMinimumDuration(0)
+            self.loading_dialog.setWindowModality(Qt.ApplicationModal)
+            self.loading_dialog.show()
+
+            # Start polling loop
+            self.check_if_courses_detailed()
 
     def check_if_courses_detailed(self, attempts=0):
-        if all(course.is_detailed for course in self._selected_courses) or attempts >= 2:
-            self.course_controller.set_selected_courses(
-                self._selected_courses,
-                self._forbidden_slots,
-                self._preferred_slots
-            )
+        if all(course.is_detailed for course in self._selected_courses) or attempts >= 3:
+            if hasattr(self, 'loading_dialog'):
+                self.loading_dialog.close()
+                del self.loading_dialog
 
-            if self.schedule_window:
-                self.schedule_controller.stop_schedules_generation()
-                self.schedule_controller.next = 1
-
-            self.schedule_window = ScheduleWindow(
-                self.schedule_controller,
-                maximize_on_start=self._maximize_on_start,
-                show_progress_on_start=False
-            )
-            self.schedule_window.on_back = self.on_navigate_back_to_courses
-            self.course_window.hide()
-            self.schedule_window.show()
-            self.schedule_controller.generate_schedules(
-                self._selected_courses,
-                self._forbidden_slots,
-                self._preferred_slots
-            )
+            self._proceed_with_detailed_courses()
         else:
-            # Not ready yet, check again in 1 second, incrementing attempts
             QTimer.singleShot(1000, lambda: self.check_if_courses_detailed(attempts + 1))
 
+    def _proceed_with_detailed_courses(self):
+        self.course_controller.set_selected_courses(
+            self._selected_courses,
+            self._forbidden_slots,
+            self._preferred_slots
+        )
+
+        if self.schedule_window:
+            self.schedule_controller.stop_schedules_generation()
+            self.schedule_controller.next = 1
+
+        self.schedule_window = ScheduleWindow(
+            self.schedule_controller,
+            maximize_on_start=self._maximize_on_start,
+            show_progress_on_start=False
+        )
+        self.schedule_window.on_back = self.on_navigate_back_to_courses
+        self.course_window.hide()
+        self.schedule_window.show()
+        self.schedule_controller.generate_schedules(
+            self._selected_courses,
+            self._forbidden_slots,
+            self._preferred_slots
+        )
 
     def on_generate_schedules(self):
         # Generate schedules for the currently selected courses
