@@ -291,7 +291,7 @@ class CourseWindow(QMainWindow):
                     
                     icon = QIcon(scaled_pixmap)
         except Exception as e:
-            print(f"❌ Error loading icon {icon_path}: {e}")
+            print(f" Error loading icon {icon_path}: {e}")
         
         return icon
 
@@ -448,6 +448,7 @@ class CourseWindow(QMainWindow):
         Handle the selection made in the ChoiceFreakLoaderDialog.
         This method should be implemented to fetch courses based on the selected university and period.
         """
+        self.courseSelector.course_list.clear_selection()
         self.courseSelector.show_progress_bar("Loading courses from ChoiceFreak...", "Loading")
         QTimer.singleShot(1000, lambda: self.choicefreakSelectionMade.emit(university, period))
     def _create_time_constraints_button(self) -> QPushButton:

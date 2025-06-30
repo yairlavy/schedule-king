@@ -23,6 +23,7 @@ class CourseController(QObject):
         self.period = "2025-2"  # Default period, can be changed later
         # Connect the signal
         self.worker.courseFilled.connect(self.on_course_filled)
+        self.worker.fillError.connect(self.on_fill_error)  # Connect error signal
 
         # Signal emitter
         self.signal_emitter = FillSignalEmitter()
@@ -127,6 +128,14 @@ class CourseController(QObject):
         course.copy(filled_course)
         if self.update_ui_course_filled:
             self.update_ui_course_filled(course)
+
+    def on_fill_error(self, error_message):
+        """
+        Handle errors from the course filling worker.
+        Propagate to UI if possible.
+        """
+        if self.update_ui_course_filled:
+            self.update_ui_course_filled(None, error_message)
 
     def fill_courses(self, courses: List['Course']):
         """
