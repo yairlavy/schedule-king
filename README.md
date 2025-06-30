@@ -1,167 +1,154 @@
 # Schedule King
 
-A modern, user-friendly application for building student study schedules. Schedule King allows students to select courses, generate conflict-free schedules, and export them in various formats.
+A modern, user-friendly application for building student study schedules. Schedule King enables students to select courses, generate all possible conflict-free schedules, and export them in various formats. The application features a polished PyQt5 interface and supports both local and online course data sources.
+
+---
 
 ## Features
 
-- **Course Selection**: Load course data from a text file and select courses via a modern UI.
-- **Schedule Generation**: Automatically generates all possible conflict-free schedules based on selected courses.
-- **Conflict Checking**: Ensures no time or room conflicts exist in the generated schedules.
-- **Export Options**: Export schedules in both text and Excel formats.
-- **Modern UI**: Built with PyQt5, featuring a responsive and intuitive interface.
+- **Intuitive Course Selection**: Load course data from a local file or fetch from the ChoiceFreak global database.
+- **Automatic Schedule Generation**: Instantly generate all possible conflict-free schedules based on your selected courses and constraints.
+- **Conflict Checking**: Ensures no time or room conflicts exist in generated schedules.
+- **Advanced Constraints**: Specify forbidden and preferred time slots to tailor your schedule.
+- **Schedule Ranking**: Sort and rank schedules by custom metrics (e.g., compactness, free days, etc.).
+- **Export Options**: Export schedules in text, Excel, or calendar formats.
+- **Modern UI**: Built with PyQt5, featuring a responsive, modular, and visually appealing interface.
+
+---
 
 ## Requirements
 
 - **Python**: Version 3.8 or higher
   - Download Python from [python.org](https://www.python.org/downloads/)
-  - Make sure to check "Add Python to PATH" during installation
-  - Verify installation by opening a terminal/command prompt and typing:
+  - Ensure "Add Python to PATH" is checked during installation
+  - Verify installation:
     ```bash
     python --version
     ```
+- **Dependencies**: Listed in `requirements.txt` (see Installation)
+
+---
 
 ## Project Structure
 
 ```
 Schedule-King/
 ├── src/
-│   ├── assets/           # Static assets (icons images)
+│   ├── assets/           # Static assets (icons, images)
 │   ├── components/       # Reusable UI components
-│   ├── controllers/      # Application controllers
+│   ├── controllers/      # Application controllers (logic)
 │   ├── interfaces/       # Interface definitions
 │   ├── models/           # Core data models
-│   ├── services/         # Business logic and utilities
-│   ├── styles/           # UI stylesheets
-│   └── views/            # UI views
-├── tests/                # Test files
+│   ├── services/         # Business logic, scheduling, export, APIs
+│   ├── styles/           # UI stylesheets (QSS, style helpers)
+│   └── views/            # Main UI windows (course selection, schedule view)
+├── tests/                # Unit and integration tests
 ├── main.py               # Application entry point
 ├── requirements.txt      # Production dependencies
 └── dev-requirements.txt  # Development dependencies
 ```
 
+---
+
 ## Installation
 
-1. Clone the repository:
+1. **Clone the repository:**
    ```bash
    git clone <repository-url>
    cd Schedule-King
    ```
-
-2. Install the required dependencies:
+2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
 
+---
+
 ## Running the Application
 
-1. **Start the Application**:
+1. **Start the Application:**
    ```bash
    python main.py
    ```
+2. **Using the Application:**
+   - The course selection window appears on launch.
+   - Click **"Select File"** to load a local course data file, or choose **"ChoiceFreak"** to fetch from the global database.
+   - Select your desired courses (multiple selection supported).
+   - Optionally, set forbidden/preferred time slots for advanced scheduling.
+   - Click **"Generate Schedules"** to create all possible conflict-free combinations.
+   - Use navigation controls to browse schedule options.
+   - Rank schedules by your preferred criteria.
+   - Export your preferred schedule(s) as text, Excel, or calendar files.
 
-2. **Using the Application**:
-   - When the application starts, you'll see the course selection window
-   - Click "Select File" to choose your course data file
-   - Select the courses you want to include in your schedule
-   - Click "Generate Schedules" to create all possible conflict-free schedules
-   - Use the navigation controls to browse through different schedule options
-   - Export your preferred schedule using the "Export" button
+---
 
-## Run Tests
-To ensure everything is working correctly, you can run the tests using `pytest`:
+## Running Tests
+
+To ensure everything is working correctly, run the tests using `pytest`:
 
 ```bash
 python -m pytest
 ```
 
-Alternatively, you can use the custom test runner `SuperTester.py`:
+Or use the custom test runner:
 
 ```bash
 cd tests
 python SuperTester.py
 ```
 
-## Usage
+---
 
-1. **Load Course Data**:
-   - Click the "Select File" button in the course selection window
-   - Choose a text file containing your course data
-   - The application will parse and display available courses
+## Usage Overview
 
-Note : the input file need to be in the write the right format you can use txt files in tests/test_files dir 
+### 1. Load Course Data
+- Click **"Select File"** to load a `.txt` file (see format below), or use **ChoiceFreak** for online data.
+- Example input files are available in `tests/test_files`.
 
-2. **Select Courses**:
-   - Check the boxes next to the courses you want to include
-   - You can select multiple courses
-   - The application will automatically check for conflicts between selected courses
+### 2. Select Courses
+- Check the boxes next to the courses you want to include.
+- The app automatically checks for conflicts between selected courses.
 
-3. **Generate Schedules**:
-   - Click "Generate Schedules" to create all possible conflict-free combinations
-   - A progress bar will show the generation status
-   - Once complete, you'll be taken to the schedule view window
+### 3. Set Constraints (Optional)
+- Add forbidden or preferred time slots to further customize your schedule.
 
-4. **View and Navigate Schedules**:
-   - Use the navigation controls to browse through different schedule options
-   - The current schedule number and total number of schedules are displayed
-   - The schedule is displayed in a table format showing:
-     - Course name and code
-     - Session type (Lecture/Tirgul)
-     - Day and time
-     - Room and building numbers
+### 4. Generate Schedules
+- Click **"Generate Schedules"** to create all possible conflict-free combinations.
+- A progress bar shows generation status.
+- Once complete, the schedule view window appears.
 
-5. **Export Schedules**:
-   - Click the "Export" button to save your schedule
-   - Choose between text (.txt) or Excel (.xlsx) format
-   - Select whether to export all schedules or just the current one
-   - Choose the save location and filename
-   - The exported file will maintain the same format as the input file
+### 5. View, Rank, and Export Schedules
+- Browse schedules using navigation controls.
+- Rank schedules by metrics (e.g., compactness, free days).
+- Export schedules as `.txt`, `.xlsx`, or calendar files (Google/iCal).
+- For large numbers of schedules, only the last 100 are exported to Excel for performance.
 
-**Note**: If you have more than 100 schedules and choose to export to Excel, only the last 100 schedules will be exported for performance reasons.
+---
 
 ## Input/Output Formats
 
-- **Input**: Text file (`.txt`) with course blocks separated by "$$$$".
-- **Output**: 
-  - Text file (`.txt`) with formatted schedule details.
-  - Excel file (`.xlsx`) with styled schedule tables.
+### Input: Course Data File (`.txt`)
+- Each course is separated by `$$$$`
+- Each course block contains:
+  - Course Name
+  - Course Code
+  - Instructor Name
+  - Schedule Details (one or more lines)
+- **Schedule Details Format:**
+  ```
+  <Session Type> <Day>,<Start Time>,<End Time>,<Room Number>,<Building Number>
+  ```
+  - **Session Type**: `L` (Lecture), `T` (Tutorial), `M` (Meeting)
+  - **Day**: `S,1` (Sunday), `S,2` (Monday), ..., `S,5` (Thursday)
+  - **Time**: 24-hour format (e.g., `09:00`)
 
-## Input File Format
-
-The input file should be a text file (`.txt`) with the following format:
-
-1. Each course is separated by `$$$$`
-2. Each course block contains:
-   - Course Name
-   - Course Code
-   - Instructor Name
-   - Schedule Details (one or more lines)
-
-3. Schedule Details Format:
-   ```
-   <Session Type> <Day> <Start Time>,<End Time>,<Room Number>,<Building Number>
-   ```
-   Where:
-   - **Session Type**: 
-     - `L` for Lecture
-     - `T` for Tutorial
-     - `M` for Meeting
-   - **Day**: 
-     - `S,1` for Sunday
-     - `S,2` for Monday
-     - `S,3` for Tuesday
-     - `S,4` for Wednesday
-     - `S,5` for Thursday
-   - **Time**: 24-hour format (e.g., "09:00")
-   - **Room Number**: The room identifier
-   - **Building Number**: The building identifier
-
-### Example Input File:
+#### Example Input File:
 ```
 $$$$
 Linear Algebra
 10101
 Dr. Emmy Noether
-L S,1,09:00,11:00,1001,10 
+L S,1,09:00,11:00,1001,10
 T S,2,13:00,14:00,1002,30
 T S,4,12:00,13:00,1002,32
 $$$$
@@ -175,4 +162,19 @@ M S,1,14:00,15:00,2005,46
 $$$$
 ```
 
-You can find example input files in the `tests/test_files` directory.
+### Output
+- **Text file (`.txt`)**: Human-readable, formatted schedule details.
+- **Excel file (`.xlsx`)**: Styled tables, one sheet per schedule.
+- **Calendar export**: Google Calendar/iCal integration (from schedule view window).
+
+---
+
+## Advanced Features
+
+- **ChoiceFreak Integration**: Fetch course data from the ChoiceFreak global database.
+- **Forbidden/Preferred Slots**: Fine-tune your schedule by blocking or preferring specific times.
+- **Schedule Ranking**: Sort schedules by custom metrics (e.g., compactness, free days).
+- **Export to Calendar**: Export schedules directly to Google Calendar or iCal.
+- **Modern, Modular UI**: Built with reusable components for a seamless experience.
+
+---
