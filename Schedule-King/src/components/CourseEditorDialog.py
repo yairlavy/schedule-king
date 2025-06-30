@@ -78,7 +78,11 @@ class CourseEditorDialog(QDialog):
         
         # Populate the Dropdown with existing courses
         for course in self.all_courses:
-            self.course_combo.addItem(f"{course.name} ({course.course_code})", userData=course)
+            # Limit course name to 50 characters, add '...' if exceeded
+            display_name = course.name
+            if len(display_name) > 40:
+                display_name = display_name[:40] + '...'
+            self.course_combo.addItem(f"{display_name} ({course.course_code})", userData=course)
         
         # Data of the selected course will be loaded when the selection changes
         self.course_combo.currentIndexChanged.connect(self.on_course_selected)
