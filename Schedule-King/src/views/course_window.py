@@ -291,7 +291,7 @@ class CourseWindow(QMainWindow):
                     
                     icon = QIcon(scaled_pixmap)
         except Exception as e:
-            print(f"❌ Error loading icon {icon_path}: {e}")
+            print(f" Error loading icon {icon_path}: {e}")
         
         return icon
 
