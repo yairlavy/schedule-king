@@ -88,13 +88,8 @@ class CourseSelector(QWidget):
                         scaled_pixmap = colored_pixmap
                     
                     icon = QIcon(scaled_pixmap)
-                    print(f"✅ Successfully loaded icon: {icon_path} (size: {size}, color: {color})")
-                else:
-                    print(f"⚠️ Failed to load pixmap from: {icon_path}")
-            else:
-                print(f"⚠️ Icon file not found: {icon_path}")
         except Exception as e:
-            print(f"❌ Error loading icon {icon_path}: {e}")
+            print(f"Error loading icon {icon_path}: {e}")
         
         return icon
 
