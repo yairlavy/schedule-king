@@ -5,6 +5,7 @@ import time
 class CourseFillingWorker(QObject):
     # Signal: emits the filled course object
     courseFilled = pyqtSignal(object)  # you can use Course instead of object if type available
+    fillError = pyqtSignal(str)  # Signal to emit error messages
 
     def __init__(self):
         super().__init__()
@@ -28,6 +29,7 @@ class CourseFillingWorker(QObject):
                     print(f"No filled data found for course code: {course.course_code}")
         except Exception as e:
             print(f"Failed to fill courses: {e}")
+            self.fillError.emit("Failed to fill course(s)")
 
 
     def stop(self):

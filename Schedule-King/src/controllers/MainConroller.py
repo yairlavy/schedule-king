@@ -170,7 +170,12 @@ class MainController:
         if not course.is_detailed:
             self.course_controller.fill_courses([course])
 
-    def on_course_filled(self, filled_course=None):
+    def on_course_filled(self, filled_course=None, error_message=None):
+        if error_message:
+            QMessageBox.critical(self.course_window, "Course Fill Error", "Failed to fill course(s)")
+            self.course_window.courseSelector.course_list.clear_selection()
+            self.course_window.courseSelector.update_selected_courses_panel()
+            return
         self.course_window.courseSelector.update_selected_courses_panel()
         # Only update the tooltip for the filled course if provided
         if filled_course is not None:
