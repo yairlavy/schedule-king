@@ -8,6 +8,7 @@ from src.models.course import Course
 from typing import List, Optional
 from src.models.time_slot import TimeSlot
 from src.services.logger import Logger
+from PyQt5.QtCore import QTimer
 
 class MainController:
     def __init__(self, api: ScheduleAPI, maximize_on_start=True, fullscreen_on_start=False):
@@ -112,7 +113,6 @@ class MainController:
     def on_courses_selected(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None, preferred_slots: Optional[List[TimeSlot]] = None):
         # Handle the event when courses are selected
         if not selected_courses:
-            # Show a warning if no courses are selected
             QMessageBox.warning(
                 self.course_window,
                 "No Courses Selected",
@@ -120,28 +120,43 @@ class MainController:
             )
             return
 
-        # Set the selected courses, forbidden slots, and preferred slots in the course controller
-        forbidden_slots = forbidden_slots or []
-        preferred_slots = preferred_slots or []  
-        self.course_controller.set_selected_courses(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
-    
-        # Make sure any previous schedule generation is stopped if the schedule window exists
-        if self.schedule_window:
-            self.schedule_controller.stop_schedules_generation()
-            self.schedule_controller.next = 1
-        
-        # Initialize the schedule window with the generated schedules
-        self.schedule_window = ScheduleWindow(
-                                            self.schedule_controller, 
-                                            maximize_on_start=self._maximize_on_start, 
-                                            show_progress_on_start=False)
+        # Store what you need for later
+        self._selected_courses = selected_courses
+        self._forbidden_slots = forbidden_slots or []
+        self._preferred_slots = preferred_slots or []
 
-        self.schedule_window.on_back = self.on_navigate_back_to_courses
-        # Hide the course window and show the schedule window
-        self.course_window.hide()
-        self.schedule_window.show()
-        # Generate schedules based on the selected courses, forbidden slots, and preferred slots
-        self.schedule_controller.generate_schedules(selected_courses, forbidden_slots, preferred_slots)  # ← תיקון: העבר preferred_slots
+        # Start checking when they are detailed
+        self.check_if_courses_detailed()
+
+    def check_if_courses_detailed(self, attempts=0):
+        if all(course.is_detailed for course in self._selected_courses) or attempts >= 2:
+            self.course_controller.set_selected_courses(
+                self._selected_courses,
+                self._forbidden_slots,
+                self._preferred_slots
+            )
+
+            if self.schedule_window:
+                self.schedule_controller.stop_schedules_generation()
+                self.schedule_controller.next = 1
+
+            self.schedule_window = ScheduleWindow(
+                self.schedule_controller,
+                maximize_on_start=self._maximize_on_start,
+                show_progress_on_start=False
+            )
+            self.schedule_window.on_back = self.on_navigate_back_to_courses
+            self.course_window.hide()
+            self.schedule_window.show()
+            self.schedule_controller.generate_schedules(
+                self._selected_courses,
+                self._forbidden_slots,
+                self._preferred_slots
+            )
+        else:
+            # Not ready yet, check again in 1 second, incrementing attempts
+            QTimer.singleShot(1000, lambda: self.check_if_courses_detailed(attempts + 1))
+
 
     def on_generate_schedules(self):
         # Generate schedules for the currently selected courses
