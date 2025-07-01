@@ -150,7 +150,9 @@ class CourseList(QWidget):
             f"<b>{course.course_code}</b>: {course.name}",
             f"Category: {course.category}",
             f"Instructor: {course.instructor}",
-            f"Lectures: {len(course.lectures)} | Tirguls: {len(course.tirguls)} | Labs: {len(course.maabadas)}",
+            (f"Lectures: {sum(1 for lec in course.lectures if lec)} | "
+            f"Tirguls: {sum(1 for tir in course.tirguls if tir)} | "
+            f"Labs: {sum(1 for lab in course.maabadas if lab)}"),
         ]
         self._format_slot_groups(course.lectures, "Lecture", "#1976D2", details)
         self._format_slot_groups(course.tirguls, "Tirgul", "#FF9800", details)

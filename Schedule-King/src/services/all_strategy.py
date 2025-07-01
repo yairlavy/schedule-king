@@ -72,12 +72,18 @@ class AllStrategy(IScheduleStrategy):
         # Get current course
         course = self._selected[index]
 
-        # If there are no tirguls or maabadas, use [None] so we can still loop
+        # If there are no lectures, tirguls or maabadas, use [None] so we can still loop
+        lectures  = [lec for lec in course.lectures  if lec]  or [None]
         tirguls = [t for t in course.tirguls if t] or [None]
         maabadas = [m for m in course.maabadas if m] or [None]
-
+        
+        # if all of them are empty, skip this option by advancing the index
+        if not lectures and not tirguls and not maabadas:
+            yield from self._build_valid_combinations(index + 1, current)
+            return
+        
         # Try every possible combination of lecture, tirgul, and maabada
-        for lecture, tirgul, maabada in product(course.lectures, tirguls, maabadas):
+        for lecture, tirgul, maabada in product(lectures, tirguls, maabadas):
             # Combine all timeslots into a flat list
             all_slots = [slot for group in (lecture, tirgul, maabada) if group for slot in group]
 
@@ -94,14 +100,19 @@ class AllStrategy(IScheduleStrategy):
             for slot in all_slots:
                 self._checker.place(slot)
 
+            # so it not crash if any of them is empty
+            lec_list    = lecture  or []
+            tirgul_list = tirgul   or []
+            mabada_list = maabada  or []
+
             # Add current group to the partial solution
             current.append(LectureGroup(
                 course_name=course.name,
                 course_code=course.course_code,
                 instructor=course.instructor,
-                lecture=lecture,
-                tirguls=tirgul,
-                maabadas=maabada
+                lecture=lec_list,
+                tirguls=tirgul_list,
+                maabadas=mabada_list
             ))
 
             # Recursively try to build the rest of the schedule

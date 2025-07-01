@@ -547,20 +547,17 @@ class CourseEditorDialog(QDialog):
             if option["lecture"] or option["tirgul"] or option["maabada"]
         ]
         
-        # Assemble final data, including only non-empty lists for each type
+        # Assemble final data, preserving the structure of each option
         final_lectures_data = []
         final_tirguls_data = []
         final_maabadas_data = []
         
-        # itrate through valid schedule options and collect their data
-        # Only include non-empty lists for lectures, tirguls, and maabadas
+        # For each valid schedule option, append its time slot lists.
+        # This maintains the alignment between lectures, tirguls, and maabadas for each option.
         for option in valid_schedule_options:
-            if option["lecture"]:
-                final_lectures_data.append(option["lecture"])
-            if option["tirgul"]:
-                final_tirguls_data.append(option["tirgul"])
-            if option["maabada"]:
-                final_maabadas_data.append(option["maabada"])
+            final_lectures_data.append(option["lecture"])
+            final_tirguls_data.append(option["tirgul"])
+            final_maabadas_data.append(option["maabada"])
         
         # If a current course exists, update its data
         if self.current_course:
