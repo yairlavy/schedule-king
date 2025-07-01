@@ -483,9 +483,9 @@ def test_accept_successful(dialog, qtbot):
     assert course.tirguls[0][0].start_time.strftime("%H:%M") == "08:00"
     assert course.tirguls[0][0].end_time.strftime("%H:%M") == "09:00"
 
-    assert len(course.lectures) == 0 # No lectures added
-    assert len(course.maabadas) == 0 # No maabadas added
-
+    assert all(len(inner) == 0 for inner in course.lectures) # No lectures added
+    assert all(len(inner) == 0 for inner in course.maabadas) # No maabadas added
+    
     # Test editing an existing course
     dialog.course_combo.setCurrentIndex(1) # Select Math course
     qtbot.wait(get_wait_time())
