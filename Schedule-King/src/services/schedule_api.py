@@ -47,12 +47,16 @@ class ScheduleAPI:
             print(f"Error exporting schedules: {e}.")
 
     @staticmethod
-    def _worker_generate(selected_courses: List[Course], queue: mp.Queue, stop_event: mp.Event, forbidden: Optional[List[TimeSlot]] = None) -> None:
+    def _worker_generate(selected_courses: List[Course], 
+                            queue: mp.Queue,
+                            stop_event: mp.Event,
+                            forbidden: Optional[List[TimeSlot]] = None,
+                            preferred: Optional[List[TimeSlot]] = None) -> None:
         """
         Worker function to process courses in a separate process, sending schedules in variable batch sizes.
         Checks stop_event to gracefully terminate when requested.
         """
-        scheduler = Scheduler(selected_courses, AllStrategy(selected_courses, forbidden))
+        scheduler = Scheduler(selected_courses, AllStrategy(selected_courses, forbidden, preferred))
         
         batch_sizes = [1, 9, 90, 900]
         batch_index = 0
@@ -81,7 +85,10 @@ class ScheduleAPI:
         if not stop_event.is_set():
             queue.put(None)
 
-    def generate_schedules_in_parallel(self, selected_courses: List[Course], forbidden: Optional[List[TimeSlot]] = None) -> List[Schedule]:
+    def generate_schedules_in_parallel(self, 
+                                        selected_courses: List[Course],
+                                        forbidden: Optional[List[TimeSlot]] = None,
+                                        preferred: Optional[List[TimeSlot]] = None) -> List[Schedule]:
         """
         Generate schedules in parallel using multiple processes.
         """
@@ -97,7 +104,7 @@ class ScheduleAPI:
             
         # Start a new process for schedule generation
         self._process_worker = mp.Process(target=self._worker_generate, 
-                                  args=(selected_courses, queue, stop_event, forbidden),
+                                  args=(selected_courses, queue, stop_event, forbidden, preferred),
                                   daemon=True)
         # Store the stop event with the process
         self._process_worker.stop_event = stop_event

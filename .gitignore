@@ -56,3 +56,9 @@ src/testTestingRootWkspc/coverageWorkspace/.coverage
 testTestingRootWkspc
 test_schedule_output.txt
 Schedule-King/.env.local
+credentials.json
+Schedule-King/credentials.json
+Schedule-King/cookie.txt
+Schedule-King/token.pickle
+Schedule-King/.cfreak_cache
+Schedule-King/academic_calendar_cache.json

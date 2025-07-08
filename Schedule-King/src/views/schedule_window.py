@@ -1,8 +1,8 @@
 from PyQt5.QtWidgets import (
     QMainWindow, QVBoxLayout, QWidget, QFileDialog, QMessageBox,
-    QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox
+    QHBoxLayout, QFrame, QPushButton, QSpacerItem, QSizePolicy, QProgressBar, QLabel, QCheckBox, QInputDialog
 )
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QSize, QThread, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QFont, QPixmap
 from src.components.navigator import Navigator
 from src.components.schedule_table import ScheduleTable
@@ -10,11 +10,14 @@ from src.components.schedule_header import ScheduleHeader
 from src.components.schedule_progress import ScheduleProgress
 from src.components.full_size_window import FullSizeWindow
 from src.components.ScheduleMetrics import ScheduleMetrics
+from src.components.loading_overlay import LoadingOverlay
 from src.models.schedule import Schedule
 from src.controllers.ScheduleController import ScheduleController
 from src.components.ranking_controls import RankingControls
+from src.services.schedule_event_maker import ScheduleEventMaker
 from typing import List, Optional
 import os
+from src.components.semester_choice_dialog import SemesterChoiceDialog
 
 class ScheduleWindow(QMainWindow):
     """
@@ -34,7 +37,7 @@ class ScheduleWindow(QMainWindow):
         # Set window properties
         self.setObjectName("ScheduleWindow")
         self.setWindowTitle("Schedule King")
-        icon_path = os.path.join(os.path.dirname(__file__), "../assets/icon.png")
+        icon_path = os.path.join(os.path.dirname(__file__), "../assets/logo.ico")
         self.setWindowIcon(QIcon(icon_path))
         
         # Create main layout
@@ -56,6 +59,9 @@ class ScheduleWindow(QMainWindow):
         self.first_schedule_shown = False
         self.full_size_window = None
         self.on_back = lambda: None  # Default no-op callback for navigation back to course selection
+        
+        # Initialize loading overlay and export worker
+        self.loading_overlay = None
 
         # Create header and metrics components
         # ScheduleHeader components (back_button, title_container, export_controls) are now public attributes
@@ -144,6 +150,35 @@ class ScheduleWindow(QMainWindow):
 
         nav_container.addWidget(self.refresh_button)
 
+        # Add Export to Calendar button
+        self.export_calendar_button = QPushButton()
+        self.export_calendar_button.setObjectName("export_calendar_button")
+        self.export_calendar_button.setFixedSize(36, 36)
+        calendar_icon = QIcon(os.path.join(os.path.dirname(__file__), "../assets/calendar.png"))
+        if not calendar_icon.isNull():
+            self.export_calendar_button.setIcon(calendar_icon)
+            self.export_calendar_button.setIconSize(QSize(22, 22))
+            self.export_calendar_button.setText("")
+            self.export_calendar_button.setStyleSheet("""
+                QPushButton#export_calendar_button {
+                    background: transparent;
+                    border: none;
+                }
+                QPushButton#export_calendar_button:hover {
+                    background: rgba(66, 165, 245, 0.1);
+                    border-radius: 18px;
+                }
+                QPushButton#export_calendar_button:pressed {
+                    background: rgba(66, 165, 245, 0.2);
+                    border-radius: 18px;
+                }
+            """)
+        else:
+            self.export_calendar_button.setText("Export Calendar")
+            self.export_calendar_button.setFont(QFont("Arial", 14))
+
+        nav_container.addWidget(self.export_calendar_button)
+
         # Add dummy spacer to balance progress width
         dummy = QSpacerItem(250, 0, QSizePolicy.Fixed, QSizePolicy.Minimum)
         nav_container.addSpacerItem(dummy)
@@ -173,6 +208,9 @@ class ScheduleWindow(QMainWindow):
         
         # Connect refresh button
         self.refresh_button.clicked.connect(self.on_refresh_button_clicked)
+        
+        # Connect export calendar button
+        self.export_calendar_button.clicked.connect(self.on_export_calendar_clicked)
         
         # Connect controller callbacks
         self.controller.on_schedules_generated = self.on_schedule_generated
@@ -362,3 +400,78 @@ class ScheduleWindow(QMainWindow):
         if 0 <= current_index < self.schedules:
             self.on_schedule_changed(current_index)
         # No else needed, as the button should be disabled if there are no schedules
+
+    def on_export_calendar_clicked(self):
+        """
+        Handle export to calendar button click.
+        Shows loading screen and calls the controller's async export method.
+        """
+        if not self.schedules or self.navigator.current_index >= self.schedules:
+            QMessageBox.warning(self, "No Schedule", "No schedule is currently selected.")
+            return
+        
+        # Use the new modern semester choice dialog
+        semester, ok = SemesterChoiceDialog.get_semester(self)
+        if not ok or not semester:
+            return  # User cancelled
+        
+        # Disable the export button to prevent multiple clicks
+        self.export_calendar_button.setEnabled(False)
+        
+        # Show loading overlay
+        self.show_loading_overlay()
+        # Use the controller's async export method, pass semester
+        self.controller.export_to_calendar_async(self.current_schedule, semester, self.on_export_finished)
+        
+    def show_loading_overlay(self):
+        """Show the loading overlay"""
+        # Always create a new overlay
+        if self.loading_overlay is not None:
+            self.loading_overlay.deleteLater()
+            self.loading_overlay = None
+
+        self.loading_overlay = LoadingOverlay(self, "Exporting to Calendar...")
+        self.loading_overlay.cancelled.connect(self.on_export_cancelled)
+        window_size = self.size()
+        self.loading_overlay.setGeometry(0, 0, window_size.width(), window_size.height())
+        self.loading_overlay.show()
+        self.loading_overlay.raise_()
+
+    def hide_loading_overlay(self):
+        """Hide the loading overlay"""
+        if self.loading_overlay:
+            self.loading_overlay.stop_spinner()
+            self.loading_overlay.hide()
+            self.loading_overlay.deleteLater()
+            self.loading_overlay = None
+            
+    def on_export_finished(self, success: bool, message: str):
+        """Handle export completion"""
+        # Hide loading overlay
+        self.hide_loading_overlay()
+        # Re-enable the export button
+        self.export_calendar_button.setEnabled(True)
+        # Show result message
+        if success:
+            QMessageBox.information(self, "Success", message)
+        else:
+            QMessageBox.critical(self, "Error", message)
+            
+    def resizeEvent(self, event):
+        """Handle window resize events"""
+        super().resizeEvent(event)
+        # Update loading overlay size if it exists and is visible
+        if self.loading_overlay and self.loading_overlay.isVisible():
+            central_size = self.central_widget.size()
+            self.loading_overlay.setGeometry(0, 0, central_size.width(), central_size.height())
+
+    def on_export_cancelled(self):
+        """Handle export cancellation"""
+        # Cancel the export operation
+        self.controller.cancel_calendar_export()
+        # Hide loading overlay
+        self.hide_loading_overlay()
+        # Re-enable the export button
+        self.export_calendar_button.setEnabled(True)
+        # Show cancellation message
+        QMessageBox.information(self, "Cancelled", "Calendar export was cancelled.")

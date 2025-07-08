@@ -14,6 +14,7 @@ class SearchBar(QWidget):
         
         # Create the search input field
         self.search_input = QLineEdit()
+        self.search_input.setObjectName("course_search_bar")
         self.search_input.setPlaceholderText("Search courses...")  # Set placeholder text
         self.search_input.setStyleSheet("""
             QLineEdit {

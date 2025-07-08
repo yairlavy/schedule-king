@@ -37,6 +37,7 @@ class ScheduleProgress(QWidget):
         # Add components to layout
         layout.addWidget(self.progress_label)
         layout.addWidget(self.progress_bar)
+        self.update_progress(0, 0)  # Initialize with no progress
         
     def update_progress(self, current: int, estimated: int):
         """
@@ -48,7 +49,12 @@ class ScheduleProgress(QWidget):
         self.progress_bar.setVisible(True)
         
         try:
-            if estimated > 0:
+            if current == 0:
+                # No schedules generated yet, show indeterminate loading
+                self.progress_bar.setMaximum(0)
+                self.progress_bar.setValue(0)
+                self.progress_label.setText("Generating schedules...")
+            elif estimated > 0:
                 # We have an estimated total - show determinate progress
                 self.progress_bar.setMaximum(estimated)
                 self.progress_bar.setValue(current)

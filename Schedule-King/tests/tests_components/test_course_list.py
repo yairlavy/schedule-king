@@ -18,11 +18,11 @@ class TestCourseList(unittest.TestCase):
         self.course_list = CourseList()
         # Create some test courses with correct day values
         self.course1 = Course("Introduction to Programming", "CS101", "Dr. Smith", 
-                            [TimeSlot("2", "09:00", "10:30", "101", "BuildingA")])
+                             lectures= [TimeSlot("2", "09:00", "10:30", "101", "BuildingA")])
         self.course2 = Course("Data Structures", "CS201", "Dr. Johnson",
-                            [TimeSlot("3", "11:00", "12:30", "202", "BuildingB")])
+                             lectures= [TimeSlot("3", "11:00", "12:30", "202", "BuildingB")])
         self.course3 = Course("Algorithms", "CS301", "Dr. Brown",
-                            [TimeSlot("4", "13:00", "14:30", "303", "BuildingC")])
+                            lectures =  [TimeSlot("4", "13:00", "14:30", "303", "BuildingC")])
         
         # Populate the course list
         self.course_list.populate_courses([self.course1, self.course2, self.course3])

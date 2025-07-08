@@ -30,8 +30,8 @@ def test_initial_setup(table):
 
     # Check row count and labels
     assert table.rowCount() == 12
-    assert table.verticalHeaderItem(0).text() == "8:00-9:00"
-    assert table.verticalHeaderItem(11).text() == "19:00-20:00"
+    assert table.verticalHeaderItem(0).text() == "08:00 - 09:00"
+    assert table.verticalHeaderItem(11).text() == "19:00 - 20:00"
 
     # Check selection and edit modes
     assert table.selectionMode() == TimeConstraintTable.NoSelection
@@ -49,7 +49,7 @@ def test_set_forbidden_cell(table):
     # Check if cell is marked as forbidden
     assert (0, 0) in table.forbidden
     item = table.item(0, 0)
-    assert item is not None
+    assert table.item(0, 0).text() == ""
     assert item.background().color().alpha() == 160  # Check transparency
     assert item.textAlignment() == Qt.AlignCenter
 
@@ -65,8 +65,8 @@ def test_clear_constraints(table):
     table.clear_constraints()
     QTest.qWait(100)  # Give Qt time to process
     assert len(table.forbidden) == 0
-    assert table.item(0, 0) is None
-    assert table.item(1, 1) is None
+    assert table.item(0, 0).text() == ""
+    assert table.item(1, 1).text() == ""
 
 def test_get_forbidden_timeslots(table):
     """Test converting forbidden cells to TimeSlot objects"""

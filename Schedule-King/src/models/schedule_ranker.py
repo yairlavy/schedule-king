@@ -17,7 +17,8 @@ class ScheduleRanker:
             Metric.GAP_COUNT: GradeSorter(20),         # Upper bound for gap count is 20
             Metric.TOTAL_GAP_TIME: GradeSorter(64),    # Upper bound for total gap time in helf of hours
             Metric.AVG_START_TIME: GradeSorter(1440),  # Upper bound for average start time in minutes (24*60)
-            Metric.AVG_END_TIME: GradeSorter(1440)     # Upper bound for average end time in minutes (24*60)
+            Metric.AVG_END_TIME: GradeSorter(1440),     # Upper bound for average end time in minutes (24*60)
+            Metric.PREFERENCE_SCORE: GradeSorter(1000)  # Arbitrary upper bound for preference score
         }
         # Current user preference for sorting - None means insertion order
         self.current_preference: Optional[Preference] = None
@@ -50,6 +51,7 @@ class ScheduleRanker:
         # Average times are in 700 format float, convert to minutes for grading
         self.sorters[Metric.AVG_START_TIME].insert(item, Schedule.time_format_to_minutes(int(schedule.avg_start_time)))
         self.sorters[Metric.AVG_END_TIME].insert(item, Schedule.time_format_to_minutes(int(schedule.avg_end_time)))
+        self.sorters[Metric.PREFERENCE_SCORE].insert(item, int(schedule.preference_score))
 
 
     def add_batch(self, batch: List[Schedule]):

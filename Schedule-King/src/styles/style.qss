@@ -26,28 +26,30 @@ QPushButton:pressed {
 }
 
 /* Style for the Submit Selection button */
-QPushButton[text="Submit Selection"] {
+/* TODO: Set objectName to 'submit_selection_button' in code for this style to apply */
+QPushButton#submit_selection_button {
     background-color: #3F51B5;  /* Indigo */
     font-size: 12pt;
     font-weight: bold;
 }
-QPushButton[text="Submit Selection"]:hover {
+QPushButton#submit_selection_button:hover {
     background-color: #303F9F;
 }
-QPushButton[text="Submit Selection"]:pressed {
+QPushButton#submit_selection_button:pressed {
     background-color: #1A237E;
 }
 
 /* Style for the Clear All button */
-QPushButton[text="Clear All"] {
+/* TODO: Set objectName to 'clear_all_button' in code for this style to apply */
+QPushButton#clear_all_button {
     background-color: #F44336;  /* Red */
     font-size: 12pt;
     font-weight: bold;
 }
-QPushButton[text="Clear All"]:hover {
+QPushButton#clear_all_button:hover {
     background-color: #D32F2F;
 }
-QPushButton[text="Clear All"]:pressed {
+QPushButton#clear_all_button:pressed {
     background-color: #B71C1C;
 }
 
@@ -562,4 +564,213 @@ QFrame#ScheduleMetrics QLabel {
 [theme="dark"] QFrame#ScheduleMetrics QLabel {
     color: #E0E0E0; /* Lighter text color for better contrast in dark theme */
     font-size: 15px; /* Adjusted font size for metric labels */
+}
+
+/* Export to Calendar button */
+QPushButton#export_calendar_button {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #42A5F5, stop:1 #1E88E5);  /* Blue gradient */
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 36px;
+    min-height: 36px;
+    icon-size: 22px 22px;
+    text-align: center;
+}
+
+/* Only apply these styles when the button has text (fallback case) */
+/* Qt QSS does not support :not() or :has(), so this selector is removed. If you need a fallback, set a different objectName in code. */
+
+QPushButton#export_calendar_button:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1E88E5, stop:1 #1565C0);  /* Darker blue gradient */
+}
+
+QPushButton#export_calendar_button:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);  /* Darkest blue gradient */
+    padding-top: 2px;
+}
+
+QPushButton#export_calendar_button:disabled {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #B0BEC5, stop:1 #90A4AE);  /* Gray gradient */
+    color: #ECEFF1;
+}
+
+/* Dark theme support for export calendar button */
+[theme="dark"] QPushButton#export_calendar_button {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #1565C0, stop:1 #0D47A1);  /* Darker blue gradient */
+    color: #E3F2FD;
+}
+
+[theme="dark"] QPushButton#export_calendar_button:hover {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #0D47A1, stop:1 #0D47A1);  /* Darkest blue gradient */
+}
+
+[theme="dark"] QPushButton#export_calendar_button:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #0D47A1, stop:1 #0D47A1);  /* Darkest blue gradient */
+}
+
+[theme="dark"] QPushButton#export_calendar_button:disabled {
+    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, 
+                              stop:0 #455A64, stop:1 #37474F);  /* Dark gray gradient */
+    color: #90A4AE;
+}
+
+/* ChoiceFreak Loader Dialog Styles */
+QDialog#ChoiceFreakLoaderDialog {
+    background-color: #FFFFFF;
+    border: 2px solid #42A5F5;
+    border-radius: 16px;
+    padding: 24px 32px;
+    min-width: 350px;
+    min-height: 200px;
+}
+
+QComboBox#university_combo, QComboBox#period_combo {
+    background-color: #E3F2FD;
+    border: 1.5px solid #90CAF9;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 15px;
+    color: #1565C0;
+    min-width: 120px;
+}
+QComboBox#university_combo:focus, QComboBox#period_combo:focus {
+    border-color: #42A5F5;
+    background-color: #F0F7FF;
+}
+QComboBox#university_combo::drop-down, QComboBox#period_combo::drop-down {
+    border: none;
+    width: 22px;
+}
+QComboBox#university_combo::down-arrow, QComboBox#period_combo::down-arrow {
+    image: url(../assets/down-arrow.png);
+    width: 14px;
+    height: 14px;
+}
+
+/* ComboBox Dropdown List Styling */
+QComboBox#university_combo QAbstractItemView, QComboBox#period_combo QAbstractItemView {
+    background-color: #F0F7FF;
+    border: 1.5px solid #90CAF9;
+    border-radius: 8px;
+    padding: 4px 0;
+    font-size: 15px;
+    color: #1565C0;
+    selection-background-color: #42A5F5;
+    selection-color: white;
+}
+QComboBox#university_combo QAbstractItemView::item, QComboBox#period_combo QAbstractItemView::item {
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 2px 6px;
+}
+QComboBox#university_combo QAbstractItemView::item:selected, QComboBox#period_combo QAbstractItemView::item:selected {
+    background-color: #42A5F5;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#university_combo QAbstractItemView::item:hover, QComboBox#period_combo QAbstractItemView::item:hover {
+    background-color: #90CAF9;
+    color: #1565C0;
+}
+
+QDialogButtonBox#choicefreak_button_box {
+    qproperty-centerButtons: true;
+    padding-top: 18px;
+}
+QDialogButtonBox#choicefreak_button_box QPushButton {
+    background-color: #42A5F5;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 24px;
+    font-size: 15px;
+    font-weight: 500;
+    min-width: 90px;
+    margin: 0 8px;
+}
+QDialogButtonBox#choicefreak_button_box QPushButton:hover {
+    background-color: #1976D2;
+}
+QDialogButtonBox#choicefreak_button_box QPushButton:pressed {
+    background-color: #1565C0;
+}
+
+QLabel {
+    font-size: 15px;
+    color: #1976D2;
+    font-weight: 500;
+}
+
+/* Course Filter UI Styles */
+QLineEdit#course_search_bar {
+    background-color: #F0F7FF;
+    border: 2px solid #90CAF9;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: #1565C0;
+    min-width: 220px;
+    margin-bottom: 8px;
+}
+QLineEdit#course_search_bar:focus {
+    border-color: #42A5F5;
+    background-color: #FFFFFF;
+}
+
+QComboBox#category_filter {
+    background-color: #E3F2FD;
+    border: 2px solid #90CAF9;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-size: 15px;
+    color: #1565C0;
+    min-width: 160px;
+    margin-bottom: 8px;
+}
+QComboBox#category_filter:focus {
+    border-color: #42A5F5;
+    background-color: #F0F7FF;
+}
+QComboBox#category_filter::drop-down {
+    border: none;
+    width: 22px;
+}
+QComboBox#category_filter::down-arrow {
+    image: url(../assets/down-arrow.png);
+    width: 14px;
+    height: 14px;
+}
+QComboBox#category_filter QAbstractItemView {
+    background-color: #F0F7FF;
+    border: 1.5px solid #90CAF9;
+    border-radius: 8px;
+    padding: 4px 0;
+    font-size: 15px;
+    color: #1565C0;
+    selection-background-color: #42A5F5;
+    selection-color: white;
+}
+QComboBox#category_filter QAbstractItemView::item {
+    padding: 8px 16px;
+    border-radius: 6px;
+    margin: 2px 6px;
+}
+QComboBox#category_filter QAbstractItemView::item:selected {
+    background-color: #42A5F5;
+    color: white;
+    font-weight: bold;
+}
+QComboBox#category_filter QAbstractItemView::item:hover {
+    background-color: #90CAF9;
+    color: #1565C0;
 }

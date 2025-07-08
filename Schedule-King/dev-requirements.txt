@@ -5,3 +5,4 @@ flake8
 mypy
 python-dotenv
 PyQt5
+google-api-python-client

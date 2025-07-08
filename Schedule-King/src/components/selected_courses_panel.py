@@ -45,7 +45,7 @@ class SelectedCoursesPanel(QWidget):
     def update_selection(self, selected_courses: List[Course]):
         if selected_courses:
             course_lines = [
-                f"<b>{course.course_code}</b>: {course.name} <i>({course.instructor})</i>"
+                f"<b>{course.course_code}</b>: {course.name} <i>({course.instructor if course.is_detailed else 'loading...'})</i>"
                 for course in selected_courses
             ]
             self.label.setText("<br><br>".join(course_lines))

@@ -1,10 +1,13 @@
 from PyQt5.QtWidgets import (
     QVBoxLayout, QPushButton, QWidget, QHBoxLayout,
-    QSizePolicy, QLabel, QFrame, QMessageBox, QProgressDialog
+    QLabel, QMessageBox, QProgressDialog, QSizePolicy
 )
-from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QFont, QPixmap
+from PyQt5.QtCore import pyqtSignal, Qt, QSize
+from PyQt5.QtGui import QIcon, QPixmap, QPainter, QBrush, QColor
+from PyQt5.QtGui import QPainter, QBrush, QColor
+
 from typing import List
+import os
 from src.models.course import Course
 from src.components.course_list import CourseList
 from src.components.selected_courses_panel import SelectedCoursesPanel
@@ -45,6 +48,66 @@ class CourseSelector(QWidget):
         
         # Initialize submit button state
         self._update_submit_button_state([])
+
+    def _load_icon_safely(self, icon_path: str, size: tuple = (32, 32), color: str = None) -> QIcon:
+        """
+        Safely load an icon from the given path. Returns empty icon if loading fails.
+        
+        Args:
+            icon_path (str): Path to the icon file
+            size (tuple): Desired icon size (width, height)
+            color (str): Optional color to apply to the icon (e.g., "white", "#FFFFFF")
+            
+        Returns:
+            QIcon: Loaded icon or empty icon if failed
+        """
+        icon = QIcon()
+        try:
+            if os.path.exists(icon_path):
+                pixmap = QPixmap(icon_path)
+                if not pixmap.isNull():
+                    # Scale the pixmap to desired size while maintaining aspect ratio
+                    scaled_pixmap = pixmap.scaled(
+                        size[0], size[1], 
+                        Qt.KeepAspectRatio, 
+                        Qt.SmoothTransformation
+                    )
+                    
+                    # Apply color if specified
+                    if color:
+                        colored_pixmap = QPixmap(scaled_pixmap.size())
+                        colored_pixmap.fill(Qt.transparent)
+                        
+                        painter = QPainter(colored_pixmap)
+                        painter.setCompositionMode(QPainter.CompositionMode_SourceOver)
+                        painter.drawPixmap(0, 0, scaled_pixmap)
+                        painter.setCompositionMode(QPainter.CompositionMode_SourceIn)
+                        painter.fillRect(colored_pixmap.rect(), QColor(color))
+                        painter.end()
+                        
+                        scaled_pixmap = colored_pixmap
+                    
+                    icon = QIcon(scaled_pixmap)
+        except Exception as e:
+            print(f"Error loading icon {icon_path}: {e}")
+        
+        return icon
+
+    def _get_icon_path(self, icon_name: str) -> str:
+        """
+        Get the full path to an icon file in the assets directory.
+        
+        Args:
+            icon_name (str): Name of the icon file
+            
+        Returns:
+            str: Full path to the icon file
+        """
+        # Get the project root directory (assuming this file is in src/components/)
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.dirname(os.path.dirname(current_dir))
+        assets_dir = os.path.join(project_root, "src", "assets")
+        return os.path.join(assets_dir, icon_name)
         
     def _setup_header(self):
         """Setup header components including title and instruction labels."""
@@ -86,32 +149,71 @@ class CourseSelector(QWidget):
 
         # === Course List ===
         self.course_list = CourseList()
+        # Make CourseList larger
+        self.course_list.setMinimumSize(700, 250)  # Increased minimum size
+        self.course_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.course_list.selectionChanged.connect(self._handle_selection_changed)
-        self.split_layout.addWidget(self.course_list, 4)
+        self.split_layout.addWidget(self.course_list, 4)  # Give more space ratio
 
         # === Selected Courses Panel ===
         self.selected_panel = SelectedCoursesPanel()
-        self.split_layout.addWidget(self.selected_panel, 2)
-        
+        self.selected_panel.setMinimumSize(250, 250)  # Also increase minimum size
+        self.split_layout.addWidget(self.selected_panel, 2)     
     def _setup_buttons(self):
-        """Setup action buttons."""
+        """Setup action buttons with icons."""
         # === Buttons Layout ===
         self.button_layout = QHBoxLayout()
         self.button_layout.setSpacing(15)
         self.button_layout.setAlignment(Qt.AlignCenter)
 
-        # Clear All button
-        self.clear_button = QPushButton("Clear All")
+        # Clear All button with icon
+        clear_icon_path = self._get_icon_path("clear all.png")
+        clear_icon = self._load_icon_safely(clear_icon_path, (40,40), "white")
+        
+        if not clear_icon.isNull():
+            # Icon loaded successfully - use only icon, no text
+            self.clear_button = QPushButton()
+            self.clear_button.setIcon(clear_icon)
+            self.clear_button.setIconSize(QSize(40,40))
+            self.clear_button.setToolTip("Clear All")  # Tooltip instead of text
+        else:
+            # Icon failed to load - use only text
+            self.clear_button = QPushButton("Clear All")
+            
         self.clear_button.setCursor(Qt.PointingHandCursor)
         self.clear_button.setStyleSheet(red_button_style())
 
-        # Generate Schedules button
-        self.submit_button = QPushButton("Generate Schedules")
+        # Generate Schedules button with icon
+        generate_icon_path = self._get_icon_path("generate.png") 
+        generate_icon = self._load_icon_safely(generate_icon_path, (40,40), "white")
+        
+        if not generate_icon.isNull():
+            # Icon loaded successfully - use only icon, no text
+            self.submit_button = QPushButton()
+            self.submit_button.setIcon(generate_icon)
+            self.submit_button.setIconSize(QSize(40,40))
+            self.submit_button.setToolTip("Generate Schedules")  # Tooltip instead of text
+        else:
+            # Icon failed to load - use only text
+            self.submit_button = QPushButton("Generate Schedules")
+            
         self.submit_button.setCursor(Qt.PointingHandCursor)
         self.submit_button.setStyleSheet(green_button_style())
 
-        # Load Courses button
-        self.load_button = QPushButton("Load Courses")
+        # Load Courses button with icon
+        load_icon_path = self._get_icon_path("load.png")
+        load_icon = self._load_icon_safely(load_icon_path, (40,40), "white")
+        
+        if not load_icon.isNull():
+            # Icon loaded successfully - use only icon, no text
+            self.load_button = QPushButton()
+            self.load_button.setIcon(load_icon)
+            self.load_button.setIconSize(QSize(40,40))
+            self.load_button.setToolTip("Load Courses")  # Tooltip instead of text
+        else:
+            # Icon failed to load - use only text
+            self.load_button = QPushButton("Load Courses")
+            
         self.load_button.setCursor(Qt.PointingHandCursor)
         self.load_button.setStyleSheet(blue_button_style())
 
@@ -133,16 +235,16 @@ class CourseSelector(QWidget):
         footer.setStyleSheet(footer_label_style())
         self.layout.addWidget(footer)
 
-    def show_progress_bar(self):
+    def show_progress_bar(self, text="Generating schedules...", title="Generating"):
         """Show progress bar while schedules are generating."""
         if self.progress_bar:
             self.progress_bar.close()
-        self.progress_bar = QProgressDialog("Generating schedules...", "Cancel", 0, 0, self)
+        self.progress_bar = QProgressDialog(text, "Cancel", 0, 0, self)
         self.progress_bar.setWindowModality(Qt.WindowModal)
         self.progress_bar.setMinimumDuration(0)
         self.progress_bar.setAutoClose(False)
         self.progress_bar.setAutoReset(False)
-        self.progress_bar.setWindowTitle("Generating")
+        self.progress_bar.setWindowTitle(title)
         self.progress_bar.show()
 
     def close_progress_bar(self):
@@ -156,6 +258,14 @@ class CourseSelector(QWidget):
         self.course_list.populate_courses(courses)
         self.title_label.setText(f"Available Courses ({len(courses)} total)")
 
+    def get_all_courses(self) -> List[Course]:
+        """
+        Returns the current list of all available courses.
+        This is needed by CourseWindow for the CourseEditorDialog.
+        """
+        # Assuming course_list stores all available courses after population
+        return self.course_list.courses 
+    
     def _handle_search(self, text: str):
         """Filter courses based on search text."""
         self.course_list.filter_courses(text)
@@ -171,6 +281,7 @@ class CourseSelector(QWidget):
             return
 
         # Update selected panel and UI
+        
         self.selected_panel.update_selection(selected_courses)
         self.title_label.setText(f"Available Courses ({len(selected_courses)} selected)")
         self._update_submit_button_state(selected_courses)
@@ -188,7 +299,6 @@ class CourseSelector(QWidget):
         if len(selected) > self.MAX_COURSES:
             QMessageBox.warning(self, "Course Limit", f"You cannot select more than {self.MAX_COURSES} courses.")
             return
-        self.show_progress_bar()
         self.coursesSubmitted.emit(selected)
 
     def _handle_clear(self):
@@ -226,3 +336,9 @@ class CourseSelector(QWidget):
         # Refresh the list to reflect selection
         self.course_list._update_course_list(self.course_list.courses)
         self._handle_selection_changed(self.get_selected_courses())
+
+    
+    def update_selected_courses_panel(self):
+        """Re-render the selected courses in the SelectedCoursesPanel."""
+        selected_courses = self.get_selected_courses()
+        self.selected_panel.update_selection(selected_courses)

@@ -6,6 +6,8 @@ from PyQt5.QtCore import QTimer
 from src.models.schedule_ranker import ScheduleRanker
 from src.models.time_slot import TimeSlot
 from src.models.Preference import Preference, Metric
+from PyQt5.QtWidgets import QMessageBox
+from src.controllers.calendar_export_worker import CalendarExportWorker
 
 class ScheduleController:
     def __init__(self, api: ScheduleAPI):
@@ -22,8 +24,14 @@ class ScheduleController:
         self.queue = None  # Queue for generated schedules
         self.generation_active = False  # Flag to indicate if generation is active
         self.estimated_total = -1  # Estimated total number of schedules (optional, if known)
+        self.event_maker = None  
+        self.calendar_export_worker = None  # Keep reference to prevent garbage collection
 
-    def generate_schedules(self, selected_courses: List[Course], forbidden_slots: Optional[List[TimeSlot]] = None) -> List[Schedule]:
+    def generate_schedules(self, selected_courses: List[Course],
+                            forbidden_slots: Optional[List[TimeSlot]] = None,
+                            preferred_slots: Optional[List[TimeSlot]] = None
+
+        ) -> List[Schedule]:
         """
         Generates possible schedules using the API and saves them.
         Starts a timer to periodically check for new schedules and report progress.
@@ -39,7 +47,7 @@ class ScheduleController:
         self.next = 1  # Reset notification threshold
 
         # Start the schedule generation in parallel (returns a queue)
-        self.queue = self.api.generate_schedules_in_parallel(selected_courses, forbidden_slots)
+        self.queue = self.api.generate_schedules_in_parallel(selected_courses, forbidden_slots, preferred_slots)
 
         # Attempt to get estimated schedules count if supported by the API
         self.estimated_total = self.api.get_estimated_schedules_count(selected_courses)
@@ -224,3 +232,35 @@ class ScheduleController:
             raise ValueError("No schedules provided for export. Please specify schedules to export.")
         # Use the API's export method to save the schedules to the specified file
         self.api.export(schedules_to_export, file_path)
+
+    def export_to_calendar_async(self, schedule, semester=None , on_finished=None):
+        """
+        Exports a given schedule to Google Calendar in a background thread.
+        Args:
+            schedule: The Schedule object to export.
+            on_finished: Optional callback function(success: bool, message: str) to call when export completes.
+        """
+        # Clean up any existing worker
+        if self.calendar_export_worker:
+            self.calendar_export_worker.deleteLater()
+        # Create and start the export worker (no controller reference needed)
+        self.calendar_export_worker = CalendarExportWorker(schedule,semester=semester)
+        if on_finished:
+            self.calendar_export_worker.export_finished.connect(on_finished)
+        self.calendar_export_worker.start()
+        
+    def cancel_calendar_export(self):
+        """
+        Cancels the current calendar export operation gracefully.
+        """
+        if self.calendar_export_worker and self.calendar_export_worker.isRunning():
+            # Request the worker to stop gracefully
+            self.calendar_export_worker.requestInterruption()
+            # Wait for the worker to finish (with timeout)
+            if not self.calendar_export_worker.wait(3000):  # Wait up to 3 seconds
+                # Force terminate if it doesn't stop gracefully
+                self.calendar_export_worker.terminate()
+                self.calendar_export_worker.wait(1000)  # Wait for termination
+            # Clean up the worker
+            self.calendar_export_worker.deleteLater()
+            self.calendar_export_worker = None
